@@ -21,10 +21,10 @@ const styles = StyleSheet.create({
     },
     heading: {
         fontSize: 25,
-        fontFamily: FONTS.light,
+        fontFamily: FONTS.montserrat.extraLight,
     },
     text: {
         fontSize: 15,
-        fontFamily: FONTS.light,
+        fontFamily: FONTS.manrope.extraLight,
     },
 })

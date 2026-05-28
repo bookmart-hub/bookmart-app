@@ -4,6 +4,9 @@ export const COLORS = {
 
   background: '#F7F9F6',
 
+  black: '#000000',
+  white: '#FFFFFF',
+
   text: '#222222',
   textMuted: '#6B6B6B',
 

@@ -6,9 +6,35 @@ export const fontAssets = {
   'Manrope-SemiBold': require('../assets/fonts/Manrope-SemiBold.ttf'),
   'Manrope-Bold': require('../assets/fonts/Manrope-Bold.ttf'),
   'Manrope-ExtraBold': require('../assets/fonts/Manrope-ExtraBold.ttf'),
+  'Montserrat-ExtraLight': require('../assets/fonts/Montserrat-ExtraLight.ttf'),
+  'Montserrat-Light': require('../assets/fonts/Montserrat-Light.ttf'),
+  'Montserrat-Regular': require('../assets/fonts/Montserrat-Regular.ttf'),
+  'Montserrat-Medium': require('../assets/fonts/Montserrat-Medium.ttf'),
+  'Montserrat-SemiBold': require('../assets/fonts/Montserrat-SemiBold.ttf'),
+  'Montserrat-Bold': require('../assets/fonts/Montserrat-Bold.ttf'),
+  'Montserrat-ExtraBold': require('../assets/fonts/Montserrat-ExtraBold.ttf'),
 };
 
 export const FONTS = {
+  manrope: {
+    extraLight: 'Manrope-ExtraLight',
+    light: 'Manrope-Light',
+    regular: 'Manrope-Regular',
+    medium: 'Manrope-Medium',
+    semibold: 'Manrope-SemiBold',
+    bold: 'Manrope-Bold',
+    extraBold: 'Manrope-ExtraBold',
+  },
+  montserrat: {
+    extraLight: 'Montserrat-ExtraLight',
+    light: 'Montserrat-Light',
+    regular: 'Montserrat-Regular',
+    medium: 'Montserrat-Medium',
+    semibold: 'Montserrat-SemiBold',
+    bold: 'Montserrat-Bold',
+    extraBold: 'Montserrat-ExtraBold',
+  },
+  // Backward compatibility flat keys pointing to Manrope
   extraLight: 'Manrope-ExtraLight',
   light: 'Manrope-Light',
   regular: 'Manrope-Regular',
