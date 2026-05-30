@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   baseText: {
     fontSize: 16,
-    fontFamily: FONTS.manrope.semibold,
+    fontFamily: FONTS.montserrat.semibold,
     textAlign: 'center',
   },
   primaryText: {

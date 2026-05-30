@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     StyleSheet,
     Text,
@@ -11,7 +11,7 @@ import {
     ToastAndroid, // 1. Imported ToastAndroid
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Path } from 'react-native-svg';
 import { FontAwesome } from '@expo/vector-icons';
@@ -58,6 +58,25 @@ const LoginScreen: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [loadingText, setLoadingText] = useState('Signing in');
+
+    useEffect(() => {
+        if (!isLoading) return;
+
+        let count = 0;
+
+        const interval = setInterval(() => {
+            count = (count + 1) % 4;
+
+            setLoadingText(`Signing in${'.'.repeat(count)}`);
+        }, 400);
+
+        return () => {
+            clearInterval(interval)
+            setEmail("")
+            setPassword("")
+        };
+    }, [isLoading]);
 
     // Helper function to trigger platform-appropriate notifications
     const showToastOrAlert = (message: string) => {
@@ -134,7 +153,6 @@ const LoginScreen: React.FC = () => {
                             onChangeText={setEmail}
                             keyboardType="email-address"
                             autoComplete="email"
-                        // Removed error prop so the red message disappears
                         />
 
                         <Input
@@ -143,12 +161,11 @@ const LoginScreen: React.FC = () => {
                             onChangeText={setPassword}
                             isPassword={true}
                             autoComplete="password"
-                        // Removed error prop so the red message disappears
                         />
 
                         {/* Forget Password */}
                         <TouchableOpacity
-                            onPress={() => { }}
+                            onPress={() => { navigation.navigate('ForgotPassScreen' as any) }}
                             activeOpacity={0.7}
                             style={styles.forgotPasswordContainer}
                         >
@@ -158,11 +175,18 @@ const LoginScreen: React.FC = () => {
 
                     {/* Action Button */}
                     <View style={styles.buttonContainer}>
-                        <Button
-                            title="Sign In"
-                            onPress={handleSignIn}
-                            loading={isLoading}
-                        />
+                        {isLoading ? (
+                            <View style={styles.loadingContainer}>
+                                <Text style={styles.loadingText}>
+                                    {loadingText}
+                                </Text>
+                            </View>
+                        ) : (
+                            <Button
+                                title="Sign In"
+                                onPress={handleSignIn}
+                            />
+                        )}
                     </View>
 
                     {/* OR Divider */}
@@ -253,6 +277,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.black,
+        textDecorationLine: 'underline',
     },
     buttonContainer: {
         width: '100%',
@@ -292,6 +317,20 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    loadingContainer: {
+        height: 56,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: COLORS.white,
+        borderRadius: 28,
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy,
+    },
+    loadingText: {
+        fontSize: 16,
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.primary,
     },
     footerContainer: {
         alignItems: 'center',

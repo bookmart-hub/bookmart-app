@@ -8,7 +8,10 @@ const Stack = createNativeStackNavigator();
 export default function RootNavigator() {
     return (
         <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Navigator screenOptions={{
+                headerShown: false,
+                // animation: 'default',
+            }}>
                 <Stack.Screen name="Auth" component={AuthNavigator} />
                 <Stack.Screen name="Tab" component={TabNavigator} />
             </Stack.Navigator>

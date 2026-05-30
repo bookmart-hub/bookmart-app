@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,7 +8,6 @@ import {
   Platform,
   Alert,
   ToastAndroid,
-  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -55,10 +54,6 @@ const FacebookIcon = () => (
   </View>
 );
 
-// Apple black logo icon component
-const AppleIcon = () => (
-  <FontAwesome name="apple" size={20} color={COLORS.black} />
-);
 
 const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<RegisterScreenNavigationProp>();
@@ -68,6 +63,27 @@ const RegisterScreen: React.FC = () => {
   const [password, setPassword] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState('Signing up');
+
+  useEffect(() => {
+    if (!isLoading) return;
+
+    let count = 0;
+
+    const interval = setInterval(() => {
+      count = (count + 1) % 4;
+
+      setLoadingText(`Signing up${'.'.repeat(count)}`);
+    }, 400);
+
+    return () => {
+      clearInterval(interval)
+      setUsername("")
+      setEmail("")
+      setPassword("")
+      setAcceptedTerms(false);
+    };
+  }, [isLoading]);
 
   // Helper function to trigger platform-appropriate notifications
   const showToastOrAlert = (message: string) => {
@@ -135,16 +151,6 @@ const RegisterScreen: React.FC = () => {
     }, 1500);
   };
 
-  const handleSocialLogin = (platform: 'Google' | 'Facebook' | 'Apple') => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      Alert.alert(`${platform} Sign Up`, `Successfully signed up with ${platform}.`, [
-        { text: 'Continue', onPress: () => navigation.navigate('Tab' as any) },
-      ]);
-    }, 1000);
-  };
-
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom', 'left', 'right']}>
       <KeyboardAvoidingView
@@ -205,7 +211,7 @@ const RegisterScreen: React.FC = () => {
           {/* OR Divider */}
           <View style={styles.dividerContainer}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>Or sign in with</Text>
+            <Text style={styles.dividerText}>OR</Text>
             <View style={styles.dividerLine} />
           </View>
 
@@ -215,7 +221,6 @@ const RegisterScreen: React.FC = () => {
               title="Continue with facebook"
               variant="outline"
               icon={<FacebookIcon />}
-              onPress={() => handleSocialLogin('Facebook')}
               style={styles.socialButton}
             />
 
@@ -223,26 +228,24 @@ const RegisterScreen: React.FC = () => {
               title="Continue with Google"
               variant="outline"
               icon={<GoogleIcon />}
-              onPress={() => handleSocialLogin('Google')}
-              style={styles.socialButton}
-            />
-
-            <Button
-              title="Continue with Apple"
-              variant="outline"
-              icon={<AppleIcon />}
-              onPress={() => handleSocialLogin('Apple')}
               style={styles.socialButton}
             />
           </View>
 
           {/* Action Button */}
           <View style={styles.buttonContainer}>
-            <Button
-              title="Sign Up"
-              onPress={handleSignUp}
-              loading={isLoading}
-            />
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>
+                  {loadingText}
+                </Text>
+              </View>
+            ) : (
+              <Button
+                title="Sign Up"
+                onPress={handleSignUp}
+              />
+            )}
           </View>
 
           {/* Bottom Sign In Link */}
@@ -303,6 +306,20 @@ const styles = StyleSheet.create({
   checkbox: {
     marginTop: SPACING.md,
     marginBottom: SPACING.xs,
+  },
+  loadingContainer: {
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: COLORS.grayHeavvy,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontFamily: FONTS.manrope.bold,
+    color: COLORS.primary,
   },
   termsText: {
     fontSize: 14,
