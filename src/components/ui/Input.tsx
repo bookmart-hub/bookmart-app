@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { 
-  StyleSheet, 
-  TextInput, 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  ViewStyle, 
-  TextInputProps 
+import {
+  StyleSheet,
+  TextInput,
+  View,
+  Text,
+  TouchableOpacity,
+  ViewStyle,
+  TextInputProps
 } from 'react-native';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
@@ -49,7 +49,7 @@ export const Input: React.FC<InputProps> = ({
   return (
     <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <View 
+      <View
         style={[
           styles.inputContainer,
           isFocused && styles.focusedInput,
@@ -58,7 +58,7 @@ export const Input: React.FC<InputProps> = ({
       >
         <TextInput
           style={[styles.input, style]}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={COLORS.textMuted}
           secureTextEntry={isSecure}
           onFocus={handleFocus}
           onBlur={handleBlur}
@@ -71,10 +71,10 @@ export const Input: React.FC<InputProps> = ({
             onPress={() => setPasswordVisible(!passwordVisible)}
             activeOpacity={0.7}
           >
-            <Feather 
-              name={passwordVisible ? "eye-off" : "eye"} 
-              size={20} 
-              color="#4B5563" 
+            <Feather
+              name={passwordVisible ? "eye-off" : "eye"}
+              size={20}
+              color={COLORS.textMuted}
             />
           </TouchableOpacity>
         )}
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontFamily: FONTS.montserrat.semibold,
-    color: '#374151',
+    color: COLORS.textMuted,
     marginBottom: SPACING.xs,
   },
   inputContainer: {
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 56,
     borderWidth: 1,
-    borderColor: '#E5E7EB', // light gray border
+    borderColor: COLORS.grayHeavvy, // light gray border
     borderRadius: 16,
     backgroundColor: COLORS.white,
     paddingHorizontal: SPACING.md,

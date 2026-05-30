@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   outlineContainer: {
     backgroundColor: COLORS.white,
     borderWidth: 1,
-    borderColor: '#E5E7EB', // light gray border
+    borderColor: COLORS.grayHeavvy,
   },
   textContainer: {
     backgroundColor: 'transparent',

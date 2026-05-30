@@ -8,7 +8,7 @@ export const COLORS = {
   white: '#FFFFFF',
 
   text: '#222222',
-  textMuted: '#6B6B6B',
+  textMuted: '#8a8a8aff',
 
   grayLight: '#F9FAFB',
   grayHeavvy: '#CECECE',
@@ -19,7 +19,7 @@ export const COLORS = {
   yellow: '#D97706',
   yellowlight: '#FEF3C7',
 
-  blue: '#3B82F6',
+  blue: '#1877F2',
   blueLight: '#DBDBFF',
 
   pink: '#D52DC2',
