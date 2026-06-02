@@ -6,6 +6,7 @@ import { COLORS } from '@/constants/colors';
 import HomeHeader from '@/components/ui/HomeHeader';
 import SearchBar from '@/components/ui/SearchBar';
 import PromoBanner, { PromoBannerItem } from '@/components/ui/PromoBanner';
+import CategorySection from '@/components/ui/CategorySection';
 
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
@@ -44,6 +45,9 @@ const HomeScreen = () => {
 
         {/* ── Promo Carousel ── */}
         <PromoBanner onCtaPress={handleCtaPress} />
+
+        {/* ── Categories ── */}
+        <CategorySection />
 
         {/* Future sections will go below */}
       </ScrollView>
