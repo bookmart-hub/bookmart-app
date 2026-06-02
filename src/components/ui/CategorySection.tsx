@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     Dimensions,
     StyleSheet,
@@ -10,6 +10,7 @@ import { Image } from 'expo-image';
 import Animated, {
     Extrapolation,
     interpolate,
+    runOnJS,
     SharedValue,
     useAnimatedScrollHandler,
     useAnimatedStyle,
@@ -55,72 +56,6 @@ const DEFAULT_CATEGORIES: CategoryItem[] = [
     },
     {
         id: '5',
-        label: 'Business',
-        imageUri:
-            'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200',
-    },
-    {
-        id: '6',
-        label: 'Business',
-        imageUri:
-            'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200',
-    },
-    {
-        id: '7',
-        label: 'Business',
-        imageUri:
-            'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200',
-    },
-    {
-        id: '8',
-        label: 'Business',
-        imageUri:
-            'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200',
-    },
-    {
-        id: '9',
-        label: 'Business',
-        imageUri:
-            'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200',
-    },
-    {
-        id: '10',
-        label: 'Business',
-        imageUri:
-            'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200',
-    },
-    {
-        id: '11',
-        label: 'Business',
-        imageUri:
-            'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200',
-    },
-    {
-        id: '12',
-        label: 'Business',
-        imageUri:
-            'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200',
-    },
-    {
-        id: '13',
-        label: 'Business',
-        imageUri:
-            'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200',
-    },
-    {
-        id: '14',
-        label: 'Business',
-        imageUri:
-            'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200',
-    },
-    {
-        id: '15',
-        label: 'Business',
-        imageUri:
-            'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200',
-    },
-    {
-        id: '16',
         label: 'Business',
         imageUri:
             'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200',
@@ -218,21 +153,57 @@ const CategorySection: React.FC<
     categories = DEFAULT_CATEGORIES,
 }) => {
         const scrollX = useSharedValue(0);
+        const flatListRef = useRef<any>(null);
+        const N = categories.length;
 
-        const initialIndex = Math.floor(
-            categories.length / 2
-        );
+        // Triplicate categories to make circular/loop scrolling possible
+        const extendedCategories = [
+            ...categories,
+            ...categories,
+            ...categories,
+        ];
 
-        const [activeIndex, setActiveIndex] =
-            useState(initialIndex);
+        // Start activeIndex at 0 (corresponding to the first item of the middle copy)
+        const [activeIndex, setActiveIndex] = useState(0);
 
-        const onScroll =
-            useAnimatedScrollHandler({
-                onScroll: (event) => {
-                    scrollX.value =
-                        event.contentOffset.x;
-                },
-            });
+        const jumpTo = (offset: number) => {
+            flatListRef.current?.scrollToOffset({ offset, animated: false });
+        };
+
+        const onScroll = useAnimatedScrollHandler({
+            onScroll: (event) => {
+                scrollX.value = event.contentOffset.x;
+
+                const minOffset = (N - 3) * SNAP_SIZE;
+                const maxOffset = (2 * N + 3) * SNAP_SIZE;
+
+                // Infinite loop jump detection with 3 items of padding/cushion
+                if (event.contentOffset.x < minOffset) {
+                    runOnJS(jumpTo)(event.contentOffset.x + N * SNAP_SIZE);
+                } else if (event.contentOffset.x >= maxOffset) {
+                    runOnJS(jumpTo)(event.contentOffset.x - N * SNAP_SIZE);
+                }
+            },
+        });
+
+        // Ensure we scroll to the middle copy on mount
+        useEffect(() => {
+            const timer = setTimeout(() => {
+                flatListRef.current?.scrollToIndex({
+                    index: N,
+                    animated: false,
+                });
+            }, 100);
+            return () => clearTimeout(timer);
+        }, [N]);
+
+        const handleScrollEnd = (e: any) => {
+            const index = Math.round(
+                e.nativeEvent.contentOffset.x / SNAP_SIZE
+            );
+            const realIndex = ((index % N) + N) % N;
+            setActiveIndex(realIndex);
+        };
 
         return (
             <View style={styles.container}>
@@ -241,9 +212,10 @@ const CategorySection: React.FC<
                 </Text>
 
                 <Animated.FlatList
+                    ref={flatListRef}
                     horizontal
-                    data={categories}
-                    keyExtractor={(item) => item.id}
+                    data={extendedCategories}
+                    keyExtractor={(item, index) => `${item.id}-${index}`}
                     showsHorizontalScrollIndicator={
                         false
                     }
@@ -252,7 +224,7 @@ const CategorySection: React.FC<
                     bounces={false}
                     scrollEventThrottle={16}
                     onScroll={onScroll}
-                    initialScrollIndex={initialIndex}
+                    initialScrollIndex={N}
                     getItemLayout={(_, index) => ({
                         length: SNAP_SIZE,
                         offset: SNAP_SIZE * index,
@@ -264,14 +236,8 @@ const CategorySection: React.FC<
                         alignItems: 'center',
                         columnGap: ITEM_GAP,
                     }}
-                    onMomentumScrollEnd={(e) => {
-                        const index = Math.round(
-                            e.nativeEvent.contentOffset.x /
-                            SNAP_SIZE
-                        );
-
-                        setActiveIndex(index);
-                    }}
+                    onMomentumScrollEnd={handleScrollEnd}
+                    onScrollEndDrag={handleScrollEnd}
                     renderItem={({ item, index }) => (
                         <CategoryCard
                             item={item}
