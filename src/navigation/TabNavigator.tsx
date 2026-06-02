@@ -44,7 +44,7 @@ export default function TabNavigator() {
                         iconName = focused ? 'person' : 'person-outline';
                     }
 
-                    return <Ionicons name={iconName} size={size - 1} color={color} />;
+                    return <Ionicons name={iconName} size={size - 8} color={color} />;
                 },
             })}
         >
@@ -69,9 +69,9 @@ export default function TabNavigator() {
 }
 const styles = StyleSheet.create({
     tabLabel: {
-        fontSize: 11,
+        fontSize: 10,
         fontFamily: FONTS?.montserrat?.medium || Platform.select({ ios: 'System', android: 'sans-serif-medium' }),
-        marginTop: -2,
+        marginTop: 1
     },
     tabIcon: {
         marginBottom: 1,
