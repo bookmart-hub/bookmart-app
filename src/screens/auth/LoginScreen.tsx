@@ -118,7 +118,7 @@ const LoginScreen: React.FC = () => {
     };
 
     const handleSignIn = () => {
-        if (!validateForm()) return;
+        // if (!validateForm()) return;
 
         setIsLoading(true);
 

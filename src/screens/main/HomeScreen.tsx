@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '@/constants/colors';
@@ -7,6 +7,7 @@ import HomeHeader from '@/components/ui/HomeHeader';
 import SearchBar from '@/components/ui/SearchBar';
 import PromoBanner, { PromoBannerItem } from '@/components/ui/PromoBanner';
 import CategorySection from '@/components/ui/CategorySection';
+import NearestBooks, { NearestBookItem } from '@/components/ui/NearestBooks';
 
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
@@ -23,25 +24,33 @@ const HomeScreen = () => {
     // TODO: navigate to promotion detail
   }, []);
 
+  const handleBookPress = useCallback((book: NearestBookItem) => {
+    // TODO: navigate to book detail
+  }, []);
+
+  const handleSeeAllPress = useCallback(() => {
+    // TODO: navigate to full nearest books list
+  }, []);
+
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <StatusBar style="dark" />
 
+      {/* ── Header ── */}
+      <HomeHeader
+        notificationCount={3}
+        onNotificationPress={handleNotificationPress}
+        onAvatarPress={handleAvatarPress}
+      />
+
+      {/* ── Search Bar ── */}
+      <SearchBar />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* ── Header ── */}
-        <HomeHeader
-          notificationCount={3}
-          onNotificationPress={handleNotificationPress}
-          onAvatarPress={handleAvatarPress}
-        />
-
-        {/* ── Search Bar ── */}
-        <SearchBar />
 
         {/* ── Promo Carousel ── */}
         <PromoBanner onCtaPress={handleCtaPress} />
@@ -49,7 +58,11 @@ const HomeScreen = () => {
         {/* ── Categories ── */}
         <CategorySection />
 
-        {/* Future sections will go below */}
+        {/* ── Nearest Books ── */}
+        <NearestBooks
+          onBookPress={handleBookPress}
+          onSeeAllPress={handleSeeAllPress}
+        />
       </ScrollView>
     </View>
   );
