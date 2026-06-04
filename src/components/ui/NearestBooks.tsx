@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useCallback, useState, useEffect, useRef } from 'react';
 import {
     Dimensions,
     StyleSheet,
@@ -14,7 +14,11 @@ import Animated, {
     useAnimatedScrollHandler,
     useAnimatedStyle,
     useSharedValue,
-    useDerivedValue
+    withTiming,
+    withSpring,
+    useDerivedValue,
+    FadeIn,
+    runOnJS,
 } from 'react-native-reanimated';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
@@ -44,65 +48,61 @@ const DEFAULT_BOOKS: NearestBookItem[] = [
         title: 'Ikigai',
         author: 'Hector Garcia...',
         price: 160,
-        coverUri:
-            'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=440&fit=crop',
+        coverUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=440&fit=crop',
         condition: 'Good Condition',
         distance: '5km',
         description: 'This book teaches me many things',
-        sellerAvatarUri:
-            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop&crop=face',
+        sellerAvatarUri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop&crop=face',
     },
     {
         id: '2',
         title: 'Rich Dad Poor Dad',
         author: 'Robert T. Kiyosaki',
         price: 199,
-        coverUri:
-            'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=440&fit=crop',
+        coverUri: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=440&fit=crop',
         condition: 'Like New',
         distance: '3km',
         description: 'Great financial literacy book',
-        sellerAvatarUri:
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face',
+        sellerAvatarUri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face',
     },
     {
         id: '3',
         title: 'Atomic Habits',
         author: 'James Clear',
         price: 220,
-        coverUri:
-            'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop',
+        coverUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop',
         condition: 'Good Condition',
         distance: '8km',
         description: 'Changed my daily routine completely',
-        sellerAvatarUri:
-            'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face',
+        sellerAvatarUri: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face',
     },
     {
         id: '4',
         title: 'The Psychology of Money',
         author: 'Morgan Housel',
         price: 180,
-        coverUri:
-            'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=300&h=440&fit=crop',
+        coverUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=300&h=440&fit=crop',
         condition: 'Acceptable',
+        description: 'Great book for finance',
+        sellerAvatarUri: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face',
         distance: '2km',
     },
 ];
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 
-const CARD_WIDTH = SCREEN_WIDTH * 0.44;
-const ITEM_GAP = 12;
+const CARD_WIDTH = SCREEN_WIDTH * 0.44; // Sleek, modern card width
+const ITEM_GAP = 6;
 const SNAP_INTERVAL = CARD_WIDTH + ITEM_GAP;
 const HORIZONTAL_PADDING = SPACING.lg;
 
-const COVER_FLOAT = 25;           // how far the cover floats above the white card
-const COVER_HEIGHT_ACTIVE = 220;  // cover height when featured
-const COVER_HEIGHT_IDLE = 210;    // cover height when compact
-const DETAILS_HEIGHT = 138;       // text block height when fully expanded
+const CARD_HEIGHT = 300; // Slot height accommodating active state (320) plus a small buffer
+const LIST_HEIGHT = CARD_HEIGHT + 20; // Breathing room for animated transitions
+const COVER_FLOAT = 12; // Subtle elegant cover float
 
-// ── BookCard (per-item, scroll-driven animations) ─────────────────────────────
+const LOOP_COUNT = 30; // Amount of repeated loops for infinite scrolling
+
+// ── BookCard ──────────────────────────────────────────────────────────
 
 interface BookCardProps {
     item: NearestBookItem;
@@ -111,123 +111,91 @@ interface BookCardProps {
     onPress?: () => void;
 }
 
-const BookCard: React.FC<BookCardProps> = ({ item, index, scrollX, onPress }) => {
+const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress }) => {
     const center = index * SNAP_INTERVAL;
     const prev = (index - 1) * SNAP_INTERVAL;
     const next = (index + 1) * SNAP_INTERVAL;
     const range = [prev, center, next];
 
-    // ── Whole card ──
-    const cardAnimStyle = useAnimatedStyle(() => {
-        const translateY = interpolate(
-            scrollX.value,
-            [prev, center, next],
-            [10, -2, 10],
-            Extrapolation.CLAMP
-        );
-        return { transform: [{ translateY }] };
-    });
-
-    // ── White card background ──
-    const bgAnimStyle = useAnimatedStyle(() => {
-        const opacity = interpolate(
-            scrollX.value,
-            range,
-            [0, 1, 0],
-            Extrapolation.CLAMP
-        );
-
-        const scale = interpolate(
-            scrollX.value,
-            range,
-            [0.95, 1, 0.95],
-            Extrapolation.CLAMP
-        );
-
-        return {
-            opacity,
-            transform: [{ scale }],
-        };
-    });
-
-    // ── Cover image ──
-    const coverAnimStyle = useAnimatedStyle(() => {
-        const height = interpolate(
-            scrollX.value, range,
-            [COVER_HEIGHT_IDLE, COVER_HEIGHT_ACTIVE, COVER_HEIGHT_IDLE],
-            Extrapolation.CLAMP,
-        );
-        const translateY = interpolate(scrollX.value, range, [0, -COVER_FLOAT, 0], Extrapolation.CLAMP);
-        const borderRadius = interpolate(scrollX.value, range, [12, 14, 12], Extrapolation.CLAMP);
-
-        return { height, borderRadius, transform: [{ translateY }] };
-    });
-
-    // ── Details block ──
+    // Progress 0 -> 1 -> 0 as we scroll past the item
     const progress = useDerivedValue(() => {
-        return interpolate(
-            scrollX.value,
-            range,
-            [0, 1, 0],
-            Extrapolation.CLAMP
-        );
+        return interpolate(scrollX.value, range, [0, 1, 0], Extrapolation.CLAMP);
     });
 
-    const detailsAnimStyle = useAnimatedStyle(() => {
-        const maxHeight = interpolate(
-            progress.value,
-            [0, 1],
-            [0, DETAILS_HEIGHT],
-            Extrapolation.CLAMP
-        );
+    // Calculate active state directly on the UI thread for instant response
+    const isActiveUI = useDerivedValue(() => {
+        return progress.value > 0.5;
+    });
 
+    // Snappy, premium spring configuration (mimics high-end native carousels)
+    const SPRING_CONFIG = {
+        damping: 18,
+        stiffness: 155,
+        mass: 0.5,
+    };
+
+    // Whole card height animation timing
+    const cardStyle = useAnimatedStyle(() => {
         return {
-            maxHeight,
+            minHeight: withSpring(
+                isActiveUI.value ? 300 : 220,
+                SPRING_CONFIG
+            ),
         };
     });
 
-    const titleAnimStyle = useAnimatedStyle(() => {
-        const opacity = interpolate(
-            progress.value,
-            [0, 0.4, 0.55],
-            [0, 0, 1],
-            Extrapolation.CLAMP
-        );
-
-        return { opacity };
+    // Active Card scale transition
+    const scaleStyle = useAnimatedStyle(() => {
+        return {
+            transform: [
+                {
+                    scale: withSpring(
+                        isActiveUI.value ? 1 : 0.95,
+                        SPRING_CONFIG
+                    ),
+                },
+            ],
+        };
     });
 
-    const authorAnimStyle = useAnimatedStyle(() => {
-        const opacity = interpolate(
-            progress.value,
-            [0.25, 0.55, 0.7],
-            [0, 0, 1],
-            Extrapolation.CLAMP
-        );
-
-        return { opacity };
+    // Cover image floating transition (GPU accelerated)
+    const coverAnimStyle = useAnimatedStyle(() => {
+        const translateY = interpolate(progress.value, [0, 1], [0, -COVER_FLOAT], Extrapolation.CLAMP);
+        return {
+            transform: [{ translateY }],
+        };
     });
 
-    const sellerAnimStyle = useAnimatedStyle(() => {
-        const opacity = interpolate(
-            progress.value,
-            [0.5, 0.75, 0.9],
-            [0, 0, 1],
-            Extrapolation.CLAMP
-        );
-
-        return { opacity };
+    // Smooth spring-based reveal for extra active details
+    const detailsStyle = useAnimatedStyle(() => {
+        return {
+            opacity: withSpring(
+                isActiveUI.value ? 1 : 0,
+                SPRING_CONFIG
+            ),
+            maxHeight: withSpring(
+                isActiveUI.value ? 120 : 0,
+                SPRING_CONFIG
+            ),
+        };
     });
 
-    const metaAnimStyle = useAnimatedStyle(() => {
-        const opacity = interpolate(
-            progress.value,
-            [0.75, 0.95, 1],
-            [0, 0, 1],
-            Extrapolation.CLAMP
-        );
-
-        return { opacity };
+    // Price tag smooth scale and fade transition
+    const priceStyle = useAnimatedStyle(() => {
+        return {
+            opacity: withSpring(
+                isActiveUI.value ? 1 : 0,
+                SPRING_CONFIG
+            ),
+            transform: [
+                {
+                    scale: withSpring(
+                        isActiveUI.value ? 1 : 0.5,
+                        SPRING_CONFIG
+                    ),
+                },
+            ],
+        };
     });
 
     return (
@@ -236,11 +204,11 @@ const BookCard: React.FC<BookCardProps> = ({ item, index, scrollX, onPress }) =>
             onPress={onPress}
             style={styles.slot}
         >
-            <Animated.View style={[styles.cardRoot, cardAnimStyle]}>
-                {/* White bg card – only visible when featured */}
-                <Animated.View style={[styles.whiteBg, bgAnimStyle]} />
+            <Animated.View style={[styles.cardRoot, cardStyle, scaleStyle]}>
+                {/* Expandable card background */}
+                <View style={styles.whiteBg} />
 
-                {/* Book cover – floats above the card when featured */}
+                {/* Floating Cover */}
                 <Animated.View style={[styles.coverWrap, coverAnimStyle]}>
                     <Image
                         source={{ uri: item.coverUri }}
@@ -248,56 +216,55 @@ const BookCard: React.FC<BookCardProps> = ({ item, index, scrollX, onPress }) =>
                         contentFit="cover"
                         recyclingKey={item.id}
                     />
+                    {/* Subtle depth overlay */}
+                    <View style={styles.coverOverlay} />
                 </Animated.View>
 
-                {/* Details – expand/collapse with scroll */}
-                <Animated.View style={[styles.details, detailsAnimStyle]}>
-                    {/* Title + price */}
-                    <Animated.View style={titleAnimStyle}>
-                        <View style={styles.titleRow}>
-                            <Text style={styles.titleText} numberOfLines={1}>
-                                {item.title}
-                            </Text>
-                            <Text style={styles.priceText}>₹ {item.price}</Text>
-                        </View>
-                    </Animated.View>
-
-                    {/* Author */}
-                    <Animated.View style={authorAnimStyle}>
-                        <Text style={styles.authorText} numberOfLines={1}>
-                            {item.author}
+                {/* Title & Price container (Always visible title, price reveals on active) */}
+                <View style={styles.titleContainer}>
+                    <View style={styles.titleRow}>
+                        <Text style={styles.titleText} numberOfLines={1}>
+                            {item.title}
                         </Text>
-                    </Animated.View>
-                    {/* Seller info */}
-                    {item.sellerAvatarUri && item.description ? (
-                        <Animated.View style={sellerAnimStyle}>
-                            <View style={styles.sellerRow}>
-                                <Image
-                                    source={{ uri: item.sellerAvatarUri }}
-                                    style={styles.sellerAvatar}
-                                    contentFit="cover"
-                                />
-                                <Text style={styles.sellerDesc} numberOfLines={2}>
-                                    {item.description}
-                                </Text>
-                            </View>
-                        </Animated.View>
-                    ) : null}
+                        <Animated.Text style={[styles.priceText, priceStyle]}>
+                            ₹{item.price}
+                        </Animated.Text>
+                    </View>
+                </View>
 
-                    {/* Condition + distance */}
-                    <Animated.View style={metaAnimStyle}>
-                        <View style={styles.metaRow}>
-                            <View style={styles.conditionBadge}>
-                                <Text style={styles.conditionLabel}>{item.condition}</Text>
-                            </View>
-                            <Text style={styles.distanceLabel}>{item.distance}</Text>
+                {/* Expandable Details Area */}
+                <Animated.View style={[styles.details, detailsStyle]}>
+                    {/* Author */}
+                    <Text style={styles.authorText} numberOfLines={1}>
+                        {item.author}
+                    </Text>
+
+                    {/* Seller description snippet */}
+                    {item.sellerAvatarUri && item.description && (
+                        <View style={styles.sellerRow}>
+                            <Image
+                                source={{ uri: item.sellerAvatarUri }}
+                                style={styles.sellerAvatar}
+                                contentFit="cover"
+                            />
+                            <Text style={styles.sellerDesc} numberOfLines={2}>
+                                {item.description}
+                            </Text>
                         </View>
-                    </Animated.View>
+                    )}
+
+                    {/* Meta Row */}
+                    <View style={styles.metaRow}>
+                        <View style={styles.conditionBadge}>
+                            <Text style={styles.conditionLabel}>{item.condition}</Text>
+                        </View>
+                        <Text style={styles.distanceLabel}>{item.distance} away</Text>
+                    </View>
                 </Animated.View>
             </Animated.View>
         </TouchableOpacity>
     );
-};
+});
 
 // ── NearestBooks section ──────────────────────────────────────────────────────
 
@@ -312,13 +279,80 @@ const NearestBooks: React.FC<NearestBooksProps> = ({
     onBookPress,
     onSeeAllPress,
 }) => {
+    const listRef = useRef<Animated.FlatList<any>>(null);
     const scrollX = useSharedValue(0);
+    const [activeIndex, setActiveIndex] = useState(0);
+    const activeIndexShared = useSharedValue(0);
+
+    // Create a repeated list for infinite loop
+    const loopedData = React.useMemo(() => {
+        return Array(LOOP_COUNT)
+            .fill(books)
+            .flat()
+            .map((item, idx) => ({
+                ...item,
+                uniqueId: `${item.id}-${idx}`,
+            }));
+    }, [books]);
+
+    // Scroll to the middle on mount
+    useEffect(() => {
+        if (books.length > 0 && listRef.current) {
+            const timer = setTimeout(() => {
+                const middleIndex = Math.floor(LOOP_COUNT / 2) * books.length;
+                listRef.current?.scrollToIndex({
+                    index: middleIndex,
+                    animated: false,
+                });
+                setActiveIndex(middleIndex);
+                activeIndexShared.value = middleIndex;
+                scrollX.value = middleIndex * SNAP_INTERVAL;
+            }, 60);
+            return () => clearTimeout(timer);
+        }
+    }, [books.length]);
 
     const onScroll = useAnimatedScrollHandler({
-        onScroll: (e) => {
-            scrollX.value = e.contentOffset.x;
+        onScroll: (event) => {
+            scrollX.value = event.contentOffset.x;
+
+            const index = Math.round(event.contentOffset.x / SNAP_INTERVAL);
+            const clampedIndex = Math.max(0, Math.min(loopedData.length - 1, index));
+
+            if (activeIndexShared.value !== clampedIndex) {
+                activeIndexShared.value = clampedIndex;
+                runOnJS(setActiveIndex)(clampedIndex);
+            }
         },
     });
+
+    // Reset scroll back to the middle set silently when nearing boundaries
+    const handleMomentumScrollEnd = (e: any) => {
+        const x = e.nativeEvent.contentOffset.x;
+        const index = Math.round(x / SNAP_INTERVAL);
+        const originalIdx = index % books.length;
+        const middleInstance = Math.floor(LOOP_COUNT / 2);
+        const newIndex = middleInstance * books.length + originalIdx;
+
+        if (index < books.length * 2 || index > loopedData.length - books.length * 2) {
+            listRef.current?.scrollToIndex({
+                index: newIndex,
+                animated: false,
+            });
+            setActiveIndex(newIndex);
+            activeIndexShared.value = newIndex;
+            scrollX.value = newIndex * SNAP_INTERVAL;
+        }
+    };
+
+    const renderItem = useCallback(({ item, index }: any) => (
+        <BookCard
+            item={item}
+            index={index}
+            scrollX={scrollX}
+            onPress={() => onBookPress?.(item)}
+        />
+    ), [onBookPress]);
 
     return (
         <View style={styles.section}>
@@ -332,23 +366,19 @@ const NearestBooks: React.FC<NearestBooksProps> = ({
 
             {/* Carousel */}
             <Animated.FlatList
+                ref={listRef}
+                style={styles.list}
                 horizontal
-                data={books}
-                keyExtractor={(b) => b.id}
-                renderItem={({ item, index }) => (
-                    <BookCard
-                        item={item}
-                        index={index}
-                        scrollX={scrollX}
-                        onPress={() => onBookPress?.(item)}
-                    />
-                )}
+                data={loopedData}
+                keyExtractor={(b) => b.uniqueId}
+                renderItem={renderItem}
                 showsHorizontalScrollIndicator={false}
                 snapToInterval={SNAP_INTERVAL}
                 decelerationRate="fast"
                 bounces={false}
                 scrollEventThrottle={16}
                 onScroll={onScroll}
+                onMomentumScrollEnd={handleMomentumScrollEnd}
                 contentContainerStyle={styles.listContent}
                 getItemLayout={(_, i) => ({
                     length: SNAP_INTERVAL,
@@ -365,18 +395,14 @@ export default NearestBooks;
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-    // Section
     section: {
-        marginTop: SPACING.lg + SPACING.sm,
+        marginTop: SPACING.lg,
     },
-
-    // Header
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: HORIZONTAL_PADDING,
-        marginBottom: SPACING.md,
+        paddingHorizontal: HORIZONTAL_PADDING + 4,
     },
     headerTitle: {
         fontSize: 20,
@@ -388,59 +414,64 @@ const styles = StyleSheet.create({
         fontFamily: FONTS.montserrat.medium,
         color: COLORS.primary,
     },
-
-    // FlatList
+    list: {
+        height: LIST_HEIGHT,
+    },
     listContent: {
         paddingHorizontal: HORIZONTAL_PADDING,
-        paddingTop: COVER_FLOAT + 6,
-        paddingBottom: SPACING.md,
+        paddingTop: COVER_FLOAT + 4,
+        paddingBottom: 10,
     },
-
-    // Per-item slot (fixed width so snapping is predictable)
     slot: {
         width: CARD_WIDTH,
+        height: CARD_HEIGHT,
         marginRight: ITEM_GAP,
     },
-
-    // Card root (positioned, receives translateY animation)
     cardRoot: {
+        width: '100%',
+        alignItems: 'center',
         position: 'relative',
-        width: 200,
-        paddingHorizontal: 10
+        overflow: 'hidden',
     },
-
-    // White background card (absoluteFill so it sits behind cover + details)
     whiteBg: {
         ...StyleSheet.absoluteFillObject,
         backgroundColor: COLORS.white,
-        borderRadius: 18,
-        // Soft shadow for depth
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.04)',
+        // Soft Shadow
         shadowColor: COLORS.black,
         shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.1,
-        shadowRadius: 14,
-        elevation: 6,
+        shadowRadius: 10,
+        elevation: 4,
     },
-
-    // Cover image wrapper (animates height + top for floating effect)
     coverWrap: {
-        width: '100%',
+        width: '88%',
+        height: 160,
+        marginTop: 10,
+        borderRadius: 8,
         overflow: 'hidden',
-        position: 'relative',
+        backgroundColor: '#f5f5f5',
         zIndex: 2,
+        // Subtle depth shadow
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 6,
+        elevation: 3,
     },
     coverImg: {
         width: '100%',
         height: '100%',
     },
-
-    // Details
-    details: {
-        paddingHorizontal: SPACING.md,
-        paddingTop: SPACING.sm + 2,
-        paddingBottom: SPACING.sm + 2,
-        overflow: 'hidden',
-        zIndex: 1,
+    coverOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0,0,0,0.015)',
+    },
+    titleContainer: {
+        width: '100%',
+        paddingHorizontal: 12,
+        paddingTop: 8,
     },
     titleRow: {
         flexDirection: 'row',
@@ -448,64 +479,69 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     titleText: {
-        fontSize: 16,
+        fontSize: 13.5,
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
         flex: 1,
-        marginRight: SPACING.xs,
+        marginRight: 4,
     },
     priceText: {
-        fontSize: 14,
+        fontSize: 13,
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
+    details: {
+        width: '100%',
+        paddingHorizontal: 12,
+        paddingTop: 4,
+        overflow: 'hidden',
+    },
     authorText: {
-        fontSize: 12,
-        fontFamily: FONTS.manrope.medium,
-        color: COLORS.textMuted,
-        marginTop: 2,
-    },
-
-    // Seller row
-    sellerRow: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        marginTop: SPACING.sm,
-        gap: SPACING.sm,
-    },
-    sellerAvatar: {
-        width: 26,
-        height: 26,
-        borderRadius: 13,
-    },
-    sellerDesc: {
-        flex: 1,
         fontSize: 11,
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
-        lineHeight: 15,
+        marginTop: 1,
     },
-
-    // Meta (condition + distance)
+    sellerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.025)',
+        padding: 5,
+        borderRadius: 8,
+        marginTop: 6,
+    },
+    sellerAvatar: {
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        marginRight: 4,
+    },
+    sellerDesc: {
+        flex: 1,
+        fontSize: 9,
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.text,
+        lineHeight: 11,
+    },
     metaRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: SPACING.sm,
+        marginTop: 8,
     },
     conditionBadge: {
-        backgroundColor: COLORS.secondary,
-        paddingHorizontal: SPACING.sm + 2,
-        paddingVertical: 3,
-        borderRadius: 10,
+        backgroundColor: COLORS.secondary + '20',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 6,
     },
     conditionLabel: {
-        fontSize: 10,
+        fontSize: 9,
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
     distanceLabel: {
-        fontSize: 11,
+        fontSize: 10,
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.textMuted,
     },

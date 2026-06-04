@@ -12,8 +12,8 @@ export default function RootNavigator() {
                 headerShown: false,
                 // animation: 'default',
             }}>
-                <Stack.Screen name="Auth" component={AuthNavigator} />
                 <Stack.Screen name="Tab" component={TabNavigator} />
+                <Stack.Screen name="Auth" component={AuthNavigator} />
             </Stack.Navigator>
         </NavigationContainer>
     );
