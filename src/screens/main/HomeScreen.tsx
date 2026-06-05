@@ -8,6 +8,7 @@ import SearchBar from '@/components/ui/SearchBar';
 import PromoBanner, { PromoBannerItem } from '@/components/ui/PromoBanner';
 import CategorySection from '@/components/ui/CategorySection';
 import NearestBooks, { NearestBookItem } from '@/components/ui/NearestBooks';
+import AuthorsSection, { AuthorItem } from '@/components/ui/AuthorsSection';
 import InstituteBooks, { InstituteBookItem } from '@/components/ui/InstituteBooks';
 
 const HomeScreen = () => {
@@ -39,6 +40,14 @@ const HomeScreen = () => {
 
   const handleInstituteSeeAllPress = useCallback(() => {
     // TODO: navigate to institute books list
+  }, []);
+
+  const handleAuthorPress = useCallback((author: AuthorItem) => {
+    // TODO: navigate to author detail
+  }, []);
+
+  const handleAuthorSeeAllPress = useCallback(() => {
+    // TODO: navigate to all authors
   }, []);
 
   return (
@@ -79,6 +88,13 @@ const HomeScreen = () => {
           onBookPress={handleInstituteBookPress}
           onSeeAllPress={handleInstituteSeeAllPress}
         />
+
+        {/* ── Authors ── */}
+        <AuthorsSection
+          onAuthorPress={handleAuthorPress}
+          onSeeAllPress={handleAuthorSeeAllPress}
+        />
+
       </ScrollView>
     </View>
   );
