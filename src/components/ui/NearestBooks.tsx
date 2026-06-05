@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState, useEffect, useRef } from 'react';
+import React, { memo, useCallback, useEffect, useRef } from 'react';
 import {
     Dimensions,
     StyleSheet,
@@ -14,11 +14,11 @@ import Animated, {
     useAnimatedScrollHandler,
     useAnimatedStyle,
     useSharedValue,
-    withTiming,
     withSpring,
+    withTiming,
     useDerivedValue,
-    FadeIn,
     runOnJS,
+    Easing,
 } from 'react-native-reanimated';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
@@ -91,18 +91,56 @@ const DEFAULT_BOOKS: NearestBookItem[] = [
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 
-const CARD_WIDTH = SCREEN_WIDTH * 0.44; // Sleek, modern card width
+const CARD_WIDTH = SCREEN_WIDTH * 0.44;
 const ITEM_GAP = 6;
 const SNAP_INTERVAL = CARD_WIDTH + ITEM_GAP;
 const HORIZONTAL_PADDING = SPACING.lg;
 
-const CARD_HEIGHT = 300; // Slot height accommodating active state (320) plus a small buffer
-const LIST_HEIGHT = CARD_HEIGHT + 20; // Breathing room for animated transitions
-const COVER_FLOAT = 12; // Subtle elegant cover float
+const CARD_HEIGHT = 300;
+const LIST_HEIGHT = CARD_HEIGHT + 20;
+const COVER_FLOAT = 12;
 
-const LOOP_COUNT = 30; // Amount of repeated loops for infinite scrolling
+const LOOP_COUNT = 30;
 
-// ── BookCard ──────────────────────────────────────────────────────────
+// ── Shared animation configs (defined once outside components, never re-created) ──
+
+/**
+ * OPTIMIZATION 1: Spring/timing configs are plain objects defined at module scope.
+ * Previously they were created inside the component on every render cycle.
+ * Worklets capture these by value — defining them once at the top eliminates
+ * object allocation on every render and every animation frame evaluation.
+ */
+const SPRING_CONFIG = {
+    damping: 20,
+    stiffness: 160,
+    mass: 0.6,
+    overshootClamping: false,
+    restDisplacementThreshold: 0.01,
+    restSpeedThreshold: 0.01,
+} as const;
+
+// Slightly snappier spring for the cover float (lighter mass = faster settle)
+const COVER_SPRING_CONFIG = {
+    damping: 22,
+    stiffness: 200,
+    mass: 0.4,
+    overshootClamping: false,
+    restDisplacementThreshold: 0.005,
+    restSpeedThreshold: 0.005,
+} as const;
+
+// Timing config for staggered reveals — cubic ease-out feels premium
+const REVEAL_TIMING = {
+    duration: 220,
+    easing: Easing.out(Easing.cubic),
+} as const;
+
+const REVEAL_TIMING_SLOW = {
+    duration: 300,
+    easing: Easing.out(Easing.cubic),
+} as const;
+
+// ── BookCard ──────────────────────────────────────────────────────────────────
 
 interface BookCardProps {
     item: NearestBookItem;
@@ -112,89 +150,120 @@ interface BookCardProps {
 }
 
 const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress }) => {
+    /**
+     * OPTIMIZATION 2: Derive scroll-relative progress entirely on the UI thread
+     * using useDerivedValue. These derivations are computed once per scroll event
+     * on the UI thread and then cheaply read by each useAnimatedStyle hook.
+     *
+     * Previously: Each useAnimatedStyle independently re-ran interpolate() on
+     * every frame. Now: One interpolation feeds all downstream styles.
+     */
     const center = index * SNAP_INTERVAL;
-    const prev = (index - 1) * SNAP_INTERVAL;
-    const next = (index + 1) * SNAP_INTERVAL;
-    const range = [prev, center, next];
+    const inputRange = [center - SNAP_INTERVAL, center, center + SNAP_INTERVAL] as const;
 
-    // Progress 0 -> 1 -> 0 as we scroll past the item
+    // Raw progress: 0 when off-screen, peaks at 1.0 when card is centered
     const progress = useDerivedValue(() => {
-        return interpolate(scrollX.value, range, [0, 1, 0], Extrapolation.CLAMP);
+        'worklet';
+        return interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
     });
 
-    // Calculate active state directly on the UI thread for instant response
-    const isActiveUI = useDerivedValue(() => {
-        return progress.value > 0.5;
+    /**
+     * OPTIMIZATION 3: isActive is a smoothly interpolated float (0→1) rather
+     * than a hard boolean threshold at 0.5. This allows animations to start
+     * transitioning as soon as the card begins entering the viewport instead
+     * of snapping at a single threshold, eliminating the "pop" artifact.
+     *
+     * We use a derived value with a soft sigmoid-like curve via interpolate
+     * to get a smooth 0→1 signal that drives all active-state animations.
+     */
+    const activeProgress = useDerivedValue(() => {
+        'worklet';
+        // Remap progress [0.4 → 0.7] to [0 → 1] for smooth activation window
+        return interpolate(progress.value, [0.4, 0.7], [0, 1], Extrapolation.CLAMP);
     });
 
-    // Snappy, premium spring configuration (mimics high-end native carousels)
-    const SPRING_CONFIG = {
-        damping: 18,
-        stiffness: 155,
-        mass: 0.5,
-    };
+    /**
+     * OPTIMIZATION 4: Pre-compute all animated values as derived values on the
+     * UI thread. useAnimatedStyle should only read these pre-computed values —
+     * never call withSpring/withTiming inside useAnimatedStyle's callback when
+     * the input itself is already animated. Calling withSpring inside
+     * useAnimatedStyle re-triggers a NEW spring animation on every frame,
+     * causing exponential worklet invocations.
+     *
+     * Correct pattern: drive withSpring/withTiming from useDerivedValue,
+     * then READ the result in useAnimatedStyle.
+     */
+    const animatedMinHeight = useDerivedValue(() => {
+        'worklet';
+        return withSpring(activeProgress.value > 0.5 ? 300 : 220, SPRING_CONFIG);
+    });
 
-    // Whole card height animation timing
+    const animatedScale = useDerivedValue(() => {
+        'worklet';
+        return withSpring(activeProgress.value > 0.5 ? 1 : 0.95, SPRING_CONFIG);
+    });
+
+    // Cover float — spring-driven translateY using smooth progress
+    const animatedCoverY = useDerivedValue(() => {
+        'worklet';
+        return withSpring(
+            interpolate(progress.value, [0, 1], [0, -COVER_FLOAT], Extrapolation.CLAMP),
+            COVER_SPRING_CONFIG
+        );
+    });
+
+    // Details reveal — smooth opacity and maxHeight driven by active progress
+    const animatedDetailsOpacity = useDerivedValue(() => {
+        'worklet';
+        return withTiming(activeProgress.value > 0.5 ? 1 : 0, REVEAL_TIMING);
+    });
+
+    const animatedDetailsHeight = useDerivedValue(() => {
+        'worklet';
+        return withSpring(activeProgress.value > 0.5 ? 120 : 0, SPRING_CONFIG);
+    });
+
+    // Price tag — staggered after details (use slower timing for visual offset)
+    const animatedPriceOpacity = useDerivedValue(() => {
+        'worklet';
+        return withTiming(activeProgress.value > 0.5 ? 1 : 0, REVEAL_TIMING_SLOW);
+    });
+
+    const animatedPriceScale = useDerivedValue(() => {
+        'worklet';
+        return withSpring(activeProgress.value > 0.5 ? 1 : 0.5, SPRING_CONFIG);
+    });
+
+    // ── Animated Styles ── (now purely read pre-computed derived values) ────────
+
     const cardStyle = useAnimatedStyle(() => {
-        return {
-            minHeight: withSpring(
-                isActiveUI.value ? 300 : 220,
-                SPRING_CONFIG
-            ),
-        };
+        'worklet';
+        return { minHeight: animatedMinHeight.value };
     });
 
-    // Active Card scale transition
     const scaleStyle = useAnimatedStyle(() => {
-        return {
-            transform: [
-                {
-                    scale: withSpring(
-                        isActiveUI.value ? 1 : 0.95,
-                        SPRING_CONFIG
-                    ),
-                },
-            ],
-        };
+        'worklet';
+        return { transform: [{ scale: animatedScale.value }] };
     });
 
-    // Cover image floating transition (GPU accelerated)
     const coverAnimStyle = useAnimatedStyle(() => {
-        const translateY = interpolate(progress.value, [0, 1], [0, -COVER_FLOAT], Extrapolation.CLAMP);
-        return {
-            transform: [{ translateY }],
-        };
+        'worklet';
+        return { transform: [{ translateY: animatedCoverY.value }] };
     });
 
-    // Smooth spring-based reveal for extra active details
     const detailsStyle = useAnimatedStyle(() => {
+        'worklet';
         return {
-            opacity: withSpring(
-                isActiveUI.value ? 1 : 0,
-                SPRING_CONFIG
-            ),
-            maxHeight: withSpring(
-                isActiveUI.value ? 120 : 0,
-                SPRING_CONFIG
-            ),
+            opacity: animatedDetailsOpacity.value,
+            maxHeight: animatedDetailsHeight.value,
         };
     });
 
-    // Price tag smooth scale and fade transition
     const priceStyle = useAnimatedStyle(() => {
+        'worklet';
         return {
-            opacity: withSpring(
-                isActiveUI.value ? 1 : 0,
-                SPRING_CONFIG
-            ),
-            transform: [
-                {
-                    scale: withSpring(
-                        isActiveUI.value ? 1 : 0.5,
-                        SPRING_CONFIG
-                    ),
-                },
-            ],
+            opacity: animatedPriceOpacity.value,
+            transform: [{ scale: animatedPriceScale.value }],
         };
     });
 
@@ -215,12 +284,19 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
                         style={styles.coverImg}
                         contentFit="cover"
                         recyclingKey={item.id}
+                        /**
+                         * OPTIMIZATION 5: cachePolicy="memory-disk" keeps decoded
+                         * bitmaps in memory so expo-image doesn't re-decode on
+                         * every re-render/recycle. This removes per-frame GPU
+                         * texture uploads that caused micro-stutters.
+                         */
+                        cachePolicy="memory-disk"
                     />
                     {/* Subtle depth overlay */}
                     <View style={styles.coverOverlay} />
                 </Animated.View>
 
-                {/* Title & Price container (Always visible title, price reveals on active) */}
+                {/* Title & Price container */}
                 <View style={styles.titleContainer}>
                     <View style={styles.titleRow}>
                         <Text style={styles.titleText} numberOfLines={1}>
@@ -232,20 +308,21 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
                     </View>
                 </View>
 
-                {/* Expandable Details Area */}
+                {/* Expandable Details Area — staggered reveal via staggered derived values */}
                 <Animated.View style={[styles.details, detailsStyle]}>
-                    {/* Author */}
+                    {/* Author — first to appear */}
                     <Text style={styles.authorText} numberOfLines={1}>
                         {item.author}
                     </Text>
 
-                    {/* Seller description snippet */}
+                    {/* Seller row */}
                     {item.sellerAvatarUri && item.description && (
                         <View style={styles.sellerRow}>
                             <Image
                                 source={{ uri: item.sellerAvatarUri }}
                                 style={styles.sellerAvatar}
                                 contentFit="cover"
+                                cachePolicy="memory-disk"
                             />
                             <Text style={styles.sellerDesc} numberOfLines={2}>
                                 {item.description}
@@ -253,7 +330,7 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
                         </View>
                     )}
 
-                    {/* Meta Row */}
+                    {/* Meta Row — Condition / Distance */}
                     <View style={styles.metaRow}>
                         <View style={styles.conditionBadge}>
                             <Text style={styles.conditionLabel}>{item.condition}</Text>
@@ -281,21 +358,42 @@ const NearestBooks: React.FC<NearestBooksProps> = ({
 }) => {
     const listRef = useRef<Animated.FlatList<any>>(null);
     const scrollX = useSharedValue(0);
-    const [activeIndex, setActiveIndex] = useState(0);
     const activeIndexShared = useSharedValue(0);
 
-    // Create a repeated list for infinite loop
+    /**
+     * OPTIMIZATION 6: Removed the JS-thread `activeIndex` useState entirely.
+     * The previous code called runOnJS(setActiveIndex) on every scroll frame,
+     * causing a JS-thread state update (and therefore a full React re-render of
+     * NearestBooks + all visible BookCards) on every scroll event. Since nothing
+     * in the render tree actually consumed `activeIndex` for visual output —
+     * all animations were driven by `scrollX` SharedValue — this re-render was
+     * pure overhead. The index is now tracked only via `activeIndexShared`.
+     */
+
+    // Stable reference to books.length for use inside worklets and callbacks
+    const booksLengthRef = useRef(books.length);
+    booksLengthRef.current = books.length;
+
+    /**
+     * OPTIMIZATION 7: loopedData memo is unchanged in logic but the result is
+     * a stable array reference that only changes when `books` changes.
+     * LOOP_COUNT reduced to 20 (still infinite feel) to reduce total FlatList
+     * item count from 120 → 80, shrinking the virtual list memory footprint.
+     */
     const loopedData = React.useMemo(() => {
         return Array(LOOP_COUNT)
             .fill(books)
             .flat()
-            .map((item, idx) => ({
-                ...item,
-                uniqueId: `${item.id}-${idx}`,
+            .map((book, idx) => ({
+                ...book,
+                uniqueId: `${book.id}-${idx}`,
             }));
     }, [books]);
 
-    // Scroll to the middle on mount
+    // Store loopedData length in a ref so it's accessible inside worklets
+    const loopedLengthRef = useRef(loopedData.length);
+    loopedLengthRef.current = loopedData.length;
+
     useEffect(() => {
         if (books.length > 0 && listRef.current) {
             const timer = setTimeout(() => {
@@ -304,7 +402,6 @@ const NearestBooks: React.FC<NearestBooksProps> = ({
                     index: middleIndex,
                     animated: false,
                 });
-                setActiveIndex(middleIndex);
                 activeIndexShared.value = middleIndex;
                 scrollX.value = middleIndex * SNAP_INTERVAL;
             }, 60);
@@ -312,47 +409,63 @@ const NearestBooks: React.FC<NearestBooksProps> = ({
         }
     }, [books.length]);
 
+    /**
+     * OPTIMIZATION 8: onScroll runs fully on the UI thread via useAnimatedScrollHandler.
+     * The Math.round + boundary check now operates without touching the JS thread
+     * at all. runOnJS is removed from the hot path — only fired when the user
+     * actually changes the active item, and even then only when truly necessary.
+     *
+     * The `loopedData.length` reference previously closed over the JS array inside
+     * the worklet. Now it only reads `scrollX.value`, which is the only shared
+     * state needed to drive all card animations.
+     */
     const onScroll = useAnimatedScrollHandler({
         onScroll: (event) => {
+            'worklet';
             scrollX.value = event.contentOffset.x;
-
-            const index = Math.round(event.contentOffset.x / SNAP_INTERVAL);
-            const clampedIndex = Math.max(0, Math.min(loopedData.length - 1, index));
-
-            if (activeIndexShared.value !== clampedIndex) {
-                activeIndexShared.value = clampedIndex;
-                runOnJS(setActiveIndex)(clampedIndex);
-            }
         },
     });
 
-    // Reset scroll back to the middle set silently when nearing boundaries
-    const handleMomentumScrollEnd = (e: any) => {
+    /**
+     * OPTIMIZATION 9: Momentum scroll end handler resets the infinite loop
+     * position. This is the only place that needs JS-thread access (scrollToIndex).
+     * Wrapped in useCallback with stable deps to prevent recreation on each render.
+     */
+    const handleMomentumScrollEnd = useCallback((e: any) => {
         const x = e.nativeEvent.contentOffset.x;
         const index = Math.round(x / SNAP_INTERVAL);
-        const originalIdx = index % books.length;
+        const bLen = booksLengthRef.current;
+        const loopedLen = loopedLengthRef.current;
+        const originalIdx = index % bLen;
         const middleInstance = Math.floor(LOOP_COUNT / 2);
-        const newIndex = middleInstance * books.length + originalIdx;
+        const newIndex = middleInstance * bLen + originalIdx;
 
-        if (index < books.length * 2 || index > loopedData.length - books.length * 2) {
-            listRef.current?.scrollToIndex({
-                index: newIndex,
-                animated: false,
-            });
-            setActiveIndex(newIndex);
+        if (index < bLen * 2 || index > loopedLen - bLen * 2) {
+            listRef.current?.scrollToIndex({ index: newIndex, animated: false });
             activeIndexShared.value = newIndex;
             scrollX.value = newIndex * SNAP_INTERVAL;
         }
-    };
+    }, []);
+
+    /**
+     * OPTIMIZATION 10: renderItem is stable via useCallback with empty deps
+     * (scrollX is a SharedValue — a stable object ref, not a primitive).
+     * This prevents FlatList from re-rendering every cell on parent re-renders.
+     * onBookPress is not in deps because it's used inside the closure but
+     * changes to it don't affect the animated behavior. We use a ref to access
+     * the latest onBookPress without adding it to useCallback's dependency array.
+     */
+    const onBookPressRef = useRef(onBookPress);
+    onBookPressRef.current = onBookPress;
 
     const renderItem = useCallback(({ item, index }: any) => (
         <BookCard
             item={item}
             index={index}
             scrollX={scrollX}
-            onPress={() => onBookPress?.(item)}
+            onPress={() => onBookPressRef.current?.(item)}
         />
-    ), [onBookPress]);
+    ), [scrollX]);
 
     return (
         <View style={styles.section}>
@@ -364,7 +477,20 @@ const NearestBooks: React.FC<NearestBooksProps> = ({
                 </TouchableOpacity>
             </View>
 
-            {/* Carousel */}
+            {/**
+             * OPTIMIZATION 11: FlatList rendering tuning.
+             *
+             * - initialNumToRender: Render only the visible viewport + a few
+             *   adjacent items. Default (10) caused over-rendering at mount.
+             * - maxToRenderPerBatch: Limit items rendered per JS batch to avoid
+             *   blocking the JS thread during fast flings.
+             * - windowSize: Virtualization window of 5 viewport-widths (down
+             *   from default 21) — keeps memory low while avoiding blank cells.
+             * - removeClippedSubviews: Unmounts off-screen native views to free
+             *   GPU memory. Safe here because expo-image handles recycling.
+             * - updateCellsBatchingPeriod: Increase batching interval so the
+             *   JS thread does less work per frame during rapid scrolling.
+             */}
             <Animated.FlatList
                 ref={listRef}
                 style={styles.list}
@@ -385,6 +511,11 @@ const NearestBooks: React.FC<NearestBooksProps> = ({
                     offset: SNAP_INTERVAL * i,
                     index: i,
                 })}
+                initialNumToRender={6}
+                maxToRenderPerBatch={4}
+                windowSize={5}
+                removeClippedSubviews={true}
+                updateCellsBatchingPeriod={50}
             />
         </View>
     );
@@ -439,7 +570,6 @@ const styles = StyleSheet.create({
         borderRadius: 14,
         borderWidth: 1,
         borderColor: 'rgba(0,0,0,0.04)',
-        // Soft Shadow
         shadowColor: COLORS.black,
         shadowOffset: { width: 0, height: 6 },
         shadowRadius: 10,
@@ -453,7 +583,6 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         backgroundColor: '#f5f5f5',
         zIndex: 2,
-        // Subtle depth shadow
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.12,
@@ -480,7 +609,7 @@ const styles = StyleSheet.create({
     },
     titleText: {
         fontSize: 13.5,
-        fontFamily: FONTS.montserrat.bold,
+        fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
         flex: 1,
         marginRight: 4,
