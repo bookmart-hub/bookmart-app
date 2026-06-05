@@ -133,7 +133,7 @@ const DEFAULT_AUTHORS: AuthorItem[] = [
 
 const HORIZONTAL_PADDING = SPACING.lg; // 24
 const COLLAPSED_WIDTH = 100;
-const ITEM_GAP = 10;
+const ITEM_GAP = 16;
 
 const SNAP_INTERVAL = SCREEN_WIDTH - HORIZONTAL_PADDING - COLLAPSED_WIDTH;
 const EXPANDED_WIDTH = SNAP_INTERVAL - ITEM_GAP;
@@ -180,8 +180,7 @@ const REVEAL_STARS = {
     easing: Easing.out(Easing.cubic),
 } as const;
 
-// expo-image transition — prevents flash/blink when images load
-const IMAGE_TRANSITION = { duration: 150, effect: 'cross-dissolve' as const };
+// expo-image transition removed to prevent flash/blink when recycled views swap images
 
 // ── Star rating ───────────────────────────────────────────────────────────────
 
@@ -365,7 +364,6 @@ const AuthorCard: React.FC<AuthorCardProps> = memo(
                                 contentFit="cover"
                                 recyclingKey={item.id}
                                 cachePolicy="memory-disk"
-                                transition={IMAGE_TRANSITION}
                                 placeholderContentFit="cover"
                             />
                         </View>
@@ -531,11 +529,11 @@ const AuthorsSection: React.FC<AuthorsSectionProps> = ({
                 snapToInterval={SNAP_INTERVAL}
                 decelerationRate="fast"
                 bounces={false}
-                initialNumToRender={4}
-                maxToRenderPerBatch={3}
-                windowSize={5}
+                initialNumToRender={8}
+                maxToRenderPerBatch={5}
+                windowSize={11}
                 removeClippedSubviews={Platform.OS === 'ios'}
-                updateCellsBatchingPeriod={50}
+                updateCellsBatchingPeriod={30}
             />
         </View>
     );
@@ -549,7 +547,7 @@ const CARD_BG = '#3a3a3a';
 
 const styles = StyleSheet.create({
     section: {
-        marginTop: SPACING.sm,
+        marginTop: SPACING.md,
     },
 
     // ── Header ──
@@ -557,16 +555,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: HORIZONTAL_PADDING + 4,
+        paddingHorizontal: HORIZONTAL_PADDING,
+        marginBottom: SPACING.sm,
     },
     headerTitle: {
         fontSize: 20,
-        fontFamily: FONTS.montserrat.semibold,
+        fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
         fontSize: 14,
-        fontFamily: FONTS.montserrat.medium,
+        fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
 
@@ -590,6 +589,11 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         flexDirection: 'row',
         overflow: 'hidden',
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
+        elevation: 4,
     },
 
     // ── Photo ──
@@ -604,7 +608,7 @@ const styles = StyleSheet.create({
 
     // ── Details column ──
     details: {
-        flex: 1,
+        width: EXPANDED_WIDTH - PHOTO_SIZE,
         paddingHorizontal: 12,
         paddingVertical: 10,
         justifyContent: 'center',

@@ -93,7 +93,7 @@ const DEFAULT_BOOKS: NearestBookItem[] = [
 // ── Layout constants ──────────────────────────────────────────────────────────
 
 const CARD_WIDTH = SCREEN_WIDTH * 0.44;
-const ITEM_GAP = 6;
+const ITEM_GAP = 16;
 const SNAP_INTERVAL = CARD_WIDTH + ITEM_GAP;
 const HORIZONTAL_PADDING = SPACING.lg;
 
@@ -103,8 +103,6 @@ const COVER_FLOAT = 12;
 
 const LOOP_COUNT = 30;
 
-// expo-image transition — prevents flash/blink when recycled views swap images
-const IMAGE_TRANSITION = { duration: 150, effect: 'cross-dissolve' as const };
 
 // ── Shared animation configs (defined once outside components, never re-created) ──
 
@@ -289,7 +287,6 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
                         contentFit="cover"
                         recyclingKey={item.id}
                         cachePolicy="memory-disk"
-                        transition={IMAGE_TRANSITION}
                     />
                     {/* Subtle depth overlay */}
                     <View style={styles.coverOverlay} />
@@ -322,7 +319,6 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
                                 style={styles.sellerAvatar}
                                 contentFit="cover"
                                 cachePolicy="memory-disk"
-                                transition={IMAGE_TRANSITION}
                             />
                             <Text style={styles.sellerDesc} numberOfLines={2}>
                                 {item.description}
@@ -511,11 +507,11 @@ const NearestBooks: React.FC<NearestBooksProps> = ({
                     offset: SNAP_INTERVAL * i,
                     index: i,
                 })}
-                initialNumToRender={6}
-                maxToRenderPerBatch={4}
-                windowSize={5}
+                initialNumToRender={8}
+                maxToRenderPerBatch={5}
+                windowSize={11}
                 removeClippedSubviews={Platform.OS === 'ios'}
-                updateCellsBatchingPeriod={50}
+                updateCellsBatchingPeriod={30}
             />
         </View>
     );
@@ -533,16 +529,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: HORIZONTAL_PADDING + 4,
+        paddingHorizontal: HORIZONTAL_PADDING,
+        marginBottom: SPACING.sm,
     },
     headerTitle: {
         fontSize: 20,
-        fontFamily: FONTS.montserrat.semibold,
+        fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
         fontSize: 14,
-        fontFamily: FONTS.montserrat.medium,
+        fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
     list: {
@@ -567,12 +564,13 @@ const styles = StyleSheet.create({
     whiteBg: {
         ...StyleSheet.absoluteFillObject,
         backgroundColor: COLORS.white,
-        borderRadius: 14,
+        borderRadius: 16,
         borderWidth: 1,
         borderColor: 'rgba(0,0,0,0.04)',
         shadowColor: COLORS.black,
-        shadowOffset: { width: 0, height: 6 },
-        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
         elevation: 4,
     },
     coverWrap: {

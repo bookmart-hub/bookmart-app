@@ -230,7 +230,7 @@ export default PromoBanner;
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 0,
+    // marginTop: SPACING.md,
   },
   listContent: {
     paddingHorizontal: CARD_HORIZONTAL_PADDING,
@@ -239,10 +239,15 @@ const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
     height: 180,
-    borderRadius: 20,
+    borderRadius: 24,
     flexDirection: 'row',
     overflow: 'hidden',
     position: 'relative',
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
   cardOverlay: {
     position: 'absolute',
@@ -250,8 +255,8 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: '60%',
-    borderTopLeftRadius: 20,
-    borderBottomLeftRadius: 20,
+    borderTopLeftRadius: 24,
+    borderBottomLeftRadius: 24,
   },
   cardContent: {
     flex: 1,
@@ -278,7 +283,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingHorizontal: SPACING.md + 4,
     paddingVertical: SPACING.sm + 2,
-    borderRadius: 20,
+    borderRadius: 24,
     marginTop: SPACING.sm,
   },
   ctaText: {

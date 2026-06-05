@@ -53,11 +53,11 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 50,
+    height: 52,
     backgroundColor: COLORS.white,
-    borderRadius: 28,
+    borderRadius: 26,
     paddingHorizontal: SPACING.md,
-    // Elevated shadow to match the reference's floating search feel
+    // Elevated shadow to match the premium floating search feel
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,

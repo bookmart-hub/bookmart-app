@@ -64,8 +64,8 @@ const DEFAULT_CATEGORIES: CategoryItem[] = [
     },
 ];
 
-const ITEM_WIDTH = 90;
-const ITEM_HEIGHT = 120;
+const ITEM_WIDTH = 75;
+const ITEM_HEIGHT = 100;
 const ITEM_GAP = 10;
 
 const SNAP_SIZE = ITEM_WIDTH + ITEM_GAP;
@@ -74,8 +74,6 @@ const SIDE_PADDING =
     (SCREEN_WIDTH - ITEM_WIDTH) / 2;
 
 const LOOP_COPIES = 11; // Odd number, large enough for seamless looping
-
-const IMAGE_TRANSITION = { duration: 150, effect: 'cross-dissolve' as const };
 
 // ── CategoryCard ──────────────────────────────────────────────────────────────
 
@@ -102,21 +100,16 @@ const CategoryCard = memo(({
         const scale = interpolate(
             scrollX.value,
             inputRange,
-            [0.82, 1.2, 0.82],
+            [0.88, 1.25, 0.88],
             Extrapolation.CLAMP
         );
 
-        const translateY = interpolate(
-            scrollX.value,
-            inputRange,
-            [8, -10, 8],
-            Extrapolation.CLAMP
-        );
+        const translateY = 0;
 
         const borderWidth = interpolate(
             scrollX.value,
             inputRange,
-            [0, 3, 0],
+            [0, 2, 0],
             Extrapolation.CLAMP
         );
 
@@ -137,22 +130,46 @@ const CategoryCard = memo(({
         };
     });
 
+    const labelAnimatedStyle = useAnimatedStyle(() => {
+        'worklet';
+        const opacity = interpolate(
+            scrollX.value,
+            inputRange,
+            [0, 1, 0],
+            Extrapolation.CLAMP
+        );
+        const translateY = interpolate(
+            scrollX.value,
+            inputRange,
+            [8, 0, 8],
+            Extrapolation.CLAMP
+        );
+        return {
+            opacity,
+            transform: [{ translateY }],
+        };
+    });
+
     return (
-        <Animated.View
-            style={[
-                styles.cardContainer,
-                animatedStyle,
-            ]}
-        >
-            <Image
-                source={{ uri: item.imageUri }}
-                style={styles.image}
-                contentFit="cover"
-                cachePolicy="memory-disk"
-                recyclingKey={item.id}
-                transition={IMAGE_TRANSITION}
-            />
-        </Animated.View>
+        <View style={styles.itemWrapper}>
+            <Animated.Text style={[styles.title, labelAnimatedStyle]} numberOfLines={1}>
+                {item.label}
+            </Animated.Text>
+            <Animated.View
+                style={[
+                    styles.cardContainer,
+                    animatedStyle,
+                ]}
+            >
+                <Image
+                    source={{ uri: item.imageUri }}
+                    style={styles.image}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    recyclingKey={item.id}
+                />
+            </Animated.View>
+        </View>
     );
 });
 
@@ -184,10 +201,6 @@ const CategorySection: React.FC<
 
         const middleCopy = Math.floor(LOOP_COPIES / 2);
         const middleStartIndex = middleCopy * N;
-
-        // Track active label on the JS thread (only updated on scroll-end)
-        const activeLabelRef = useRef(categories[0]?.label ?? '');
-        const [activeLabel, setActiveLabel] = React.useState(activeLabelRef.current);
 
         const jumpTo = useCallback((offset: number) => {
             flatListRef.current?.scrollToOffset({ offset, animated: false });
@@ -221,19 +234,6 @@ const CategorySection: React.FC<
             return () => clearTimeout(timer);
         }, [middleStartIndex]);
 
-        // Update label only on scroll end — avoids JS re-renders during scroll
-        const handleScrollEnd = useCallback((e: any) => {
-            const index = Math.round(
-                e.nativeEvent.contentOffset.x / SNAP_SIZE
-            );
-            const realIndex = ((index % N) + N) % N;
-            const label = categories[realIndex]?.label ?? '';
-            if (activeLabelRef.current !== label) {
-                activeLabelRef.current = label;
-                setActiveLabel(label);
-            }
-        }, [N, categories]);
-
         const renderItem = useCallback(({ item, index }: any) => (
             <CategoryCard
                 item={item}
@@ -252,10 +252,9 @@ const CategorySection: React.FC<
 
         return (
             <View style={styles.container}>
-                <Text style={styles.subtitle}>Categories</Text>
-                <Text style={styles.title}>
-                    {activeLabel}
-                </Text>
+                <View style={styles.header}>
+                    <Text style={styles.subtitle}>Categories</Text>
+                </View>
 
                 <Animated.FlatList
                     ref={flatListRef}
@@ -275,14 +274,12 @@ const CategorySection: React.FC<
                         alignItems: 'center' as const,
                         columnGap: ITEM_GAP,
                     }}
-                    onMomentumScrollEnd={handleScrollEnd}
-                    onScrollEndDrag={handleScrollEnd}
                     renderItem={renderItem}
-                    initialNumToRender={7}
-                    maxToRenderPerBatch={5}
-                    windowSize={7}
+                    initialNumToRender={10}
+                    maxToRenderPerBatch={8}
+                    windowSize={11}
                     removeClippedSubviews={Platform.OS === 'ios'}
-                    updateCellsBatchingPeriod={50}
+                    updateCellsBatchingPeriod={30}
                 />
             </View>
         );
@@ -292,52 +289,58 @@ export default CategorySection;
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: SPACING.sm,
+        marginTop: SPACING.md,
     },
-
+    header: {
+        paddingHorizontal: SPACING.lg,
+        marginBottom: 2,
+    },
     subtitle: {
         fontSize: 20,
-        fontFamily: FONTS.montserrat.semibold,
+        fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
-        marginRight: SPACING.sm,
-        marginLeft: SPACING.md + 10,
+    },
+    title: {
+        position: 'absolute',
+        top: 0,
+        fontSize: 14,
+        fontFamily: FONTS.montserrat.semibold,
+        color: COLORS.textMuted,
+        width: ITEM_WIDTH * 1.5,
+        textAlign: 'center',
+        zIndex: 10,
     },
 
-    title: {
-        textAlign: 'center',
-        fontSize: 14,
-        fontFamily:
-            FONTS.montserrat.semibold,
-
-        color: COLORS.text,
+    itemWrapper: {
+        width: ITEM_WIDTH,
+        alignItems: 'center',
+        paddingTop: 30, // Space for the absolutely positioned label
     },
 
     cardContainer: {
         width: ITEM_WIDTH,
+        marginTop: 5,
         height: ITEM_HEIGHT,
+        marginBottom: 15,
 
-        borderRadius: 12,
+        borderRadius: 10,
         overflow: 'hidden',
 
         borderColor: COLORS.primary,
         padding: 5,
-        marginTop: 30,
         backgroundColor: COLORS.background,
 
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 5,
-        },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
 
-        elevation: 5,
+        elevation: 4,
     },
 
     image: {
         width: '100%',
         height: '100%',
-        borderRadius: 10
+        borderRadius: 12
     },
 });

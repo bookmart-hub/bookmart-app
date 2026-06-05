@@ -91,13 +91,11 @@ const DEFAULT_INSTITUTE_BOOKS: InstituteBookItem[] = [
 const CARD_WIDTH = 250;
 const COVER_WIDTH = 75;
 const COVER_HEIGHT = '100%' as const;
-const ITEM_GAP = 12;
+const ITEM_GAP = 16;
 const SNAP_INTERVAL = CARD_WIDTH + ITEM_GAP;
 const HORIZONTAL_PADDING = SPACING.lg;
 
 const LOOP_COPIES = 15; // Enough for seamless infinite scroll
-
-const IMAGE_TRANSITION = { duration: 150, effect: 'cross-dissolve' as const };
 
 // ── SellerPill ────────────────────────────────────────────────────────────────
 
@@ -117,7 +115,6 @@ const SellerPill: React.FC<SellerPillProps> = memo(({ name, avatarUri }) => {
                     style={styles.sellerAvatar}
                     contentFit="cover"
                     cachePolicy="memory-disk"
-                    transition={IMAGE_TRANSITION}
                 />
             ) : (
                 <View style={styles.sellerAvatarFallback}>
@@ -153,7 +150,6 @@ const InstituteBookCard: React.FC<InstituteBookCardProps> = memo(
                     contentFit="cover"
                     recyclingKey={item.id}
                     cachePolicy="memory-disk"
-                    transition={IMAGE_TRANSITION}
                 />
 
                 {/* Text content */}
@@ -285,7 +281,7 @@ const InstituteBooks: React.FC<InstituteBooksProps> = ({
     );
 
     return (
-        <View>
+        <View style={styles.section}>
             {/* ── Header ── */}
             <View style={styles.header}>
                 <Text style={styles.headerTitle} numberOfLines={1}>
@@ -313,11 +309,11 @@ const InstituteBooks: React.FC<InstituteBooksProps> = ({
                 snapToAlignment="start"
                 decelerationRate="fast"
                 bounces={false}
-                initialNumToRender={4}
-                maxToRenderPerBatch={3}
-                windowSize={5}
+                initialNumToRender={8}
+                maxToRenderPerBatch={5}
+                windowSize={11}
                 removeClippedSubviews={Platform.OS === 'ios'}
-                updateCellsBatchingPeriod={50}
+                updateCellsBatchingPeriod={30}
             />
         </View>
     );
@@ -328,22 +324,26 @@ export default InstituteBooks;
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+    section: {
+        marginTop: SPACING.md,
+    },
+
     // ── Header ──
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-end',
-        paddingHorizontal: HORIZONTAL_PADDING + 4,
+        alignItems: 'center',
+        paddingHorizontal: HORIZONTAL_PADDING,
+        marginBottom: SPACING.sm,
     },
     headerTitle: {
         fontSize: 20,
-        fontFamily: FONTS.montserrat.semibold,
+        fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
-        marginRight: SPACING.sm,
     },
     headerLink: {
         fontSize: 14,
-        fontFamily: FONTS.montserrat.medium,
+        fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
 
@@ -359,19 +359,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'flex-start',
         backgroundColor: COLORS.white,
-        borderRadius: 14,
+        borderRadius: 16,
         borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.05)',
+        borderColor: 'rgba(0,0,0,0.04)',
         padding: 10,
         marginRight: ITEM_GAP,
 
-        // Shadow — iOS
         shadowColor: COLORS.black,
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.07,
-        shadowRadius: 8,
-        // Shadow — Android
-        elevation: 3,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 4,
     },
 
     // ── Cover ──
