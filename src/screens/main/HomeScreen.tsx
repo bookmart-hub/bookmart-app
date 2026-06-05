@@ -8,6 +8,7 @@ import SearchBar from '@/components/ui/SearchBar';
 import PromoBanner, { PromoBannerItem } from '@/components/ui/PromoBanner';
 import CategorySection from '@/components/ui/CategorySection';
 import NearestBooks, { NearestBookItem } from '@/components/ui/NearestBooks';
+import InstituteBooks, { InstituteBookItem } from '@/components/ui/InstituteBooks';
 
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
@@ -30,6 +31,14 @@ const HomeScreen = () => {
 
   const handleSeeAllPress = useCallback(() => {
     // TODO: navigate to full nearest books list
+  }, []);
+
+  const handleInstituteBookPress = useCallback((book: InstituteBookItem) => {
+    // TODO: navigate to book detail
+  }, []);
+
+  const handleInstituteSeeAllPress = useCallback(() => {
+    // TODO: navigate to institute books list
   }, []);
 
   return (
@@ -62,6 +71,13 @@ const HomeScreen = () => {
         <NearestBooks
           onBookPress={handleBookPress}
           onSeeAllPress={handleSeeAllPress}
+        />
+
+        {/* ── From Your Institute ── */}
+        <InstituteBooks
+          instituteName="College"
+          onBookPress={handleInstituteBookPress}
+          onSeeAllPress={handleInstituteSeeAllPress}
         />
       </ScrollView>
     </View>

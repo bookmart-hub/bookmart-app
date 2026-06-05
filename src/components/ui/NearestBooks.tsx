@@ -527,7 +527,7 @@ export default NearestBooks;
 
 const styles = StyleSheet.create({
     section: {
-        marginTop: SPACING.lg,
+        marginTop: SPACING.md,
     },
     header: {
         flexDirection: 'row',
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
     },
     listContent: {
         paddingHorizontal: HORIZONTAL_PADDING,
-        paddingTop: COVER_FLOAT + 4,
+        paddingTop: COVER_FLOAT,
         paddingBottom: 10,
     },
     slot: {
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
     coverWrap: {
         width: '88%',
         height: 160,
-        marginTop: 10,
+        marginTop: 12,
         borderRadius: 8,
         overflow: 'hidden',
         backgroundColor: '#f5f5f5',

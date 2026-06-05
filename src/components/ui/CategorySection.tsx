@@ -207,6 +207,7 @@ const CategorySection: React.FC<
 
         return (
             <View style={styles.container}>
+                <Text style={styles.subtitle}>Categories</Text>
                 <Text style={styles.title}>
                     {categories[activeIndex]?.label}
                 </Text>
@@ -255,6 +256,14 @@ export default CategorySection;
 const styles = StyleSheet.create({
     container: {
         marginTop: SPACING.sm,
+    },
+
+    subtitle: {
+        fontSize: 20,
+        fontFamily: FONTS.montserrat.semibold,
+        color: COLORS.text,
+        marginRight: SPACING.sm,
+        marginLeft: SPACING.md + 10,
     },
 
     title: {

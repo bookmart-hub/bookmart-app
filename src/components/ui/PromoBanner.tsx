@@ -230,7 +230,7 @@ export default PromoBanner;
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: SPACING.sm,
+    marginTop: 0,
   },
   listContent: {
     paddingHorizontal: CARD_HORIZONTAL_PADDING,
