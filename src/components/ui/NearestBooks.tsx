@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import {
     Dimensions,
+    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -101,6 +102,9 @@ const LIST_HEIGHT = CARD_HEIGHT + 20;
 const COVER_FLOAT = 12;
 
 const LOOP_COUNT = 30;
+
+// expo-image transition — prevents flash/blink when recycled views swap images
+const IMAGE_TRANSITION = { duration: 150, effect: 'cross-dissolve' as const };
 
 // ── Shared animation configs (defined once outside components, never re-created) ──
 
@@ -284,13 +288,8 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
                         style={styles.coverImg}
                         contentFit="cover"
                         recyclingKey={item.id}
-                        /**
-                         * OPTIMIZATION 5: cachePolicy="memory-disk" keeps decoded
-                         * bitmaps in memory so expo-image doesn't re-decode on
-                         * every re-render/recycle. This removes per-frame GPU
-                         * texture uploads that caused micro-stutters.
-                         */
                         cachePolicy="memory-disk"
+                        transition={IMAGE_TRANSITION}
                     />
                     {/* Subtle depth overlay */}
                     <View style={styles.coverOverlay} />
@@ -323,6 +322,7 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
                                 style={styles.sellerAvatar}
                                 contentFit="cover"
                                 cachePolicy="memory-disk"
+                                transition={IMAGE_TRANSITION}
                             />
                             <Text style={styles.sellerDesc} numberOfLines={2}>
                                 {item.description}
@@ -514,7 +514,7 @@ const NearestBooks: React.FC<NearestBooksProps> = ({
                 initialNumToRender={6}
                 maxToRenderPerBatch={4}
                 windowSize={5}
-                removeClippedSubviews={true}
+                removeClippedSubviews={Platform.OS === 'ios'}
                 updateCellsBatchingPeriod={50}
             />
         </View>

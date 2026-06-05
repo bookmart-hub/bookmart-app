@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useRef } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
     Dimensions,
     Platform,
@@ -15,9 +15,11 @@ import Animated, {
     useAnimatedScrollHandler,
     useAnimatedStyle,
     useSharedValue,
+    withSpring,
     withTiming,
     useDerivedValue,
     Easing,
+    runOnJS,
 } from 'react-native-reanimated';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
@@ -138,28 +140,48 @@ const EXPANDED_WIDTH = SNAP_INTERVAL - ITEM_GAP;
 const PHOTO_SIZE = COLLAPSED_WIDTH;
 const CARD_HEIGHT = 150;
 
-// Right-side trailing space so the last card can snap and expand fully
-const TRAILING_SPACE = SCREEN_WIDTH - HORIZONTAL_PADDING - SNAP_INTERVAL;
+const LOOP_COPIES = 15;
 
 // ── Module-scoped animation configs (never re-created) ────────────────────────
 
-const TIMING_WIDTH = {
+// Primary spring — same weight as NearestBooks for organic, natural motion
+const SPRING_CONFIG = {
+    damping: 20,
+    stiffness: 160,
+    mass: 0.6,
+    overshootClamping: false,
+    restDisplacementThreshold: 0.01,
+    restSpeedThreshold: 0.01,
+} as const;
+
+// Lighter spring for width expansion — slightly faster settle
+const WIDTH_SPRING = {
+    damping: 22,
+    stiffness: 180,
+    mass: 0.5,
+    overshootClamping: false,
+    restDisplacementThreshold: 0.01,
+    restSpeedThreshold: 0.01,
+} as const;
+
+// Staggered content reveal timings — each element appears after the previous
+const REVEAL_NAME = {
+    duration: 200,
+    easing: Easing.out(Easing.cubic),
+} as const;
+
+const REVEAL_BIO = {
     duration: 260,
     easing: Easing.out(Easing.cubic),
 } as const;
 
-const TIMING_REVEAL = {
-    duration: 240,
-    easing: Easing.out(Easing.cubic),
-} as const;
-
-const TIMING_FAST = {
-    duration: 160,
+const REVEAL_STARS = {
+    duration: 320,
     easing: Easing.out(Easing.cubic),
 } as const;
 
 // expo-image transition — prevents flash/blink when images load
-const IMAGE_TRANSITION = { duration: 200, effect: 'cross-dissolve' as const };
+const IMAGE_TRANSITION = { duration: 150, effect: 'cross-dissolve' as const };
 
 // ── Star rating ───────────────────────────────────────────────────────────────
 
@@ -211,52 +233,88 @@ const AuthorCard: React.FC<AuthorCardProps> = memo(
             );
         });
 
-        // Smooth activation ramp — no binary pop
+        // Smooth activation ramp — wider window for gradual transitions
         const activeProgress = useDerivedValue(() => {
             'worklet';
             return interpolate(
                 progress.value,
-                [0.35, 0.65],
+                [0.3, 0.7],
                 [0, 1],
                 Extrapolation.CLAMP
             );
         });
 
-        // ── Derived animation values (UI thread only) ─────────────────────
+        // ── Spring-driven derived values (physics-based, organic feel) ────
 
+        // Width: spring-based continuous interpolation — no hard threshold
         const animatedWidth = useDerivedValue(() => {
             'worklet';
-            return withTiming(
+            return withSpring(
                 interpolate(
                     activeProgress.value,
                     [0, 1],
                     [COLLAPSED_WIDTH, EXPANDED_WIDTH]
                 ),
-                TIMING_WIDTH
+                WIDTH_SPRING
             );
         });
 
-        const animatedDetailsOpacity = useDerivedValue(() => {
-            'worklet';
-            return withTiming(
-                activeProgress.value > 0.5 ? 1 : 0,
-                TIMING_REVEAL
-            );
-        });
-
-        const animatedDetailsX = useDerivedValue(() => {
-            'worklet';
-            return withTiming(
-                activeProgress.value > 0.5 ? 0 : -6,
-                TIMING_FAST
-            );
-        });
-
+        // Scale: spring-based for natural bounce
         const animatedScale = useDerivedValue(() => {
             'worklet';
+            return withSpring(
+                interpolate(activeProgress.value, [0, 1], [0.93, 1]),
+                SPRING_CONFIG
+            );
+        });
+
+        // ── Staggered content reveal (Name → Bio → Stars) ────────────────
+
+        // Name: first to appear, fast
+        const nameOpacity = useDerivedValue(() => {
+            'worklet';
             return withTiming(
-                interpolate(activeProgress.value, [0, 1], [0.94, 1]),
-                TIMING_FAST
+                activeProgress.value > 0.45 ? 1 : 0,
+                REVEAL_NAME
+            );
+        });
+        const nameTranslateX = useDerivedValue(() => {
+            'worklet';
+            return withSpring(
+                activeProgress.value > 0.45 ? 0 : -10,
+                SPRING_CONFIG
+            );
+        });
+
+        // Bio: appears after name with slight delay (longer duration)
+        const bioOpacity = useDerivedValue(() => {
+            'worklet';
+            return withTiming(
+                activeProgress.value > 0.55 ? 1 : 0,
+                REVEAL_BIO
+            );
+        });
+        const bioTranslateX = useDerivedValue(() => {
+            'worklet';
+            return withSpring(
+                activeProgress.value > 0.55 ? 0 : -8,
+                SPRING_CONFIG
+            );
+        });
+
+        // Stars: last to appear with longest duration
+        const starsOpacity = useDerivedValue(() => {
+            'worklet';
+            return withTiming(
+                activeProgress.value > 0.65 ? 1 : 0,
+                REVEAL_STARS
+            );
+        });
+        const starsScale = useDerivedValue(() => {
+            'worklet';
+            return withSpring(
+                activeProgress.value > 0.65 ? 1 : 0.5,
+                SPRING_CONFIG
             );
         });
 
@@ -270,11 +328,27 @@ const AuthorCard: React.FC<AuthorCardProps> = memo(
             };
         });
 
-        const detailsStyle = useAnimatedStyle(() => {
+        const nameStyle = useAnimatedStyle(() => {
             'worklet';
             return {
-                opacity: animatedDetailsOpacity.value,
-                transform: [{ translateX: animatedDetailsX.value }],
+                opacity: nameOpacity.value,
+                transform: [{ translateX: nameTranslateX.value }],
+            };
+        });
+
+        const bioStyle = useAnimatedStyle(() => {
+            'worklet';
+            return {
+                opacity: bioOpacity.value,
+                transform: [{ translateX: bioTranslateX.value }],
+            };
+        });
+
+        const starsStyle = useAnimatedStyle(() => {
+            'worklet';
+            return {
+                opacity: starsOpacity.value,
+                transform: [{ scale: starsScale.value }],
             };
         });
 
@@ -296,22 +370,30 @@ const AuthorCard: React.FC<AuthorCardProps> = memo(
                             />
                         </View>
 
-                        {/* Details — visible when active */}
-                        <Animated.View style={[styles.details, detailsStyle]}>
-                            <Text style={styles.authorName} numberOfLines={2}>
+                        {/* Details — staggered reveal: Name → Bio → Stars */}
+                        <View style={styles.details}>
+                            <Animated.Text
+                                style={[styles.authorName, nameStyle]}
+                                numberOfLines={2}
+                            >
                                 {item.name}
-                            </Text>
+                            </Animated.Text>
 
                             {item.bio ? (
-                                <Text style={styles.authorBio} numberOfLines={6}>
+                                <Animated.Text
+                                    style={[styles.authorBio, bioStyle]}
+                                    numberOfLines={6}
+                                >
                                     {item.bio}
-                                </Text>
+                                </Animated.Text>
                             ) : null}
 
                             {item.rating != null && item.rating > 0 ? (
-                                <StarRating rating={item.rating} />
+                                <Animated.View style={starsStyle}>
+                                    <StarRating rating={item.rating} />
+                                </Animated.View>
                             ) : null}
-                        </Animated.View>
+                        </View>
                     </Animated.View>
                 </View>
             </TouchableOpacity>
@@ -332,20 +414,76 @@ const AuthorsSection: React.FC<AuthorsSectionProps> = ({
     onAuthorPress,
     onSeeAllPress,
 }) => {
+    const listRef = useRef<any>(null);
     const scrollX = useSharedValue(0);
+    const N = authors.length;
 
     const onAuthorPressRef = useRef(onAuthorPress);
     onAuthorPressRef.current = onAuthorPress;
+
+    // Replicate data for infinite loop
+    const loopedData = useMemo(() => {
+        const arr: Array<AuthorItem & { _key: string }> = [];
+        for (let c = 0; c < LOOP_COPIES; c++) {
+            for (let i = 0; i < N; i++) {
+                arr.push({ ...authors[i], _key: `${authors[i].id}-${c}` });
+            }
+        }
+        return arr;
+    }, [authors, N]);
+
+    const middleCopy = Math.floor(LOOP_COPIES / 2);
+    const middleStartIndex = middleCopy * N;
+
+    // Scroll to middle on mount
+    useEffect(() => {
+        if (N > 0 && listRef.current) {
+            const timer = setTimeout(() => {
+                listRef.current?.scrollToIndex({
+                    index: middleStartIndex,
+                    animated: false,
+                });
+            }, 80);
+            return () => clearTimeout(timer);
+        }
+    }, [middleStartIndex, N]);
+
+    const jumpTo = useCallback((offset: number) => {
+        listRef.current?.scrollToOffset({ offset, animated: false });
+    }, []);
 
     const onScroll = useAnimatedScrollHandler({
         onScroll: (event) => {
             'worklet';
             scrollX.value = event.contentOffset.x;
+
+            // Boundary jump for seamless infinite loop
+            const minOffset = (middleStartIndex - N * 2) * SNAP_INTERVAL;
+            const maxOffset = (middleStartIndex + N * 2) * SNAP_INTERVAL;
+
+            if (event.contentOffset.x < minOffset) {
+                runOnJS(jumpTo)(event.contentOffset.x + N * SNAP_INTERVAL);
+            } else if (event.contentOffset.x >= maxOffset) {
+                runOnJS(jumpTo)(event.contentOffset.x - N * SNAP_INTERVAL);
+            }
         },
     });
 
+    // Reset to middle copy on momentum end near boundaries
+    const handleMomentumScrollEnd = useCallback((e: any) => {
+        const x = e.nativeEvent.contentOffset.x;
+        const index = Math.round(x / SNAP_INTERVAL);
+        const originalIdx = ((index % N) + N) % N;
+        const newIndex = middleCopy * N + originalIdx;
+
+        if (index < N * 2 || index > loopedData.length - N * 2) {
+            listRef.current?.scrollToIndex({ index: newIndex, animated: false });
+            scrollX.value = newIndex * SNAP_INTERVAL;
+        }
+    }, [N, middleCopy, loopedData.length]);
+
     const renderItem = useCallback(
-        ({ item, index }: { item: AuthorItem; index: number }) => (
+        ({ item, index }: { item: AuthorItem & { _key: string }; index: number }) => (
             <AuthorCard
                 item={item}
                 index={index}
@@ -356,7 +494,7 @@ const AuthorsSection: React.FC<AuthorsSectionProps> = ({
         [scrollX]
     );
 
-    const keyExtractor = useCallback((item: AuthorItem) => item.id, []);
+    const keyExtractor = useCallback((item: any) => item._key, []);
 
     const getItemLayout = useCallback(
         (_: any, index: number) => ({
@@ -365,14 +503,6 @@ const AuthorsSection: React.FC<AuthorsSectionProps> = ({
             index,
         }),
         []
-    );
-
-    // Compute snap offsets so every card including the last one gets a proper
-    // snap position. snapToInterval doesn't account for trailing padding, but
-    // snapToOffsets does — each offset = index * SNAP_INTERVAL.
-    const snapOffsets = useMemo(
-        () => authors.map((_, i) => i * SNAP_INTERVAL),
-        [authors]
     );
 
     return (
@@ -385,33 +515,25 @@ const AuthorsSection: React.FC<AuthorsSectionProps> = ({
                 </TouchableOpacity>
             </View>
 
-            {/* ── Carousel ── */}
+            {/* ── Infinite loop carousel ── */}
             <Animated.FlatList
+                ref={listRef}
                 horizontal
-                data={authors}
+                data={loopedData}
                 keyExtractor={keyExtractor}
                 renderItem={renderItem}
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={[
-                    styles.listContent,
-                    // Trailing space lets the last item reach its snap position
-                    // and expand fully without the FlatList bouncing back
-                    { paddingRight: TRAILING_SPACE },
-                ]}
+                contentContainerStyle={styles.listContent}
                 getItemLayout={getItemLayout}
                 onScroll={onScroll}
+                onMomentumScrollEnd={handleMomentumScrollEnd}
                 scrollEventThrottle={16}
-                // snapToOffsets is more reliable than snapToInterval when
-                // trailing padding is involved — each offset is explicit
-                snapToOffsets={snapOffsets}
+                snapToInterval={SNAP_INTERVAL}
                 decelerationRate="fast"
                 bounces={false}
-                // Performance tuning
-                initialNumToRender={3}
+                initialNumToRender={4}
                 maxToRenderPerBatch={3}
                 windowSize={5}
-                // Avoid removeClippedSubviews on Android — it can cause
-                // image blink/flash when views are re-attached during fast scroll
                 removeClippedSubviews={Platform.OS === 'ios'}
                 updateCellsBatchingPeriod={50}
             />
@@ -427,7 +549,7 @@ const CARD_BG = '#3a3a3a';
 
 const styles = StyleSheet.create({
     section: {
-        marginTop: SPACING.md,
+        marginTop: SPACING.sm,
     },
 
     // ── Header ──
@@ -436,7 +558,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: HORIZONTAL_PADDING + 4,
-        marginBottom: SPACING.sm + 4,
     },
     headerTitle: {
         fontSize: 20,

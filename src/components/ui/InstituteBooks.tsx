@@ -1,15 +1,23 @@
-import React, { memo, useCallback, useRef } from 'react';
+import React, { memo, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
-    FlatList,
+    Dimensions,
+    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
 import { Image } from 'expo-image';
+import Animated, {
+    useAnimatedScrollHandler,
+    useSharedValue,
+    runOnJS,
+} from 'react-native-reanimated';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -82,12 +90,16 @@ const DEFAULT_INSTITUTE_BOOKS: InstituteBookItem[] = [
 
 const CARD_WIDTH = 250;
 const COVER_WIDTH = 75;
-const COVER_HEIGHT = '100%';
-const ITEM_GAP = 10;
-const HORIZONTAL_PADDING = SPACING.md;
+const COVER_HEIGHT = '100%' as const;
+const ITEM_GAP = 12;
+const SNAP_INTERVAL = CARD_WIDTH + ITEM_GAP;
+const HORIZONTAL_PADDING = SPACING.lg;
+
+const LOOP_COPIES = 15; // Enough for seamless infinite scroll
+
+const IMAGE_TRANSITION = { duration: 150, effect: 'cross-dissolve' as const };
 
 // ── SellerPill ────────────────────────────────────────────────────────────────
-// Small avatar + name row shown at the bottom of each card
 
 interface SellerPillProps {
     name: string;
@@ -105,6 +117,7 @@ const SellerPill: React.FC<SellerPillProps> = memo(({ name, avatarUri }) => {
                     style={styles.sellerAvatar}
                     contentFit="cover"
                     cachePolicy="memory-disk"
+                    transition={IMAGE_TRANSITION}
                 />
             ) : (
                 <View style={styles.sellerAvatarFallback}>
@@ -140,31 +153,23 @@ const InstituteBookCard: React.FC<InstituteBookCardProps> = memo(
                     contentFit="cover"
                     recyclingKey={item.id}
                     cachePolicy="memory-disk"
+                    transition={IMAGE_TRANSITION}
                 />
 
                 {/* Text content */}
                 <View style={styles.cardBody}>
-                    {/* Title */}
                     <Text style={styles.titleText} numberOfLines={1}>
                         {item.title}
                     </Text>
-
-                    {/* Author */}
                     <Text style={styles.authorText} numberOfLines={1}>
                         {item.author}
                     </Text>
-
-                    {/* Description snippet */}
                     {item.description ? (
                         <Text style={styles.descText} numberOfLines={3}>
                             {item.description}
                         </Text>
                     ) : null}
-
-                    {/* Spacer pushes seller pill to the bottom */}
                     <View style={styles.spacer} />
-
-                    {/* Seller */}
                     <SellerPill
                         name={item.sellerName}
                         avatarUri={item.sellerAvatarUri}
@@ -178,10 +183,6 @@ const InstituteBookCard: React.FC<InstituteBookCardProps> = memo(
 // ── InstituteBooks section ────────────────────────────────────────────────────
 
 export interface InstituteBooksProps {
-    /**
-     * Label shown in the heading — passed in from the user's onboarding
-     * data (e.g. "College", "School", "University of Delhi", etc.)
-     */
     instituteName?: string;
     books?: InstituteBookItem[];
     onBookPress?: (book: InstituteBookItem) => void;
@@ -194,29 +195,90 @@ const InstituteBooks: React.FC<InstituteBooksProps> = ({
     onBookPress,
     onSeeAllPress,
 }) => {
-    // Keep latest onBookPress accessible without adding it to renderItem's deps
+    const listRef = useRef<any>(null);
+    const scrollX = useSharedValue(0);
+    const N = books.length;
+
     const onBookPressRef = useRef(onBookPress);
     onBookPressRef.current = onBookPress;
 
+    // Replicate data for infinite loop
+    const loopedData = useMemo(() => {
+        const arr = [];
+        for (let c = 0; c < LOOP_COPIES; c++) {
+            for (let i = 0; i < N; i++) {
+                arr.push({ ...books[i], _key: `${books[i].id}-${c}` });
+            }
+        }
+        return arr;
+    }, [books, N]);
+
+    const middleCopy = Math.floor(LOOP_COPIES / 2);
+    const middleStartIndex = middleCopy * N;
+
+    // Scroll to middle on mount
+    useEffect(() => {
+        if (N > 0 && listRef.current) {
+            const timer = setTimeout(() => {
+                listRef.current?.scrollToIndex({
+                    index: middleStartIndex,
+                    animated: false,
+                });
+            }, 80);
+            return () => clearTimeout(timer);
+        }
+    }, [middleStartIndex, N]);
+
+    const jumpTo = useCallback((offset: number) => {
+        listRef.current?.scrollToOffset({ offset, animated: false });
+    }, []);
+
+    const onScroll = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            'worklet';
+            scrollX.value = event.contentOffset.x;
+
+            // Boundary jump for infinite loop
+            const minOffset = (middleStartIndex - N * 2) * SNAP_INTERVAL;
+            const maxOffset = (middleStartIndex + N * 2) * SNAP_INTERVAL;
+
+            if (event.contentOffset.x < minOffset) {
+                runOnJS(jumpTo)(event.contentOffset.x + N * SNAP_INTERVAL);
+            } else if (event.contentOffset.x >= maxOffset) {
+                runOnJS(jumpTo)(event.contentOffset.x - N * SNAP_INTERVAL);
+            }
+        },
+    });
+
+    // Reset to middle on momentum end near boundaries
+    const handleMomentumScrollEnd = useCallback((e: any) => {
+        const x = e.nativeEvent.contentOffset.x;
+        const index = Math.round(x / SNAP_INTERVAL);
+        const originalIdx = ((index % N) + N) % N;
+        const newIndex = middleCopy * N + originalIdx;
+
+        if (index < N * 2 || index > loopedData.length - N * 2) {
+            listRef.current?.scrollToIndex({ index: newIndex, animated: false });
+            scrollX.value = newIndex * SNAP_INTERVAL;
+        }
+    }, [N, middleCopy, loopedData.length]);
+
     const renderItem = useCallback(
-        ({ item }: { item: InstituteBookItem }) => (
+        ({ item }: any) => (
             <InstituteBookCard
                 item={item}
                 onPress={() => onBookPressRef.current?.(item)}
             />
         ),
-        [] // stable — item identity drives re-render, not the callback
-    );
-
-    const keyExtractor = useCallback(
-        (item: InstituteBookItem) => item.id,
         []
     );
 
+    const keyExtractor = useCallback((item: any) => item._key, []);
+
     const getItemLayout = useCallback(
         (_: any, index: number) => ({
-            length: CARD_WIDTH + ITEM_GAP,
-            offset: (CARD_WIDTH + ITEM_GAP) * index,
+            length: SNAP_INTERVAL,
+            offset: SNAP_INTERVAL * index,
             index,
         }),
         []
@@ -234,23 +296,28 @@ const InstituteBooks: React.FC<InstituteBooksProps> = ({
                 </TouchableOpacity>
             </View>
 
-            {/* ── Card list ── */}
-            <FlatList
+            {/* ── Infinite loop carousel ── */}
+            <Animated.FlatList
+                ref={listRef}
                 horizontal
-                data={books}
+                data={loopedData}
                 keyExtractor={keyExtractor}
                 renderItem={renderItem}
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.listContent}
                 getItemLayout={getItemLayout}
-                initialNumToRender={3}
+                onScroll={onScroll}
+                onMomentumScrollEnd={handleMomentumScrollEnd}
+                scrollEventThrottle={16}
+                snapToInterval={SNAP_INTERVAL}
+                snapToAlignment="start"
+                decelerationRate="fast"
+                bounces={false}
+                initialNumToRender={4}
                 maxToRenderPerBatch={3}
                 windowSize={5}
-                removeClippedSubviews={true}
-                decelerationRate="fast"
-                snapToInterval={CARD_WIDTH + ITEM_GAP}
-                snapToAlignment="start"
-                bounces={false}
+                removeClippedSubviews={Platform.OS === 'ios'}
+                updateCellsBatchingPeriod={50}
             />
         </View>
     );
@@ -261,10 +328,6 @@ export default InstituteBooks;
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-    // section: {
-    // marginTop: SPACING.lg,
-    // },
-
     // ── Header ──
     header: {
         flexDirection: 'row',
@@ -324,7 +387,7 @@ const styles = StyleSheet.create({
     cardBody: {
         flex: 1,
         marginLeft: 10,
-        alignSelf: 'stretch', // fill full card height so spacer works
+        alignSelf: 'stretch',
     },
     titleText: {
         fontSize: 13,

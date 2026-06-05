@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { memo, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
     Dimensions,
+    Platform,
     StyleSheet,
     Text,
     View,
@@ -14,6 +15,7 @@ import Animated, {
     SharedValue,
     useAnimatedScrollHandler,
     useAnimatedStyle,
+    useDerivedValue,
     useSharedValue,
 } from 'react-native-reanimated';
 
@@ -71,24 +73,32 @@ const SNAP_SIZE = ITEM_WIDTH + ITEM_GAP;
 const SIDE_PADDING =
     (SCREEN_WIDTH - ITEM_WIDTH) / 2;
 
+const LOOP_COPIES = 11; // Odd number, large enough for seamless looping
+
+const IMAGE_TRANSITION = { duration: 150, effect: 'cross-dissolve' as const };
+
+// ── CategoryCard ──────────────────────────────────────────────────────────────
+
 interface CategoryCardProps {
     item: CategoryItem;
     index: number;
     scrollX: SharedValue<number>;
 }
 
-const CategoryCard = ({
+const CategoryCard = memo(({
     item,
     index,
     scrollX,
 }: CategoryCardProps) => {
-    const animatedStyle = useAnimatedStyle(() => {
-        const inputRange = [
-            (index - 1) * SNAP_SIZE,
-            index * SNAP_SIZE,
-            (index + 1) * SNAP_SIZE,
-        ];
+    const center = index * SNAP_SIZE;
+    const inputRange = [
+        center - SNAP_SIZE,
+        center,
+        center + SNAP_SIZE,
+    ];
 
+    const animatedStyle = useAnimatedStyle(() => {
+        'worklet';
         const scale = interpolate(
             scrollX.value,
             inputRange,
@@ -138,10 +148,15 @@ const CategoryCard = ({
                 source={{ uri: item.imageUri }}
                 style={styles.image}
                 contentFit="cover"
+                cachePolicy="memory-disk"
+                recyclingKey={item.id}
+                transition={IMAGE_TRANSITION}
             />
         </Animated.View>
     );
-};
+});
+
+// ── CategorySection ───────────────────────────────────────────────────────────
 
 interface CategorySectionProps {
     categories?: CategoryItem[];
@@ -156,28 +171,37 @@ const CategorySection: React.FC<
         const flatListRef = useRef<any>(null);
         const N = categories.length;
 
-        // Triplicate categories to make circular/loop scrolling possible
-        const extendedCategories = [
-            ...categories,
-            ...categories,
-            ...categories,
-        ];
+        // Replicate data LOOP_COPIES times for infinite loop
+        const loopedData = useMemo(() => {
+            const arr = [];
+            for (let c = 0; c < LOOP_COPIES; c++) {
+                for (let i = 0; i < N; i++) {
+                    arr.push({ ...categories[i], _key: `${categories[i].id}-${c}` });
+                }
+            }
+            return arr;
+        }, [categories, N]);
 
-        // Start activeIndex at 0 (corresponding to the first item of the middle copy)
-        const [activeIndex, setActiveIndex] = useState(0);
+        const middleCopy = Math.floor(LOOP_COPIES / 2);
+        const middleStartIndex = middleCopy * N;
 
-        const jumpTo = (offset: number) => {
+        // Track active label on the JS thread (only updated on scroll-end)
+        const activeLabelRef = useRef(categories[0]?.label ?? '');
+        const [activeLabel, setActiveLabel] = React.useState(activeLabelRef.current);
+
+        const jumpTo = useCallback((offset: number) => {
             flatListRef.current?.scrollToOffset({ offset, animated: false });
-        };
+        }, []);
 
         const onScroll = useAnimatedScrollHandler({
             onScroll: (event) => {
+                'worklet';
                 scrollX.value = event.contentOffset.x;
 
-                const minOffset = (N - 3) * SNAP_SIZE;
-                const maxOffset = (2 * N + 3) * SNAP_SIZE;
+                // Boundary detection — jump to middle copy silently
+                const minOffset = (middleStartIndex - N) * SNAP_SIZE;
+                const maxOffset = (middleStartIndex + 2 * N) * SNAP_SIZE;
 
-                // Infinite loop jump detection with 3 items of padding/cushion
                 if (event.contentOffset.x < minOffset) {
                     runOnJS(jumpTo)(event.contentOffset.x + N * SNAP_SIZE);
                 } else if (event.contentOffset.x >= maxOffset) {
@@ -186,66 +210,79 @@ const CategorySection: React.FC<
             },
         });
 
-        // Ensure we scroll to the middle copy on mount
+        // Scroll to middle copy on mount
         useEffect(() => {
             const timer = setTimeout(() => {
                 flatListRef.current?.scrollToIndex({
-                    index: N,
+                    index: middleStartIndex,
                     animated: false,
                 });
-            }, 100);
+            }, 80);
             return () => clearTimeout(timer);
-        }, [N]);
+        }, [middleStartIndex]);
 
-        const handleScrollEnd = (e: any) => {
+        // Update label only on scroll end — avoids JS re-renders during scroll
+        const handleScrollEnd = useCallback((e: any) => {
             const index = Math.round(
                 e.nativeEvent.contentOffset.x / SNAP_SIZE
             );
             const realIndex = ((index % N) + N) % N;
-            setActiveIndex(realIndex);
-        };
+            const label = categories[realIndex]?.label ?? '';
+            if (activeLabelRef.current !== label) {
+                activeLabelRef.current = label;
+                setActiveLabel(label);
+            }
+        }, [N, categories]);
+
+        const renderItem = useCallback(({ item, index }: any) => (
+            <CategoryCard
+                item={item}
+                index={index}
+                scrollX={scrollX}
+            />
+        ), [scrollX]);
+
+        const keyExtractor = useCallback((item: any) => item._key, []);
+
+        const getItemLayout = useCallback((_: any, index: number) => ({
+            length: SNAP_SIZE,
+            offset: SNAP_SIZE * index,
+            index,
+        }), []);
 
         return (
             <View style={styles.container}>
                 <Text style={styles.subtitle}>Categories</Text>
                 <Text style={styles.title}>
-                    {categories[activeIndex]?.label}
+                    {activeLabel}
                 </Text>
 
                 <Animated.FlatList
                     ref={flatListRef}
                     horizontal
-                    data={extendedCategories}
-                    keyExtractor={(item, index) => `${item.id}-${index}`}
-                    showsHorizontalScrollIndicator={
-                        false
-                    }
+                    data={loopedData}
+                    keyExtractor={keyExtractor}
+                    showsHorizontalScrollIndicator={false}
                     decelerationRate="fast"
                     snapToInterval={SNAP_SIZE}
                     bounces={false}
                     scrollEventThrottle={16}
                     onScroll={onScroll}
-                    initialScrollIndex={N}
-                    getItemLayout={(_, index) => ({
-                        length: SNAP_SIZE,
-                        offset: SNAP_SIZE * index,
-                        index,
-                    })}
+                    initialScrollIndex={middleStartIndex}
+                    getItemLayout={getItemLayout}
                     contentContainerStyle={{
-                        paddingHorizontal:
-                            SIDE_PADDING,
-                        alignItems: 'center',
+                        paddingHorizontal: SIDE_PADDING,
+                        alignItems: 'center' as const,
                         columnGap: ITEM_GAP,
                     }}
                     onMomentumScrollEnd={handleScrollEnd}
                     onScrollEndDrag={handleScrollEnd}
-                    renderItem={({ item, index }) => (
-                        <CategoryCard
-                            item={item}
-                            index={index}
-                            scrollX={scrollX}
-                        />
-                    )}
+                    renderItem={renderItem}
+                    initialNumToRender={7}
+                    maxToRenderPerBatch={5}
+                    windowSize={7}
+                    removeClippedSubviews={Platform.OS === 'ios'}
+                    updateCellsBatchingPeriod={50}
                 />
             </View>
         );
