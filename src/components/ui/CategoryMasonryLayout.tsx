@@ -29,7 +29,7 @@ interface CategoryMasonryLayoutProps {
   leftColumnData: BookItem[];
   rightColumnData: BookItem[];
 }
-
+//TODO: images should autoscroll
 const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({
   title,
   subtitle,
@@ -45,7 +45,17 @@ const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({
     }
 
     return (
-      <View key={item.id} style={styles.card}>
+      <TouchableOpacity
+        key={item.id}
+        style={styles.card}
+        activeOpacity={0.9}
+        onPress={() => {
+          (navigation as any).navigate('BookDetails', {
+            book: item,
+            categoryTitle: title,
+          });
+        }}
+      >
         <Image
           source={{ uri: item.imageUri }}
           style={styles.bookImage}
@@ -79,7 +89,7 @@ const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({
             <Text style={styles.stockText}>2 left</Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
