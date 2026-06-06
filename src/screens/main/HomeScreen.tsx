@@ -10,6 +10,7 @@ import CategorySection from '@/components/ui/CategorySection';
 import NearestBooks, { NearestBookItem } from '@/components/ui/NearestBooks';
 import AuthorsSection, { AuthorItem } from '@/components/ui/AuthorsSection';
 import InstituteBooks, { InstituteBookItem } from '@/components/ui/InstituteBooks';
+import { Button } from '@/components/ui/Button';
 
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();

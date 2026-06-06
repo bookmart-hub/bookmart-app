@@ -99,8 +99,8 @@ const styles = StyleSheet.create({
     padding: SPACING.xs,
   },
   disabledContainer: {
-    backgroundColor: '#F3F4F6',
-    borderColor: '#E5E7EB',
+    backgroundColor: COLORS.grayHeavvy,
+    borderColor: COLORS.grayHeavvy,
   },
   contentContainer: {
     flexDirection: 'row',
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   outlineText: {
-    color: '#4B5563',
+    color: COLORS.textMuted,
     fontFamily: FONTS.montserrat.medium,
   },
   textText: {
@@ -127,6 +127,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.montserrat.semibold,
   },
   disabledText: {
-    color: '#9CA3AF',
+    color: COLORS.textMuted,
   },
 });

@@ -16,7 +16,7 @@ export const COLORS = {
   green: '#10B981',
   greenlight: '#E2F6F0',
 
-  yellow: '#D97706',
+  yellow: '#F5C518',
   yellowlight: '#FEF3C7',
 
   blue: '#1877F2',

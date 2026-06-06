@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: '100%',
-    color: '#1F2937',
+    color: COLORS.black,
     fontSize: 16,
     fontFamily: FONTS.manrope.medium,
   },

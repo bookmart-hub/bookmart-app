@@ -311,17 +311,17 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontFamily: FONTS.montserrat.bold,
-    color: '#2D3A2E',
+    color: COLORS.text,
     lineHeight: 21,
   },
   cardSubtitle: {
     fontSize: 12,
     fontFamily: FONTS.manrope.semibold,
-    color: '#4A5E4C',
+    color: COLORS.textMuted,
     marginTop: 4,
   },
   ctaButton: {
-    backgroundColor: '#2D3A2E',
+    backgroundColor: COLORS.text,
     alignSelf: 'flex-start',
     paddingHorizontal: SPACING.md + 4,
     paddingVertical: SPACING.sm + 2,

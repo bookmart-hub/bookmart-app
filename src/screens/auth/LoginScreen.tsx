@@ -293,13 +293,13 @@ const styles = StyleSheet.create({
     dividerLine: {
         flex: 1,
         height: 1,
-        backgroundColor: '#E5E7EB',
+        backgroundColor: COLORS.grayLight,
     },
     dividerText: {
         marginHorizontal: SPACING.md,
         fontSize: 14,
         fontFamily: FONTS.montserrat.medium,
-        color: '#9CA3AF',
+        color: COLORS.textMuted,
     },
     socialContainer: {
         width: '100%',
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
         borderRadius: 28,
     },
     facebookIconContainer: {
-        backgroundColor: '#1877F2',
+        backgroundColor: COLORS.blue,
         width: 24,
         height: 24,
         borderRadius: 12,

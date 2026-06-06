@@ -429,7 +429,7 @@ export default AuthorsSection;
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const CARD_BG = '#3a3a3a';
+const CARD_BG = COLORS.text;
 
 const styles = StyleSheet.create({
     section: {
@@ -523,9 +523,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     starFilled: {
-        color: '#F5C518',
+        color: COLORS.yellow,
     },
     starEmpty: {
-        color: 'rgba(255,255,255,0.25)',
+        color: COLORS.textMuted,
     },
 });

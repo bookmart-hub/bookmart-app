@@ -5,7 +5,9 @@ import {
     StyleSheet,
     Text,
     View,
+    TouchableOpacity,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import Animated, {
     Extrapolation,
@@ -79,12 +81,14 @@ interface CategoryCardProps {
     item: CategoryItem;
     index: number;
     scrollX: SharedValue<number>;
+    onPress: () => void;
 }
 
 const CategoryCard = memo(({
     item,
     index,
     scrollX,
+    onPress,
 }: CategoryCardProps) => {
     const center = index * SNAP_SIZE;
     const inputRange = [
@@ -132,7 +136,11 @@ const CategoryCard = memo(({
     });
 
     return (
-        <View style={styles.itemWrapper}>
+        <TouchableOpacity
+            style={styles.itemWrapper}
+            activeOpacity={0.8}
+            onPress={onPress}
+        >
             <Animated.Text style={[styles.title, labelAnimatedStyle]} numberOfLines={1}>
                 {item.label}
             </Animated.Text>
@@ -151,7 +159,7 @@ const CategoryCard = memo(({
                     transition={0}
                 />
             </Animated.View>
-        </View>
+        </TouchableOpacity>
     );
 });
 
@@ -169,6 +177,7 @@ const CategorySection: React.FC<
     const scrollX = useSharedValue(0);
     const flatListRef = useRef<any>(null);
     const N = categories.length;
+    const navigation = useNavigation<any>();
 
     // Replicate data LOOP_COPIES times for infinite loop
     const loopedData = useMemo(() => {
@@ -215,13 +224,31 @@ const CategorySection: React.FC<
         return () => clearTimeout(timer);
     }, [middleStartIndex]);
 
-    const renderItem = useCallback(({ item, index }: any) => (
-        <CategoryCard
-            item={item}
-            index={index}
-            scrollX={scrollX}
-        />
-    ), [scrollX]);
+    const renderItem = useCallback(({ item, index }: any) => {
+        const getScreenName = (label: string) => {
+            switch (label) {
+                case 'Science Fiction': return 'ScinceFinction';
+                case 'Self Help': return 'SelfHelp';
+                case 'Romance': return 'Romance';
+                case 'Biography': return 'Biography';
+                case 'Business': return 'Business';
+                default: return 'ScinceFinction'; // Fallback
+            }
+        };
+
+        return (
+            <CategoryCard
+                item={item}
+                index={index}
+                scrollX={scrollX}
+                onPress={() => {
+                    navigation.navigate('AppStack', {
+                        screen: getScreenName(item.label)
+                    });
+                }}
+            />
+        );
+    }, [scrollX, navigation]);
 
     const keyExtractor = useCallback((item: any) => item._key, []);
 
@@ -319,6 +346,6 @@ const styles = StyleSheet.create({
     image: {
         width: '100%',
         height: '100%',
-        borderRadius: 12
+        borderRadius: 10
     },
 });
