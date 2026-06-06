@@ -99,7 +99,7 @@ const CARD_HEIGHT = 300;
 const LIST_HEIGHT = CARD_HEIGHT + 20;
 const COVER_FLOAT = 12;
 
-const LOOP_COUNT = 30;
+const LOOP_COUNT = 3;
 
 // ── Shared animation configs (defined once at module scope) ──────────────────
 
@@ -157,8 +157,15 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
         const active = activeProgressVal > 0.5;
 
         return {
-            minHeight: withSpring(active ? 300 : 220, SPRING_CONFIG),
-            transform: [{ scale: withSpring(active ? 1 : 0.95, SPRING_CONFIG) }],
+            // minHeight: withSpring(active ? 300 : 220, SPRING_CONFIG),
+            transform: [
+                {
+                    scale: withSpring(
+                        active ? 1 : 0.94,
+                        SPRING_CONFIG
+                    )
+                }
+            ],
         };
     });
 
@@ -180,7 +187,14 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
 
         return {
             opacity: withTiming(active ? 1 : 0, REVEAL_TIMING),
-            maxHeight: withSpring(active ? 120 : 0, SPRING_CONFIG),
+            transform: [
+                {
+                    translateY: withTiming(
+                        active ? 0 : 20,
+                        REVEAL_TIMING
+                    ),
+                },
+            ],
         };
     });
 
@@ -214,6 +228,7 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
                         contentFit="cover"
                         recyclingKey={item.coverUri}
                         cachePolicy="memory-disk"
+                        transition={0}
                     />
                     {/* Subtle depth overlay */}
                     <View style={styles.coverOverlay} />
@@ -247,6 +262,7 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
                                 contentFit="cover"
                                 recyclingKey={item.sellerAvatarUri}
                                 cachePolicy="memory-disk"
+                                transition={0}
                             />
                             <Text style={styles.sellerDesc} numberOfLines={2}>
                                 {item.description}
@@ -383,9 +399,8 @@ const NearestBooks: React.FC<NearestBooksProps> = memo(({
                 getItemLayout={getItemLayout}
                 initialNumToRender={3}
                 maxToRenderPerBatch={2}
-                windowSize={5}
+                windowSize={3}
                 removeClippedSubviews={true}
-                updateCellsBatchingPeriod={40}
             />
         </View>
     );
