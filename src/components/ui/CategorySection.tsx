@@ -7,15 +7,13 @@ import {
     View,
 } from 'react-native';
 import { Image } from 'expo-image';
-
 import Animated, {
     Extrapolation,
     interpolate,
-    runOnJS,
+    interpolateColor,
     SharedValue,
     useAnimatedScrollHandler,
     useAnimatedStyle,
-    useDerivedValue,
     useSharedValue,
 } from 'react-native-reanimated';
 
@@ -73,7 +71,7 @@ const SNAP_SIZE = ITEM_WIDTH + ITEM_GAP;
 const SIDE_PADDING =
     (SCREEN_WIDTH - ITEM_WIDTH) / 2;
 
-const LOOP_COPIES = 11; // Odd number, large enough for seamless looping
+const LOOP_COPIES = 3; // Odd number, large enough for seamless looping
 
 // ── CategoryCard ──────────────────────────────────────────────────────────────
 
@@ -100,33 +98,23 @@ const CategoryCard = memo(({
         const scale = interpolate(
             scrollX.value,
             inputRange,
-            [0.88, 1.25, 0.88],
+            [0.85, 1.25, 0.85],
             Extrapolation.CLAMP
         );
 
-        const translateY = 0;
-
-        const borderWidth = interpolate(
+        const borderColor = interpolateColor(
             scrollX.value,
             inputRange,
-            [0, 2, 0],
-            Extrapolation.CLAMP
-        );
-
-        const opacity = interpolate(
-            scrollX.value,
-            inputRange,
-            [0.7, 1, 0.7],
-            Extrapolation.CLAMP
+            [
+                'transparent',
+                COLORS.primary,
+                'transparent',
+            ]
         );
 
         return {
-            transform: [
-                { scale },
-                { translateY },
-            ],
-            borderWidth,
-            opacity,
+            transform: [{ scale }],
+            borderColor,
         };
     });
 
@@ -138,15 +126,8 @@ const CategoryCard = memo(({
             [0, 1, 0],
             Extrapolation.CLAMP
         );
-        const translateY = interpolate(
-            scrollX.value,
-            inputRange,
-            [8, 0, 8],
-            Extrapolation.CLAMP
-        );
         return {
             opacity,
-            transform: [{ translateY }],
         };
     });
 
@@ -166,7 +147,8 @@ const CategoryCard = memo(({
                     style={styles.image}
                     contentFit="cover"
                     cachePolicy="memory-disk"
-                    recyclingKey={item.id}
+                    recyclingKey={item.imageUri}
+                    transition={0}
                 />
             </Animated.View>
         </View>
@@ -181,115 +163,110 @@ interface CategorySectionProps {
 
 const CategorySection: React.FC<
     CategorySectionProps
-> = ({
+> = memo(({
     categories = DEFAULT_CATEGORIES,
 }) => {
-        const scrollX = useSharedValue(0);
-        const flatListRef = useRef<any>(null);
-        const N = categories.length;
+    const scrollX = useSharedValue(0);
+    const flatListRef = useRef<any>(null);
+    const N = categories.length;
 
-        // Replicate data LOOP_COPIES times for infinite loop
-        const loopedData = useMemo(() => {
-            const arr = [];
-            for (let c = 0; c < LOOP_COPIES; c++) {
-                for (let i = 0; i < N; i++) {
-                    arr.push({ ...categories[i], _key: `${categories[i].id}-${c}` });
-                }
+    // Replicate data LOOP_COPIES times for infinite loop
+    const loopedData = useMemo(() => {
+        const arr = [];
+        for (let c = 0; c < LOOP_COPIES; c++) {
+            for (let i = 0; i < N; i++) {
+                arr.push({ ...categories[i], _key: `${categories[i].id}-${c}` });
             }
-            return arr;
-        }, [categories, N]);
+        }
+        return arr;
+    }, [categories, N]);
 
-        const middleCopy = Math.floor(LOOP_COPIES / 2);
-        const middleStartIndex = middleCopy * N;
+    const middleCopy = Math.floor(LOOP_COPIES / 2);
+    const middleStartIndex = middleCopy * N;
 
-        const jumpTo = useCallback((offset: number) => {
-            flatListRef.current?.scrollToOffset({ offset, animated: false });
-        }, []);
+    const onScroll = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            'worklet';
+            scrollX.value = event.contentOffset.x;
+        },
+    });
 
-        const onScroll = useAnimatedScrollHandler({
-            onScroll: (event) => {
-                'worklet';
-                scrollX.value = event.contentOffset.x;
+    // Reset boundary on momentum end
+    const handleMomentumScrollEnd = useCallback((e: any) => {
+        const x = e.nativeEvent.contentOffset.x;
+        const index = Math.round(x / SNAP_SIZE);
+        const originalIdx = ((index % N) + N) % N;
+        const newIndex = middleCopy * N + originalIdx;
 
-                // Boundary detection — jump to middle copy silently
-                const minOffset = (middleStartIndex - N) * SNAP_SIZE;
-                const maxOffset = (middleStartIndex + 2 * N) * SNAP_SIZE;
+        if (index < N * 2 || index > loopedData.length - N * 2) {
+            flatListRef.current?.scrollToIndex({ index: newIndex, animated: false });
+            scrollX.value = newIndex * SNAP_SIZE;
+        }
+    }, [N, middleCopy, loopedData.length]);
 
-                if (event.contentOffset.x < minOffset) {
-                    runOnJS(jumpTo)(event.contentOffset.x + N * SNAP_SIZE);
-                } else if (event.contentOffset.x >= maxOffset) {
-                    runOnJS(jumpTo)(event.contentOffset.x - N * SNAP_SIZE);
-                }
-            },
-        });
+    // Scroll to middle copy on mount
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            flatListRef.current?.scrollToIndex({
+                index: middleStartIndex,
+                animated: false,
+            });
+        }, 80);
+        return () => clearTimeout(timer);
+    }, [middleStartIndex]);
 
-        // Scroll to middle copy on mount
-        useEffect(() => {
-            const timer = setTimeout(() => {
-                flatListRef.current?.scrollToIndex({
-                    index: middleStartIndex,
-                    animated: false,
-                });
-            }, 80);
-            return () => clearTimeout(timer);
-        }, [middleStartIndex]);
+    const renderItem = useCallback(({ item, index }: any) => (
+        <CategoryCard
+            item={item}
+            index={index}
+            scrollX={scrollX}
+        />
+    ), [scrollX]);
 
-        const renderItem = useCallback(({ item, index }: any) => (
-            <CategoryCard
-                item={item}
-                index={index}
-                scrollX={scrollX}
+    const keyExtractor = useCallback((item: any) => item._key, []);
+
+    const getItemLayout = useCallback((_: any, index: number) => ({
+        length: SNAP_SIZE,
+        offset: SNAP_SIZE * index,
+        index,
+    }), []);
+
+    return (
+        <View style={styles.container}>
+            <Animated.FlatList
+                ref={flatListRef}
+                horizontal
+                data={loopedData}
+                keyExtractor={keyExtractor}
+                showsHorizontalScrollIndicator={false}
+                decelerationRate="fast"
+                snapToInterval={SNAP_SIZE}
+                bounces={false}
+                scrollEventThrottle={16}
+                onScroll={onScroll}
+                onMomentumScrollEnd={handleMomentumScrollEnd}
+                initialScrollIndex={middleStartIndex}
+                getItemLayout={getItemLayout}
+                contentContainerStyle={{
+                    paddingHorizontal: SIDE_PADDING,
+                    alignItems: 'center' as const,
+                    columnGap: ITEM_GAP,
+                }}
+                renderItem={renderItem}
+                initialNumToRender={3}
+                maxToRenderPerBatch={2}
+                windowSize={3}
+                removeClippedSubviews
             />
-        ), [scrollX]);
-
-        const keyExtractor = useCallback((item: any) => item._key, []);
-
-        const getItemLayout = useCallback((_: any, index: number) => ({
-            length: SNAP_SIZE,
-            offset: SNAP_SIZE * index,
-            index,
-        }), []);
-
-        return (
-            <View style={styles.container}>
-                <View style={styles.header}>
-                    <Text style={styles.subtitle}>Categories</Text>
-                </View>
-
-                <Animated.FlatList
-                    ref={flatListRef}
-                    horizontal
-                    data={loopedData}
-                    keyExtractor={keyExtractor}
-                    showsHorizontalScrollIndicator={false}
-                    decelerationRate="fast"
-                    snapToInterval={SNAP_SIZE}
-                    bounces={false}
-                    scrollEventThrottle={16}
-                    onScroll={onScroll}
-                    initialScrollIndex={middleStartIndex}
-                    getItemLayout={getItemLayout}
-                    contentContainerStyle={{
-                        paddingHorizontal: SIDE_PADDING,
-                        alignItems: 'center' as const,
-                        columnGap: ITEM_GAP,
-                    }}
-                    renderItem={renderItem}
-                    initialNumToRender={10}
-                    maxToRenderPerBatch={8}
-                    windowSize={11}
-                    removeClippedSubviews={Platform.OS === 'ios'}
-                    updateCellsBatchingPeriod={30}
-                />
-            </View>
-        );
-    };
+        </View>
+    );
+});
 
 export default CategorySection;
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: SPACING.md,
+        marginTop: SPACING.sm,
     },
     header: {
         paddingHorizontal: SPACING.lg,
@@ -326,16 +303,17 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         overflow: 'hidden',
 
-        borderColor: COLORS.primary,
+        borderWidth: 2,
+        borderColor: 'transparent',
+
         padding: 5,
         backgroundColor: COLORS.background,
 
         shadowColor: COLORS.black,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
-
-        elevation: 4,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 2,
+        elevation: 0,
     },
 
     image: {

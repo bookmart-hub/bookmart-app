@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import {
   StyleSheet,
   TextInput,
@@ -15,7 +15,7 @@ interface SearchBarProps extends TextInputProps {
   containerStyle?: ViewStyle;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({
+const SearchBar: React.FC<SearchBarProps> = memo(({
   containerStyle,
   placeholder = 'Search Books...',
   ...props
@@ -41,7 +41,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       </View>
     </View>
   );
-};
+});
 
 export default SearchBar;
 

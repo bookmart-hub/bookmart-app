@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,7 +13,7 @@ interface HomeHeaderProps {
   onAvatarPress?: () => void;
 }
 
-const HomeHeader: React.FC<HomeHeaderProps> = ({
+const HomeHeader: React.FC<HomeHeaderProps> = memo(({
   avatarUri = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face',
   notificationCount = 0,
   onNotificationPress,
@@ -52,13 +52,15 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
             source={{ uri: avatarUri }}
             style={styles.avatar}
             contentFit="cover"
+            cachePolicy="memory-disk"
+            recyclingKey={avatarUri}
             transition={200}
           />
         </TouchableOpacity>
       </View>
     </View>
   );
-};
+});
 
 export default HomeHeader;
 

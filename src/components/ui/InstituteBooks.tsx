@@ -11,7 +11,6 @@ import { Image } from 'expo-image';
 import Animated, {
     useAnimatedScrollHandler,
     useSharedValue,
-    runOnJS,
 } from 'react-native-reanimated';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
@@ -69,7 +68,7 @@ const DEFAULT_INSTITUTE_BOOKS: InstituteBookItem[] = [
         price: 220,
         coverUri:
             'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=200&h=280&fit=crop',
-        description: 'Tiny changes, remarkable results — a proven framework.',
+        description: 'Tiny changes, remarkable results ── a proven framework.',
         sellerName: 'Priya Sen',
         sellerAvatarUri:
             'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop&crop=face',
@@ -89,8 +88,9 @@ const DEFAULT_INSTITUTE_BOOKS: InstituteBookItem[] = [
 // ── Layout constants ──────────────────────────────────────────────────────────
 
 const CARD_WIDTH = 250;
+const CARD_HEIGHT = 130;
 const COVER_WIDTH = 75;
-const COVER_HEIGHT = '100%' as const;
+const COVER_HEIGHT = CARD_HEIGHT - 20; // fits card height with padding 10
 const ITEM_GAP = 16;
 const SNAP_INTERVAL = CARD_WIDTH + ITEM_GAP;
 const HORIZONTAL_PADDING = SPACING.lg;
@@ -115,6 +115,7 @@ const SellerPill: React.FC<SellerPillProps> = memo(({ name, avatarUri }) => {
                     style={styles.sellerAvatar}
                     contentFit="cover"
                     cachePolicy="memory-disk"
+                    recyclingKey={avatarUri}
                 />
             ) : (
                 <View style={styles.sellerAvatarFallback}>
@@ -132,15 +133,19 @@ const SellerPill: React.FC<SellerPillProps> = memo(({ name, avatarUri }) => {
 
 interface InstituteBookCardProps {
     item: InstituteBookItem;
-    onPress?: () => void;
+    onPress?: (item: InstituteBookItem) => void;
 }
 
 const InstituteBookCard: React.FC<InstituteBookCardProps> = memo(
     ({ item, onPress }) => {
+        const handlePress = useCallback(() => {
+            onPress?.(item);
+        }, [item, onPress]);
+
         return (
             <TouchableOpacity
                 activeOpacity={0.88}
-                onPress={onPress}
+                onPress={handlePress}
                 style={styles.card}
             >
                 {/* Book cover */}
@@ -148,7 +153,7 @@ const InstituteBookCard: React.FC<InstituteBookCardProps> = memo(
                     source={{ uri: item.coverUri }}
                     style={styles.cover}
                     contentFit="cover"
-                    recyclingKey={item.id}
+                    recyclingKey={item.coverUri}
                     cachePolicy="memory-disk"
                 />
 
@@ -185,7 +190,7 @@ export interface InstituteBooksProps {
     onSeeAllPress?: () => void;
 }
 
-const InstituteBooks: React.FC<InstituteBooksProps> = ({
+const InstituteBooks: React.FC<InstituteBooksProps> = memo(({
     instituteName = 'Your Institute',
     books = DEFAULT_INSTITUTE_BOOKS,
     onBookPress,
@@ -194,9 +199,6 @@ const InstituteBooks: React.FC<InstituteBooksProps> = ({
     const listRef = useRef<any>(null);
     const scrollX = useSharedValue(0);
     const N = books.length;
-
-    const onBookPressRef = useRef(onBookPress);
-    onBookPressRef.current = onBookPress;
 
     // Replicate data for infinite loop
     const loopedData = useMemo(() => {
@@ -225,24 +227,10 @@ const InstituteBooks: React.FC<InstituteBooksProps> = ({
         }
     }, [middleStartIndex, N]);
 
-    const jumpTo = useCallback((offset: number) => {
-        listRef.current?.scrollToOffset({ offset, animated: false });
-    }, []);
-
     const onScroll = useAnimatedScrollHandler({
         onScroll: (event) => {
             'worklet';
             scrollX.value = event.contentOffset.x;
-
-            // Boundary jump for infinite loop
-            const minOffset = (middleStartIndex - N * 2) * SNAP_INTERVAL;
-            const maxOffset = (middleStartIndex + N * 2) * SNAP_INTERVAL;
-
-            if (event.contentOffset.x < minOffset) {
-                runOnJS(jumpTo)(event.contentOffset.x + N * SNAP_INTERVAL);
-            } else if (event.contentOffset.x >= maxOffset) {
-                runOnJS(jumpTo)(event.contentOffset.x - N * SNAP_INTERVAL);
-            }
         },
     });
 
@@ -263,10 +251,10 @@ const InstituteBooks: React.FC<InstituteBooksProps> = ({
         ({ item }: any) => (
             <InstituteBookCard
                 item={item}
-                onPress={() => onBookPressRef.current?.(item)}
+                onPress={onBookPress}
             />
         ),
-        []
+        [onBookPress]
     );
 
     const keyExtractor = useCallback((item: any) => item._key, []);
@@ -309,15 +297,15 @@ const InstituteBooks: React.FC<InstituteBooksProps> = ({
                 snapToAlignment="start"
                 decelerationRate="fast"
                 bounces={false}
-                initialNumToRender={8}
-                maxToRenderPerBatch={5}
-                windowSize={11}
-                removeClippedSubviews={Platform.OS === 'ios'}
-                updateCellsBatchingPeriod={30}
+                initialNumToRender={3}
+                maxToRenderPerBatch={2}
+                windowSize={5}
+                removeClippedSubviews={true}
+                updateCellsBatchingPeriod={40}
             />
         </View>
     );
-};
+});
 
 export default InstituteBooks;
 
@@ -356,6 +344,7 @@ const styles = StyleSheet.create({
     // ── Card ──
     card: {
         width: CARD_WIDTH,
+        height: CARD_HEIGHT,
         flexDirection: 'row',
         alignItems: 'flex-start',
         backgroundColor: COLORS.white,

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, memo } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -60,16 +60,78 @@ const DEFAULT_BANNERS: PromoBannerItem[] = [
   },
 ];
 
+interface PromoCardProps {
+  item: PromoBannerItem;
+  onCtaPress?: (item: PromoBannerItem) => void;
+}
+
+const PromoCard: React.FC<PromoCardProps> = memo(({ item, onCtaPress }) => {
+  const handlePress = useCallback(() => {
+    onCtaPress?.(item);
+  }, [item, onCtaPress]);
+
+  return (
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: item.bgColor,
+        },
+      ]}
+    >
+      <View
+        style={[
+          styles.cardOverlay,
+          {
+            backgroundColor: item.bgColorLight,
+            opacity: 0.5,
+          },
+        ]}
+      />
+
+      <View style={styles.cardContent}>
+        <Text style={styles.cardTitle} numberOfLines={3}>
+          {item.title}
+        </Text>
+
+        <Text style={styles.cardSubtitle} numberOfLines={2}>
+          {item.subtitle}
+        </Text>
+
+        <TouchableOpacity
+          style={styles.ctaButton}
+          activeOpacity={0.8}
+          onPress={handlePress}
+        >
+          <Text style={styles.ctaText}>{item.cta}</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.bookImageContainer}>
+        <Image
+          source={{ uri: item.bookImageUri }}
+          style={styles.bookImage}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          recyclingKey={item.bookImageUri}
+          transition={0}
+        />
+      </View>
+    </View>
+  );
+});
+
 interface PromoBannerProps {
   banners?: PromoBannerItem[];
   onCtaPress?: (banner: PromoBannerItem) => void;
 }
 
-const PromoBanner: React.FC<PromoBannerProps> = ({
+const PromoBanner: React.FC<PromoBannerProps> = memo(({
   banners = DEFAULT_BANNERS,
   onCtaPress,
 }) => {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const activeIndexRef = useRef(0);
+  const [activeDot, setActiveDot] = useState(0);
 
   const flatListRef = useRef<FlatList>(null);
   const currentIndexRef = useRef(0);
@@ -89,7 +151,10 @@ const PromoBanner: React.FC<PromoBannerProps> = ({
         const index = viewableItems[0].index;
 
         currentIndexRef.current = index;
-        setActiveIndex(index);
+        if (activeIndexRef.current !== index) {
+          activeIndexRef.current = index;
+          setActiveDot(index);
+        }
       }
     }
   ).current;
@@ -111,7 +176,10 @@ const PromoBanner: React.FC<PromoBannerProps> = ({
       });
 
       currentIndexRef.current = nextIndex;
-      setActiveIndex(nextIndex);
+      if (activeIndexRef.current !== nextIndex) {
+        activeIndexRef.current = nextIndex;
+        setActiveDot(nextIndex);
+      }
     }, 4000);
   }, [banners.length]);
 
@@ -127,54 +195,18 @@ const PromoBanner: React.FC<PromoBannerProps> = ({
 
   const renderCard = useCallback(
     ({ item }: { item: PromoBannerItem }) => (
-      <View
-        style={[
-          styles.card,
-          {
-            backgroundColor: item.bgColor,
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.cardOverlay,
-            {
-              backgroundColor: item.bgColorLight,
-              opacity: 0.5,
-            },
-          ]}
-        />
-
-        <View style={styles.cardContent}>
-          <Text style={styles.cardTitle} numberOfLines={3}>
-            {item.title}
-          </Text>
-
-          <Text style={styles.cardSubtitle} numberOfLines={2}>
-            {item.subtitle}
-          </Text>
-
-          <TouchableOpacity
-            style={styles.ctaButton}
-            activeOpacity={0.8}
-            onPress={() => onCtaPress?.(item)}
-          >
-            <Text style={styles.ctaText}>{item.cta}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.bookImageContainer}>
-          <Image
-            source={{ uri: item.bookImageUri }}
-            style={styles.bookImage}
-            contentFit="cover"
-            transition={300}
-          />
-        </View>
-      </View>
+      <PromoCard item={item} onCtaPress={onCtaPress} />
     ),
     [onCtaPress]
   );
+
+  const keyExtractor = useCallback((item: PromoBannerItem) => item.id, []);
+
+  const getItemLayout = useCallback((_: any, index: number) => ({
+    length: CARD_WIDTH + SPACING.md,
+    offset: (CARD_WIDTH + SPACING.md) * index,
+    index,
+  }), []);
 
   return (
     <View style={styles.container}>
@@ -182,49 +214,59 @@ const PromoBanner: React.FC<PromoBannerProps> = ({
         ref={flatListRef}
         data={banners}
         horizontal
+        scrollEventThrottle={16}
+        disableIntervalMomentum
         pagingEnabled
         bounces={false}
         showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         renderItem={renderCard}
         contentContainerStyle={styles.listContent}
         snapToInterval={CARD_WIDTH + SPACING.md}
         decelerationRate="fast"
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
-        getItemLayout={(_, index) => ({
-          length: CARD_WIDTH + SPACING.md,
-          offset: (CARD_WIDTH + SPACING.md) * index,
-          index,
-        })}
-        onScrollBeginDrag={() => {
+        getItemLayout={getItemLayout}
+        initialNumToRender={1}
+        maxToRenderPerBatch={1}
+        windowSize={3}
+        removeClippedSubviews={true}
+        onScrollBeginDrag={useCallback(() => {
           if (autoSlideRef.current) {
             clearInterval(autoSlideRef.current);
           }
-        }}
-        onMomentumScrollEnd={() => {
-          startAutoSlide();
-        }}
+        }, [])}
+        onMomentumScrollEnd={startAutoSlide}
       />
 
       {banners.length > 1 && (
-        <View style={styles.dotsContainer}>
-          {banners.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                index === activeIndex
-                  ? styles.dotActive
-                  : styles.dotInactive,
-              ]}
-            />
-          ))}
-        </View>
+        <PaginationDots
+          count={banners.length}
+          activeIndex={activeDot}
+        />
       )}
     </View>
   );
-};
+});
+const PaginationDots = memo(
+  ({ count, activeIndex }: { count: number, activeIndex: number }) => {
+    return (
+      <View style={styles.dotsContainer}>
+        {Array.from({ length: count }).map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.dot,
+              index === activeIndex
+                ? styles.dotActive
+                : styles.dotInactive,
+            ]}
+          />
+        ))}
+      </View>
+    );
+  }
+);
 
 export default PromoBanner;
 
@@ -246,8 +288,8 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowRadius: 6,
+    elevation: 2,
   },
   cardOverlay: {
     position: 'absolute',
@@ -302,13 +344,6 @@ const styles = StyleSheet.create({
     width: 100,
     height: 145,
     borderRadius: 8,
-    shadowColor: COLORS.black,
-    shadowOffset: {
-      width: -4,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
   },
   dotsContainer: {
     flexDirection: 'row',

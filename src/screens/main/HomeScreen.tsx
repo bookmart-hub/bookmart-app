@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '@/constants/colors';
@@ -63,11 +63,13 @@ const HomeScreen = () => {
 
       {/* ── Search Bar ── */}
       <SearchBar />
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        removeClippedSubviews={true}
       >
 
         {/* ── Promo Carousel ── */}
