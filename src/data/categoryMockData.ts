@@ -1,4 +1,4 @@
-import { MasonryCategoryData, Book, Ratings, Review } from './models';
+import { MasonryCategoryData, Book, Ratings } from './models';
 
 const mockRatings: Ratings = {
   average: 4.6,
@@ -10,29 +10,6 @@ const mockRatings: Ratings = {
   oneStar: 3,
 };
 
-const mockReviews: Review[] = [
-  {
-    id: 'rev1',
-    reviewerName: 'Alice Johnson',
-    rating: 5,
-    comment: 'Absolutely loved this book! The insights were completely eye-opening and the pacing was perfect.',
-    date: '2023-10-15',
-  },
-  {
-    id: 'rev2',
-    reviewerName: 'Mark Smith',
-    rating: 4,
-    comment: 'Great read, though the middle chapters dragged a bit. Still highly recommended for anyone interested in the topic.',
-    date: '2023-11-02',
-  },
-  {
-    id: 'rev3',
-    reviewerName: 'Sarah Davis',
-    rating: 5,
-    comment: 'A masterpiece. Will be reading this again very soon.',
-    date: '2023-11-20',
-  },
-];
 
 const createMockBook = (id: string, title: string, imageUri: string, price: number, discount?: string): Book => ({
   id,
@@ -43,7 +20,6 @@ const createMockBook = (id: string, title: string, imageUri: string, price: numb
   author: 'Sample Author',
   condition: 'Used • Good',
   ratings: mockRatings,
-  reviews: mockReviews,
 });
 
 export const CATEGORY_DATA: Record<string, MasonryCategoryData> = {

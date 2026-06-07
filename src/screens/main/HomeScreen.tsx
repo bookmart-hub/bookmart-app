@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@/constants/colors';
 import HomeHeader from '@/components/ui/HomeHeader';
 import SearchBar from '@/components/ui/SearchBar';
@@ -14,6 +15,7 @@ import { Button } from '@/components/ui/Button';
 
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
 
   const handleNotificationPress = useCallback(() => {
     // TODO: navigate to notifications
@@ -28,16 +30,16 @@ const HomeScreen = () => {
   }, []);
 
   const handleBookPress = useCallback((book: NearestBookItem) => {
-    // TODO: navigate to book detail
-  }, []);
+    navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Non-Fiction' } });
+  }, [navigation]);
 
   const handleSeeAllPress = useCallback(() => {
     // TODO: navigate to full nearest books list
   }, []);
 
   const handleInstituteBookPress = useCallback((book: InstituteBookItem) => {
-    // TODO: navigate to book detail
-  }, []);
+    navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Textbooks' } });
+  }, [navigation]);
 
   const handleInstituteSeeAllPress = useCallback(() => {
     // TODO: navigate to institute books list
@@ -72,7 +74,6 @@ const HomeScreen = () => {
         keyboardShouldPersistTaps="handled"
         removeClippedSubviews={true}
       >
-
         {/* ── Promo Carousel ── */}
         <PromoBanner onCtaPress={handleCtaPress} />
 

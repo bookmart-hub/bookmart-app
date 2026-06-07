@@ -15,11 +15,12 @@ import QuantitySelector from '@/components/ui/QuantitySelector';
 
 const { width, height } = Dimensions.get('window');
 
+import { TextInput } from 'react-native';
+
 const isAcademicCategory = (category: string) => {
     if (!category) return false;
     const academicKeywords = [
-        'textbook', 'academic', 'exam', 'reference', 'study',
-        'certification', 'guide', 'business'
+        'engineering', 'medical', 'law', 'competitive', 'exam', 'textbook', 'reference', 'study', 'academic'
     ];
     const lowerCategory = category.toLowerCase();
     return academicKeywords.some(keyword => lowerCategory.includes(keyword));
@@ -37,6 +38,44 @@ const BookDetailsScreen = () => {
     const categoryTitle: string = route.params?.categoryTitle || '';
 
     const isAcademic = useMemo(() => isAcademicCategory(categoryTitle), [categoryTitle]);
+
+    const [localReviews, setLocalReviews] = useState(book?.reviews || []);
+    const [localRatings, setLocalRatings] = useState(book?.ratings);
+    const [newReviewText, setNewReviewText] = useState('');
+    const [newReviewRating, setNewReviewRating] = useState(0);
+
+    const handleAddReview = () => {
+        if (newReviewRating === 0 || !newReviewText.trim()) return;
+
+        const newReview = {
+            id: Date.now().toString(),
+            reviewerName: 'Current User', // Mocked user
+            rating: newReviewRating,
+            comment: newReviewText,
+            date: new Date().toISOString().split('T')[0],
+        };
+
+        const updatedReviews = [newReview, ...localReviews];
+        setLocalReviews(updatedReviews);
+
+        if (localRatings) {
+            const newTotal = localRatings.totalReviews + 1;
+            const newAverage = ((localRatings.average * localRatings.totalReviews) + newReviewRating) / newTotal;
+            setLocalRatings({
+                ...localRatings,
+                average: Number(newAverage.toFixed(1)),
+                totalReviews: newTotal,
+                fiveStar: localRatings.fiveStar + (newReviewRating === 5 ? 1 : 0),
+                fourStar: localRatings.fourStar + (newReviewRating === 4 ? 1 : 0),
+                threeStar: localRatings.threeStar + (newReviewRating === 3 ? 1 : 0),
+                twoStar: localRatings.twoStar + (newReviewRating === 2 ? 1 : 0),
+                oneStar: localRatings.oneStar + (newReviewRating === 1 ? 1 : 0),
+            });
+        }
+
+        setNewReviewText('');
+        setNewReviewRating(0);
+    };
 
     if (!book) {
         return (
@@ -78,11 +117,14 @@ const BookDetailsScreen = () => {
 
                     {/* Author Avatar */}
                     <View style={styles.authorRow}>
-                        <Image
-                            source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop' }}
-                            style={styles.authorAvatar}
-                            contentFit="cover"
-                        />
+                        <View>
+                            <Image
+                                source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop' }}
+                                style={styles.authorAvatar}
+                                contentFit="cover"
+                            />
+                            <Text style={styles.authorName}>{book.author}</Text>
+                        </View>
                     </View>
 
                     {/* Conditional Section */}
@@ -105,9 +147,9 @@ const BookDetailsScreen = () => {
                     {/* Ratings Overview */}
                     <View style={styles.ratingsOverview}>
                         <View style={styles.averageRatingContainer}>
-                            <Text style={styles.averageRatingText}>{book.ratings?.average || 0}</Text>
+                            <Text style={styles.averageRatingText}>{localRatings?.average || 0}</Text>
                             <StarRating
-                                rating={book.ratings?.average || 0}
+                                rating={localRatings?.average || 0}
                                 onChange={() => { }} // Read-only
                                 maxStars={5}
                                 starSize={20}
@@ -116,13 +158,13 @@ const BookDetailsScreen = () => {
                                 enableSwiping={false}
                                 animationConfig={{ scale: 1 }}
                             />
-                            <Text style={styles.totalReviewsText}>{book.ratings?.totalReviews || 0} reviews</Text>
+                            <Text style={styles.totalReviewsText}>{localRatings?.totalReviews || 0} reviews</Text>
                         </View>
 
                         <View style={styles.ratingBarsContainer}>
                             {[5, 4, 3, 2, 1].map((star) => {
-                                const count = book.ratings ? (book.ratings as any)[`${star === 5 ? 'five' : star === 4 ? 'four' : star === 3 ? 'three' : star === 2 ? 'two' : 'one'}Star`] : 0;
-                                const percentage = book.ratings && book.ratings.totalReviews > 0 ? (count / book.ratings.totalReviews) * 100 : 0;
+                                const count = localRatings ? (localRatings as any)[`${star === 5 ? 'five' : star === 4 ? 'four' : star === 3 ? 'three' : star === 2 ? 'two' : 'one'}Star`] : 0;
+                                const percentage = localRatings && localRatings.totalReviews > 0 ? (count / localRatings.totalReviews) * 100 : 0;
                                 return (
                                     <View key={star} style={styles.ratingBarRow}>
                                         <Text style={styles.starLabel}>{star}</Text>
@@ -137,8 +179,8 @@ const BookDetailsScreen = () => {
 
                     {/* Dynamic Reviews List */}
                     <View style={styles.reviewsList}>
-                        {book.reviews && book.reviews.length > 0 ? (
-                            book.reviews.map((review) => (
+                        {localReviews && localReviews.length > 0 ? (
+                            localReviews.map((review) => (
                                 <View key={review.id} style={styles.reviewCard}>
                                     <View style={styles.reviewHeaderRow}>
                                         <Text style={styles.reviewerName}>{review.reviewerName}</Text>
@@ -161,6 +203,37 @@ const BookDetailsScreen = () => {
                                 <Text style={styles.emptyReviewsText}>No reviews yet. Be the first to review!</Text>
                             </View>
                         )}
+                    </View>
+
+                    {/* Add Review Form */}
+                    <View style={styles.addReviewContainer}>
+                        <Text style={styles.addReviewTitle}>Write a Review</Text>
+                        <StarRating
+                            rating={newReviewRating}
+                            onChange={setNewReviewRating}
+                            maxStars={5}
+                            starSize={28}
+                            color={COLORS.yellow}
+                            enableHalfStar={true}
+                            style={{ alignSelf: 'flex-start', marginBottom: SPACING.md }}
+                        />
+                        <TextInput
+                            style={styles.reviewInput}
+                            placeholder="What did you think of this book?"
+                            placeholderTextColor={COLORS.textMuted}
+                            multiline
+                            numberOfLines={4}
+                            value={newReviewText}
+                            onChangeText={setNewReviewText}
+                            textAlignVertical="top"
+                        />
+                        <TouchableOpacity
+                            style={[styles.submitReviewBtn, (!newReviewText.trim() || newReviewRating === 0) && styles.submitReviewBtnDisabled]}
+                            onPress={handleAddReview}
+                            disabled={!newReviewText.trim() || newReviewRating === 0}
+                        >
+                            <Text style={styles.submitReviewText}>Submit Review</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             </ScrollView>
@@ -246,7 +319,15 @@ const styles = StyleSheet.create({
         lineHeight: 32,
     },
     authorRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: SPACING.md,
         marginBottom: SPACING.xl,
+    },
+    authorName: {
+        fontSize: 14,
+        fontFamily: FONTS.manrope.regular,
+        color: COLORS.text,
     },
     authorAvatar: {
         width: 40,
@@ -419,6 +500,43 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
+    },
+    addReviewContainer: {
+        marginTop: SPACING.xl,
+        paddingTop: SPACING.xl,
+        borderTopWidth: 1,
+        borderTopColor: COLORS.grayLight,
+    },
+    addReviewTitle: {
+        fontSize: 18,
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.black,
+        marginBottom: SPACING.sm,
+    },
+    reviewInput: {
+        backgroundColor: COLORS.grayLight,
+        borderRadius: 12,
+        padding: SPACING.md,
+        fontSize: 14,
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.black,
+        minHeight: 100,
+        marginBottom: SPACING.md,
+    },
+    submitReviewBtn: {
+        backgroundColor: COLORS.primary,
+        borderRadius: 24,
+        paddingVertical: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    submitReviewBtnDisabled: {
+        backgroundColor: COLORS.grayHeavvy,
+    },
+    submitReviewText: {
+        fontSize: 16,
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.white,
     },
     secondaryButtonText: {
         fontSize: 16,
