@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +10,8 @@ import { SPACING } from '@/constants/spacings';
 import { BookItem } from '@/components/ui/CategoryMasonryLayout';
 import Header from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
+import StarRating from 'react-native-star-rating-widget';
+import QuantitySelector from '@/components/ui/QuantitySelector';
 
 const { width, height } = Dimensions.get('window');
 
@@ -29,6 +31,7 @@ const BookDetailsScreen = () => {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation();
     const route = useRoute<any>();
+    const [rating, setRating] = useState(0);
 
     const book: BookItem | undefined = route.params?.book;
     const categoryTitle: string = route.params?.categoryTitle || '';
@@ -96,8 +99,14 @@ const BookDetailsScreen = () => {
                         </View>
                     </View>
                 </View>
-                <View>
+                <View style={styles.reviewSection}>
                     <Text style={styles.reviewHeader}>Ratings and reviews </Text>
+                    <StarRating
+                        rating={rating}
+                        onChange={setRating}
+                        maxStars={5}
+                        starSize={40}
+                    />
                 </View>
             </ScrollView>
 
@@ -242,17 +251,22 @@ const styles = StyleSheet.create({
     },
     secondaryButton: {
         flex: 1,
-        backgroundColor: '#F9FAFB', // very light gray like COLORS.grayLight
+        backgroundColor: COLORS.grayLight,
         borderRadius: 30,
         paddingVertical: 14,
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy,
     },
     reviewHeader: {
         fontSize: 18,
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
+    },
+    reviewSection: {
         paddingHorizontal: SPACING.lg,
+        marginBottom: SPACING.lg
     },
     secondaryButtonText: {
         fontSize: 16,
