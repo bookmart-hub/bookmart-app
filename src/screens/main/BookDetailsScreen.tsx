@@ -7,7 +7,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { BookItem } from '@/components/ui/CategoryMasonryLayout';
+import { Book } from '@/data/models';
 import Header from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import StarRating from 'react-native-star-rating-widget';
@@ -33,7 +33,7 @@ const BookDetailsScreen = () => {
     const route = useRoute<any>();
     const [rating, setRating] = useState(0);
 
-    const book: BookItem | undefined = route.params?.book;
+    const book: Book | undefined = route.params?.book;
     const categoryTitle: string = route.params?.categoryTitle || '';
 
     const isAcademic = useMemo(() => isAcademicCategory(categoryTitle), [categoryTitle]);
@@ -100,13 +100,68 @@ const BookDetailsScreen = () => {
                     </View>
                 </View>
                 <View style={styles.reviewSection}>
-                    <Text style={styles.reviewHeader}>Ratings and reviews </Text>
-                    <StarRating
-                        rating={rating}
-                        onChange={setRating}
-                        maxStars={5}
-                        starSize={40}
-                    />
+                    <Text style={styles.reviewHeaderTitle}>Ratings and reviews</Text>
+
+                    {/* Ratings Overview */}
+                    <View style={styles.ratingsOverview}>
+                        <View style={styles.averageRatingContainer}>
+                            <Text style={styles.averageRatingText}>{book.ratings?.average || 0}</Text>
+                            <StarRating
+                                rating={book.ratings?.average || 0}
+                                onChange={() => { }} // Read-only
+                                maxStars={5}
+                                starSize={20}
+                                color={COLORS.yellow}
+                                // enableHalfStar={true}
+                                enableSwiping={false}
+                                animationConfig={{ scale: 1 }}
+                            />
+                            <Text style={styles.totalReviewsText}>{book.ratings?.totalReviews || 0} reviews</Text>
+                        </View>
+
+                        <View style={styles.ratingBarsContainer}>
+                            {[5, 4, 3, 2, 1].map((star) => {
+                                const count = book.ratings ? (book.ratings as any)[`${star === 5 ? 'five' : star === 4 ? 'four' : star === 3 ? 'three' : star === 2 ? 'two' : 'one'}Star`] : 0;
+                                const percentage = book.ratings && book.ratings.totalReviews > 0 ? (count / book.ratings.totalReviews) * 100 : 0;
+                                return (
+                                    <View key={star} style={styles.ratingBarRow}>
+                                        <Text style={styles.starLabel}>{star}</Text>
+                                        <View style={styles.barBackground}>
+                                            <View style={[styles.barFill, { width: `${percentage}%` }]} />
+                                        </View>
+                                    </View>
+                                );
+                            })}
+                        </View>
+                    </View>
+
+                    {/* Dynamic Reviews List */}
+                    <View style={styles.reviewsList}>
+                        {book.reviews && book.reviews.length > 0 ? (
+                            book.reviews.map((review) => (
+                                <View key={review.id} style={styles.reviewCard}>
+                                    <View style={styles.reviewHeaderRow}>
+                                        <Text style={styles.reviewerName}>{review.reviewerName}</Text>
+                                        <Text style={styles.reviewDate}>{review.date}</Text>
+                                    </View>
+                                    <StarRating
+                                        rating={review.rating}
+                                        onChange={() => { }}
+                                        maxStars={5}
+                                        starSize={14}
+                                        color={COLORS.yellow}
+                                        enableSwiping={false}
+                                        animationConfig={{ scale: 1 }}
+                                    />
+                                    <Text style={styles.reviewComment}>{review.comment}</Text>
+                                </View>
+                            ))
+                        ) : (
+                            <View style={styles.emptyReviewsContainer}>
+                                <Text style={styles.emptyReviewsText}>No reviews yet. Be the first to review!</Text>
+                            </View>
+                        )}
+                    </View>
                 </View>
             </ScrollView>
 
@@ -259,14 +314,111 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: COLORS.grayHeavvy,
     },
-    reviewHeader: {
-        fontSize: 18,
+    reviewHeaderTitle: {
+        fontSize: 20,
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
+        marginBottom: SPACING.md,
     },
     reviewSection: {
+        marginTop: SPACING.md,
         paddingHorizontal: SPACING.lg,
-        marginBottom: SPACING.lg
+    },
+    ratingsOverview: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: SPACING.xl,
+        backgroundColor: COLORS.grayLight,
+        padding: SPACING.md,
+        borderRadius: 16,
+    },
+    averageRatingContainer: {
+        alignItems: 'center',
+        marginRight: SPACING.lg,
+    },
+    averageRatingText: {
+        fontSize: 36,
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.black,
+        marginBottom: 4,
+    },
+    totalReviewsText: {
+        fontSize: 12,
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
+        marginTop: 6,
+    },
+    ratingBarsContainer: {
+        flex: 1,
+    },
+    ratingBarRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    starLabel: {
+        width: 12,
+        fontSize: 12,
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.text,
+        marginRight: 8,
+    },
+    barBackground: {
+        flex: 1,
+        height: 6,
+        backgroundColor: COLORS.grayHeavvy,
+        borderRadius: 3,
+        overflow: 'hidden',
+    },
+    barFill: {
+        height: '100%',
+        backgroundColor: COLORS.yellow,
+        borderRadius: 3,
+    },
+    reviewsList: {
+        gap: SPACING.md,
+    },
+    reviewCard: {
+        padding: SPACING.md,
+        backgroundColor: COLORS.white,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: COLORS.grayLight,
+    },
+    reviewHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 6,
+    },
+    reviewerName: {
+        fontSize: 14,
+        fontFamily: FONTS.montserrat.semibold,
+        color: COLORS.black,
+    },
+    reviewDate: {
+        fontSize: 12,
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
+    },
+    reviewComment: {
+        fontSize: 14,
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.text,
+        marginTop: 8,
+        lineHeight: 20,
+    },
+    emptyReviewsContainer: {
+        padding: SPACING.xl,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: COLORS.grayLight,
+        borderRadius: 12,
+    },
+    emptyReviewsText: {
+        fontSize: 14,
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
     },
     secondaryButtonText: {
         fontSize: 16,

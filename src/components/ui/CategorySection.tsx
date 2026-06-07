@@ -25,44 +25,7 @@ import { SPACING } from '@/constants/spacings';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-export interface CategoryItem {
-    id: string;
-    label: string;
-    imageUri: string;
-}
-
-const DEFAULT_CATEGORIES: CategoryItem[] = [
-    {
-        id: '1',
-        label: 'Romance',
-        imageUri:
-            'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=200',
-    },
-    {
-        id: '2',
-        label: 'Self Help',
-        imageUri:
-            'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=200',
-    },
-    {
-        id: '3',
-        label: 'Science Fiction',
-        imageUri:
-            'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200',
-    },
-    {
-        id: '4',
-        label: 'Biography',
-        imageUri:
-            'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=200',
-    },
-    {
-        id: '5',
-        label: 'Business',
-        imageUri:
-            'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200',
-    },
-];
+import { CATEGORIES_LIST, CategoryItem } from '@/data/categoryMockData';
 
 const ITEM_WIDTH = 75;
 const ITEM_HEIGHT = 100;
@@ -172,7 +135,7 @@ interface CategorySectionProps {
 const CategorySection: React.FC<
     CategorySectionProps
 > = memo(({
-    categories = DEFAULT_CATEGORIES,
+    categories = CATEGORIES_LIST,
 }) => {
     const scrollX = useSharedValue(0);
     const flatListRef = useRef<any>(null);
@@ -225,17 +188,6 @@ const CategorySection: React.FC<
     }, [middleStartIndex]);
 
     const renderItem = useCallback(({ item, index }: any) => {
-        const getScreenName = (label: string) => {
-            switch (label) {
-                case 'Science Fiction': return 'ScinceFinction';
-                case 'Self Help': return 'SelfHelp';
-                case 'Romance': return 'Romance';
-                case 'Biography': return 'Biography';
-                case 'Business': return 'Business';
-                default: return 'ScinceFinction'; // Fallback
-            }
-        };
-
         return (
             <CategoryCard
                 item={item}
@@ -243,7 +195,7 @@ const CategorySection: React.FC<
                 scrollX={scrollX}
                 onPress={() => {
                     navigation.navigate('AppStack', {
-                        screen: getScreenName(item.label)
+                        screen: item.screenName || 'ScinceFinction'
                     });
                 }}
             />

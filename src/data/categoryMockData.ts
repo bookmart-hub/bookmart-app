@@ -1,74 +1,186 @@
-import { BookItem } from '@/components/ui/CategoryMasonryLayout';
+import { MasonryCategoryData, Book, Ratings, Review } from './models';
 
-export const CATEGORY_DATA: Record<string, { subtitle: string, left: BookItem[], right: BookItem[] }> = {
+const mockRatings: Ratings = {
+  average: 4.6,
+  totalReviews: 128,
+  fiveStar: 80,
+  fourStar: 30,
+  threeStar: 10,
+  twoStar: 5,
+  oneStar: 3,
+};
+
+const mockReviews: Review[] = [
+  {
+    id: 'rev1',
+    reviewerName: 'Alice Johnson',
+    rating: 5,
+    comment: 'Absolutely loved this book! The insights were completely eye-opening and the pacing was perfect.',
+    date: '2023-10-15',
+  },
+  {
+    id: 'rev2',
+    reviewerName: 'Mark Smith',
+    rating: 4,
+    comment: 'Great read, though the middle chapters dragged a bit. Still highly recommended for anyone interested in the topic.',
+    date: '2023-11-02',
+  },
+  {
+    id: 'rev3',
+    reviewerName: 'Sarah Davis',
+    rating: 5,
+    comment: 'A masterpiece. Will be reading this again very soon.',
+    date: '2023-11-20',
+  },
+];
+
+const createMockBook = (id: string, title: string, imageUri: string, price: number, discount?: string): Book => ({
+  id,
+  title,
+  imageUri,
+  price,
+  discount,
+  author: 'Sample Author',
+  condition: 'Used • Good',
+  ratings: mockRatings,
+  reviews: mockReviews,
+});
+
+export const CATEGORY_DATA: Record<string, MasonryCategoryData> = {
   'ScinceFinction': {
     subtitle: 'The Art of the Possible',
     left: [
-      { id: '1', title: 'Project Hail Mary', imageUri: 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=400&h=600&fit=crop', price: 290 },
-      { id: '2', title: '1984', imageUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop', price: 290 },
-      { id: '3', title: 'Dune', imageUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop', price: 290 },
+      createMockBook('1', 'Project Hail Mary', 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=400&h=600&fit=crop', 290),
+      createMockBook('2', '1984', 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop', 290),
+      createMockBook('3', 'Dune', 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop', 290),
     ],
     right: [
-      { id: '4', title: 'The War of the Worlds', imageUri: 'https://images.unsplash.com/photo-1629196914225-eb488db9f0eb?w=400&h=600&fit=crop', price: 290, discount: '60% off', stock: '2 left' },
-      { id: 'empty', title: '', imageUri: '', price: 0, empty: true },
-      { id: '5', title: 'The Martian Chronicles', imageUri: 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=400&h=600&fit=crop', price: 290, discount: '60% off', stock: '2 left' },
-      { id: '6', title: 'The 101', imageUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&h=600&fit=crop', price: 290 },
+      createMockBook('4', 'The War of the Worlds', 'https://images.unsplash.com/photo-1629196914225-eb488db9f0eb?w=400&h=600&fit=crop', 290, '60% off'),
+      createMockBook('5', 'The Martian Chronicles', 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=400&h=600&fit=crop', 290, '60% off'),
+      createMockBook('6', 'The 101', 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&h=600&fit=crop', 290),
     ]
   },
   'Romance': {
     subtitle: 'Stories of Love',
     left: [
-      { id: 'r1', title: 'Pride and Prejudice', imageUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop', price: 250 },
-      { id: 'r2', title: 'The Notebook', imageUri: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop', price: 199 },
-      { id: 'r5', title: 'Jane Eyre', imageUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop', price: 220 },
+      createMockBook('r1', 'Pride and Prejudice', 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop', 250),
+      createMockBook('r2', 'The Notebook', 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop', 199),
+      createMockBook('r5', 'Jane Eyre', 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop', 220),
     ],
     right: [
-      { id: 'r3', title: 'Me Before You', imageUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop', price: 290, discount: '50% off', stock: '1 left' },
-      { id: 'empty', title: '', imageUri: '', price: 0, empty: true },
-      { id: 'r4', title: 'A Walk to Remember', imageUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&h=600&fit=crop', price: 180 },
-      { id: 'r6', title: 'Sense and Sensibility', imageUri: 'https://images.unsplash.com/photo-1629196914225-eb488db9f0eb?w=400&h=600&fit=crop', price: 210, discount: '10% off', stock: '4 left' },
+      createMockBook('r3', 'Me Before You', 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop', 290, '50% off'),
+      createMockBook('r4', 'A Walk to Remember', 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&h=600&fit=crop', 180),
+      createMockBook('r6', 'Sense and Sensibility', 'https://images.unsplash.com/photo-1629196914225-eb488db9f0eb?w=400&h=600&fit=crop', 210, '10% off'),
     ]
   },
   'SelfHelp': {
     subtitle: 'Improve Your Life',
     left: [
-      { id: 's1', title: 'Atomic Habits', imageUri: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop', price: 450 },
-      { id: 's2', title: 'The Power of Habit', imageUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop', price: 300 },
-      { id: 's5', title: 'Mindset', imageUri: 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=400&h=600&fit=crop', price: 320 },
+      createMockBook('s1', 'Atomic Habits', 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop', 450),
+      createMockBook('s2', 'The Power of Habit', 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop', 300),
+      createMockBook('s5', 'Mindset', 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=400&h=600&fit=crop', 320),
     ],
     right: [
-      { id: 's3', title: 'Deep Work', imageUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&h=600&fit=crop', price: 350, discount: '20% off', stock: '5 left' },
-      { id: 'empty', title: '', imageUri: '', price: 0, empty: true },
-      { id: 's4', title: 'Think and Grow Rich', imageUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop', price: 250 },
-      { id: 's6', title: 'The 5AM Club', imageUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop', price: 280, discount: '15% off', stock: '2 left' },
+      createMockBook('s3', 'Deep Work', 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&h=600&fit=crop', 350, '20% off'),
+      createMockBook('s4', 'Think and Grow Rich', 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop', 250),
+      createMockBook('s6', 'The 5AM Club', 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop', 280, '15% off'),
     ]
   },
   'Biography': {
     subtitle: 'Lives of the Greats',
     left: [
-      { id: 'b1', title: 'Steve Jobs', imageUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&h=600&fit=crop', price: 500 },
-      { id: 'b3', title: 'Einstein', imageUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop', price: 450 },
-      { id: 'b5', title: 'Long Walk to Freedom', imageUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop', price: 380 },
+      createMockBook('b1', 'Steve Jobs', 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&h=600&fit=crop', 500),
+      createMockBook('b3', 'Einstein', 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop', 450),
+      createMockBook('b5', 'Long Walk to Freedom', 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop', 380),
     ],
     right: [
-      { id: 'b2', title: 'Becoming', imageUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop', price: 400, discount: '10% off', stock: '3 left' },
-      { id: 'empty', title: '', imageUri: '', price: 0, empty: true },
-      { id: 'b4', title: 'Shoe Dog', imageUri: 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=400&h=600&fit=crop', price: 350 },
-      { id: 'b6', title: 'The Diary of a Young Girl', imageUri: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop', price: 200, discount: '5% off', stock: '10 left' },
+      createMockBook('b2', 'Becoming', 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop', 400, '10% off'),
+      createMockBook('b4', 'Shoe Dog', 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=400&h=600&fit=crop', 350),
+      createMockBook('b6', 'The Diary of a Young Girl', 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop', 200, '5% off'),
     ]
   },
   'Business': {
     subtitle: 'Master the Market',
     left: [
-      { id: 'bus1', title: 'Zero to One', imageUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop', price: 300 },
-      { id: 'bus3', title: 'The Lean Startup', imageUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop', price: 380 },
-      { id: 'bus5', title: 'Dare to Lead', imageUri: 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=400&h=600&fit=crop', price: 410 },
+      createMockBook('bus1', 'Zero to One', 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop', 300),
+      createMockBook('bus3', 'The Lean Startup', 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop', 380),
+      createMockBook('bus5', 'Dare to Lead', 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=400&h=600&fit=crop', 410),
     ],
     right: [
-      { id: 'bus4', title: 'Rich Dad Poor Dad', imageUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&h=600&fit=crop', price: 280, discount: '20% off', stock: '8 left' },
-      { id: 'empty', title: '', imageUri: '', price: 0, empty: true },
-      { id: 'bus2', title: 'Good to Great', imageUri: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop', price: 350 },
-      { id: 'bus6', title: 'Built to Last', imageUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop', price: 330, discount: '30% off', stock: '1 left' },
+      createMockBook('bus4', 'Rich Dad Poor Dad', 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&h=600&fit=crop', 280, '20% off'),
+      createMockBook('bus2', 'Good to Great', 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop', 350),
+      createMockBook('bus6', 'Built to Last', 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop', 330, '30% off'),
+    ]
+  },
+  'Engineering': {
+    subtitle: 'Build the Future',
+    left: [
+      createMockBook('eng1', 'Introduction to Algorithms', 'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400&h=600&fit=crop', 800, '10% off'),
+      createMockBook('eng2', 'Clean Code', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=600&fit=crop', 600),
+      createMockBook('eng3', 'Design Patterns', 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&h=600&fit=crop', 650),
+    ],
+    right: [
+      createMockBook('eng4', 'The Pragmatic Programmer', 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=600&fit=crop', 550, '15% off'),
+      createMockBook('eng5', 'Structure and Interpretation', 'https://images.unsplash.com/photo-1587620962725-abab7fe55159?w=400&h=600&fit=crop', 700),
+      createMockBook('eng6', 'Code Complete', 'https://images.unsplash.com/photo-1555099962-4199c345e5dd?w=400&h=600&fit=crop', 850, '5% off'),
+    ]
+  },
+  'Medical': {
+    subtitle: 'Healing and Science',
+    left: [
+      createMockBook('med1', 'Gray\'s Anatomy', 'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?w=400&h=600&fit=crop', 1200, '20% off'),
+      createMockBook('med2', 'Harrison\'s Principles', 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&h=600&fit=crop', 1500),
+      createMockBook('med3', 'Robbins Pathology', 'https://images.unsplash.com/photo-1581594693702-fbdc51b2763b?w=400&h=600&fit=crop', 900),
+    ],
+    right: [
+      createMockBook('med4', 'Guyton Physiology', 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=600&fit=crop', 1100, '10% off'),
+      createMockBook('med5', 'Netter\'s Atlas', 'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&h=600&fit=crop', 1300),
+      createMockBook('med6', 'First Aid for the USMLE', 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=400&h=600&fit=crop', 800, '5% off'),
+    ]
+  },
+  'Law': {
+    subtitle: 'Justice and Order',
+    left: [
+      createMockBook('law1', 'The Rule of Law', 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400&h=600&fit=crop', 500),
+      createMockBook('law2', 'Constitutional Law', 'https://images.unsplash.com/photo-1505664159891-b9b5a88ba881?w=400&h=600&fit=crop', 650, '10% off'),
+      createMockBook('law3', 'Criminal Law', 'https://images.unsplash.com/photo-1453945619913-79ec89a82c51?w=400&h=600&fit=crop', 450),
+    ],
+    right: [
+      createMockBook('law4', 'Contracts', 'https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=400&h=600&fit=crop', 550, '5% off'),
+      createMockBook('law5', 'Torts', 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=400&h=600&fit=crop', 400),
+      createMockBook('law6', 'Property Law', 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400&h=600&fit=crop', 600, '15% off'),
+    ]
+  },
+  'CompetitiveExams': {
+    subtitle: 'Prepare to Succeed',
+    left: [
+      createMockBook('comp1', 'Quantitative Aptitude', 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=400&h=600&fit=crop', 400, '25% off'),
+      createMockBook('comp2', 'Verbal Reasoning', 'https://images.unsplash.com/photo-1456406644174-8ddd4cd52a06?w=400&h=600&fit=crop', 350),
+      createMockBook('comp3', 'General Knowledge 2024', 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=400&h=600&fit=crop', 250),
+    ],
+    right: [
+      createMockBook('comp4', 'UPSC Prelims Guide', 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=600&fit=crop', 800, '30% off'),
+      createMockBook('comp5', 'Bank PO Solved Papers', 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&h=600&fit=crop', 450),
+      createMockBook('comp6', 'CAT Data Interpretation', 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=600&fit=crop', 500, '10% off'),
     ]
   }
 };
+
+export interface CategoryItem {
+  id: string;
+  label: string;
+  imageUri: string;
+  screenName: string;
+}
+
+export const CATEGORIES_LIST: CategoryItem[] = [
+  { id: '1', label: 'Romance', imageUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=200', screenName: 'Romance' },
+  { id: '2', label: 'Self Help', imageUri: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=200', screenName: 'SelfHelp' },
+  { id: '3', label: 'Science Fiction', imageUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200', screenName: 'ScinceFinction' },
+  { id: '4', label: 'Biography', imageUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=200', screenName: 'Biography' },
+  { id: '5', label: 'Business', imageUri: 'https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=200', screenName: 'Business' },
+  { id: '6', label: 'Engineering', imageUri: 'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=200', screenName: 'Engineering' },
+  { id: '7', label: 'Medical', imageUri: 'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?w=200', screenName: 'Medical' },
+  { id: '8', label: 'Law', imageUri: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=200', screenName: 'Law' },
+  { id: '9', label: 'Competitive Exams', imageUri: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=200', screenName: 'CompetitiveExams' },
+];
