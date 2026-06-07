@@ -10,7 +10,7 @@ import MedicalScreen from '@/screens/others/MedicalScreen';
 import LawScreen from '@/screens/others/LawScreen';
 import CompetitiveExamsScreen from '@/screens/others/CompetitiveExamsScreen';
 
-import BookDetailsScreen from '@/screens/main/BookDetailsScreen';
+import BookDetailsScreen from '@/screens/others/BookDetailsScreen';
 import CartScreen from '@/screens/others/CartScreen';
 
 export type AppStackParamList = {

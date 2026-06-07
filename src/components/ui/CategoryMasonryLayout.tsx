@@ -71,11 +71,6 @@ const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({
             Andy Weir
           </Text>
 
-          <View style={styles.infoRow}>
-            <Text style={styles.condition}>Used • Good</Text>
-            <Text style={styles.rating}>⭐ 4.8</Text>
-          </View>
-
           <View style={styles.priceRow}>
             <Text style={styles.priceText}>₹{item.price}</Text>
 

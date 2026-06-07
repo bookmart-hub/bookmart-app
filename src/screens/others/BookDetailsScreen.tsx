@@ -16,6 +16,7 @@ import QuantitySelector from '@/components/ui/QuantitySelector';
 const { width, height } = Dimensions.get('window');
 
 import { TextInput } from 'react-native';
+import HeartBurst from '@/components/ui/HeartBrust';
 
 const isAcademicCategory = (category: string) => {
     if (!category) return false;
@@ -33,6 +34,8 @@ const BookDetailsScreen = () => {
     const navigation = useNavigation();
     const route = useRoute<any>();
     const [rating, setRating] = useState(0);
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [showBurst, setShowBurst] = useState(false);
 
     const book: Book | undefined = route.params?.book;
     const categoryTitle: string = route.params?.categoryTitle || '';
@@ -43,6 +46,20 @@ const BookDetailsScreen = () => {
     const [localRatings, setLocalRatings] = useState(book?.ratings);
     const [newReviewText, setNewReviewText] = useState('');
     const [newReviewRating, setNewReviewRating] = useState(0);
+
+    const handleFavorite = () => {
+        const next = !isFavorite;
+
+        setIsFavorite(next);
+
+        if (next) {
+            setShowBurst(true);
+
+            setTimeout(() => {
+                setShowBurst(false);
+            }, 700);
+        }
+    };
 
     const handleAddReview = () => {
         if (newReviewRating === 0 || !newReviewText.trim()) return;
@@ -110,20 +127,64 @@ const BookDetailsScreen = () => {
                 <View style={styles.contentContainer}>
                     <View style={styles.titleRow}>
                         <Text style={styles.title} numberOfLines={2}>{book.title}</Text>
-                        <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                            <Ionicons name="heart" size={26} color={COLORS.primary} />
-                        </TouchableOpacity>
+                        <View
+                            style={{
+                                position: 'relative',
+                                width: 30,
+                                height: 30,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <TouchableOpacity
+                                hitSlop={{
+                                    top: 10,
+                                    bottom: 10,
+                                    left: 10,
+                                    right: 10,
+                                }}
+                                onPress={handleFavorite}
+                            >
+                                <Ionicons
+                                    name={isFavorite ? 'heart' : 'heart-outline'}
+                                    size={26}
+                                    color={COLORS.primary}
+                                />
+                            </TouchableOpacity>
+
+                            {showBurst && <HeartBurst />}
+                        </View>
                     </View>
 
                     {/* Author Avatar */}
                     <View style={styles.authorRow}>
-                        <View>
-                            <Image
-                                source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop' }}
-                                style={styles.authorAvatar}
-                                contentFit="cover"
-                            />
-                            <Text style={styles.authorName}>{book.author}</Text>
+                        <Image
+                            source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop' }}
+                            style={styles.authorAvatar}
+                            contentFit="cover"
+                        />
+                        <Text style={styles.authorName}>{book.author}</Text>
+                    </View>
+
+                    <View style={styles.bookMetaCard}>
+                        <View style={styles.conditionSection}>
+                            <Text style={styles.priceLabel}>Condition</Text>
+                            <Text style={styles.conditionValue}>
+                                {book.condition || 'Used - Good'}
+                            </Text>
+
+                            {book.conditionNote ? (
+                                <Text style={styles.conditionNote}>
+                                    {book.conditionNote}
+                                </Text>
+                            ) : null}
+                        </View>
+
+                        <View style={styles.divider} />
+
+                        <View style={styles.priceSection}>
+                            <Text style={styles.priceLabel}>Price</Text>
+                            <Text style={styles.priceValue}>₹{book.price}</Text>
                         </View>
                     </View>
 
@@ -263,7 +324,7 @@ export default BookDetailsScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.white,
+        backgroundColor: COLORS.background,
     },
     errorText: {
         fontSize: 16,
@@ -351,8 +412,63 @@ const styles = StyleSheet.create({
     reasonItem: {
         fontSize: 14,
         fontFamily: FONTS.manrope.medium,
-        color: '#9CA3AF', // lighter gray matching the design's textMuted
+        color: COLORS.textMuted, // lighter gray matching the design's textMuted
         lineHeight: 22,
+    },
+    bookMetaCard: {
+        backgroundColor: COLORS.white,
+        marginTop: -SPACING.lg,
+        borderRadius: 18,
+        padding: SPACING.md,
+        marginBottom: SPACING.md,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        elevation: 1,
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
+
+    priceSection: {
+        marginBottom: SPACING.sm,
+    },
+
+    priceLabel: {
+        fontSize: 12,
+        color: COLORS.textMuted,
+        fontFamily: FONTS.manrope.medium,
+        marginBottom: 4,
+    },
+
+    priceValue: {
+        fontSize: 26,
+        color: COLORS.primary,
+        fontFamily: FONTS.montserrat.bold,
+    },
+
+    divider: {
+        height: 1,
+        backgroundColor: COLORS.grayLight,
+        marginVertical: SPACING.sm,
+    },
+
+    conditionSection: {
+        gap: 4,
+    },
+
+    conditionValue: {
+        fontSize: 15,
+        color: COLORS.black,
+        fontFamily: FONTS.montserrat.semibold,
+    },
+
+    conditionNote: {
+        fontSize: 13,
+        lineHeight: 20,
+        color: COLORS.textMuted,
+        fontFamily: FONTS.manrope.medium,
     },
     bottomBar: {
         position: 'absolute',
