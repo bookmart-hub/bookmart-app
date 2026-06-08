@@ -12,6 +12,8 @@ import CompetitiveExamsScreen from '@/screens/others/CompetitiveExamsScreen';
 
 import BookDetailsScreen from '@/screens/others/BookDetailsScreen';
 import CartScreen from '@/screens/others/CartScreen';
+import AuthorListScreen from '@/screens/others/AuthorListScreen';
+import AuthorDetailsScreen from '@/screens/others/AuthorDetailsScreen';
 
 export type AppStackParamList = {
     Business: undefined;
@@ -25,6 +27,8 @@ export type AppStackParamList = {
     CompetitiveExams: undefined;
     BookDetails: undefined;
     Cart: undefined;
+    AuthorList: undefined;
+    AuthorDetails: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -46,6 +50,8 @@ export default function AppStackNavigator() {
             <Stack.Screen name="CompetitiveExams" component={CompetitiveExamsScreen} />
             <Stack.Screen name="BookDetails" component={BookDetailsScreen} />
             <Stack.Screen name="Cart" component={CartScreen} />
+            <Stack.Screen name="AuthorList" component={AuthorListScreen} />
+            <Stack.Screen name="AuthorDetails" component={AuthorDetailsScreen} />
         </Stack.Navigator>
     );
 }

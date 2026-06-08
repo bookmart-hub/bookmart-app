@@ -46,12 +46,12 @@ const HomeScreen = () => {
   }, []);
 
   const handleAuthorPress = useCallback((author: AuthorItem) => {
-    // TODO: navigate to author detail
-  }, []);
+    navigation.navigate('AppStack', { screen: 'AuthorDetails', params: { author } });
+  }, [navigation]);
 
   const handleAuthorSeeAllPress = useCallback(() => {
-    // TODO: navigate to all authors
-  }, []);
+    navigation.navigate('AppStack', { screen: 'AuthorList' });
+  }, [navigation]);
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
