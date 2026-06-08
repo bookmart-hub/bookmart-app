@@ -75,7 +75,7 @@ const AuthorListScreen = () => {
             <Image
                 source={{ uri: item.imageUri }}
                 style={styles.authorImage}
-                contentFit="cover"
+                contentFit="fill"
                 cachePolicy="memory-disk"
             />
             <View style={styles.authorInfo}>
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     listContent: {
         paddingHorizontal: SPACING.lg,
         paddingBottom: SPACING.xl,
-        gap: SPACING.lg,
+        gap: SPACING.md,
     },
     authorCard: {
         flexDirection: 'row',
@@ -178,14 +178,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     authorName: {
-        fontSize: rf(16),
-        fontFamily: FONTS.montserrat.bold,
-        color: COLORS.black,
+        fontSize: rf(15),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.text,
         marginBottom: 4,
     },
     authorBio: {
-        fontSize: rf(14),
-        fontFamily: FONTS.manrope.medium,
+        fontSize: rf(11),
+        fontFamily: FONTS.manrope.light,
         color: COLORS.textMuted,
         lineHeight: 20,
     },
