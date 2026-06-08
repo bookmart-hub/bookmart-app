@@ -22,6 +22,7 @@ import Animated, {
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
+import { rf } from '@/utils/responsive';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -116,7 +117,7 @@ const DEFAULT_AUTHORS: AuthorItem[] = [
 
 const HORIZONTAL_PADDING = SPACING.lg; // 24
 const COLLAPSED_WIDTH = 100;
-const ITEM_GAP = 16;
+const ITEM_GAP = 10;
 
 const SNAP_INTERVAL = SCREEN_WIDTH - HORIZONTAL_PADDING - COLLAPSED_WIDTH;
 const EXPANDED_WIDTH = SNAP_INTERVAL - ITEM_GAP;
@@ -445,12 +446,12 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     headerTitle: {
-        fontSize: 20,
+        fontSize: rf(20),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
-        fontSize: 14,
+        fontSize: rf(14),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
@@ -479,7 +480,6 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.12,
         shadowRadius: 12,
-        elevation: 4,
     },
 
     // ── Photo ──
@@ -500,14 +500,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     authorName: {
-        fontSize: 17,
+        fontSize: rf(14),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.white,
         marginBottom: 6,
     },
     authorBio: {
-        fontSize: 11,
-        fontFamily: FONTS.manrope.regular,
+        fontSize: rf(11),
+        fontFamily: FONTS.manrope.light,
         color: 'rgba(255,255,255,0.78)',
         lineHeight: 15,
         marginBottom: 8,
@@ -517,10 +517,9 @@ const styles = StyleSheet.create({
     starRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 2,
     },
     star: {
-        fontSize: 16,
+        fontSize: rf(15),
     },
     starFilled: {
         color: COLORS.yellow,

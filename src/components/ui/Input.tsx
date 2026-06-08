@@ -12,6 +12,7 @@ import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { Feather } from '@expo/vector-icons';
+import { rf } from '@/utils/responsive';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
     marginVertical: SPACING.sm,
   },
   label: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontFamily: FONTS.montserrat.semibold,
     color: COLORS.textMuted,
     marginBottom: SPACING.xs,
@@ -115,7 +116,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: '100%',
     color: COLORS.black,
-    fontSize: 16,
+    fontSize: rf(16),
     fontFamily: FONTS.manrope.medium,
   },
   iconContainer: {
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorText: {
-    fontSize: 12,
+    fontSize: rf(12),
     fontFamily: FONTS.manrope.regular,
     color: COLORS.red,
     marginTop: 4,

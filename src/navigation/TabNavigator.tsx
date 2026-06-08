@@ -10,6 +10,7 @@ import ProfileScreen from '../screens/main/ProfileScreen';
 import { COLORS } from '@/constants/colors'; // Adjust imports to match your project paths
 import { FONTS } from '@/constants/fonts';
 import CustomTabBar from '@/components/ui/CustomTabBar';
+import { rf } from '@/utils/responsive';
 
 export type TabParamList = {
     Home: undefined;
@@ -69,7 +70,7 @@ export default function TabNavigator() {
 }
 const styles = StyleSheet.create({
     tabLabel: {
-        fontSize: 10,
+        fontSize: rf(10),
         fontFamily: FONTS?.montserrat?.medium || Platform.select({ ios: 'System', android: 'sans-serif-medium' }),
         marginTop: 1
     },

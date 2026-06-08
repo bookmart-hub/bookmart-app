@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
+import { rf } from '@/utils/responsive';
 
 const { width } = Dimensions.get('window');
 const COLUMN_GAP = 16;
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   author: {
-    fontSize: 12,
+    fontSize: rf(12),
     color: COLORS.text,
     marginTop: 4,
     marginBottom: 8,
@@ -159,14 +160,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   condition: {
-    fontSize: 11,
+    fontSize: rf(11),
     color: COLORS.textMuted,
   },
   rating: {
-    fontSize: 11,
+    fontSize: rf(11),
   },
   cardTitle: {
-    fontSize: 15,
+    fontSize: rf(15),
     lineHeight: 20,
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
@@ -193,14 +194,14 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: rf(32),
     lineHeight: 38,
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
     marginBottom: 8,
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.black,
     lineHeight: 20,
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   priceText: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
   },
@@ -255,12 +256,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   discountText: {
-    fontSize: 12,
+    fontSize: rf(12),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.primary,
   },
   stockText: {
-    fontSize: 12,
+    fontSize: rf(12),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.red,
   },

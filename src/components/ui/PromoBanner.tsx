@@ -12,6 +12,7 @@ import { Image } from 'expo-image';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
+import { rf } from '@/utils/responsive';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_HORIZONTAL_PADDING = SPACING.lg;
@@ -30,7 +31,7 @@ export interface PromoBannerItem {
 const DEFAULT_BANNERS: PromoBannerItem[] = [
   {
     id: '1',
-    title: 'New Exploration on Non-Fiction With Avery Baines',
+    title: 'New Exploration on Non-Fiction',
     subtitle: 'Discount 50% for first transaction',
     cta: 'Explore now',
     bookImageUri:
@@ -309,13 +310,13 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: rf(14),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.text,
-    lineHeight: 21,
+    lineHeight: 20,
   },
   cardSubtitle: {
-    fontSize: 12,
+    fontSize: rf(12),
     fontFamily: FONTS.manrope.semibold,
     color: COLORS.textMuted,
     marginTop: 4,
@@ -329,7 +330,7 @@ const styles = StyleSheet.create({
     marginTop: SPACING.sm,
   },
   ctaText: {
-    fontSize: 12,
+    fontSize: rf(12),
     fontFamily: FONTS.montserrat.semibold,
     color: COLORS.white,
   },

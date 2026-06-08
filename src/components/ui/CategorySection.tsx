@@ -26,6 +26,7 @@ import { SPACING } from '@/constants/spacings';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { CATEGORIES_LIST, CategoryItem } from '@/data/categoryMockData';
+import { rf } from '@/utils/responsive';
 
 const ITEM_WIDTH = 75;
 const ITEM_HEIGHT = 100;
@@ -252,14 +253,14 @@ const styles = StyleSheet.create({
         marginBottom: 2,
     },
     subtitle: {
-        fontSize: 20,
+        fontSize: rf(20),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     title: {
         position: 'absolute',
         top: 0,
-        fontSize: 14,
+        fontSize: rf(14),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.textMuted,
         width: ITEM_WIDTH * 1.5,

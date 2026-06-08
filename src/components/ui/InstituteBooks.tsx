@@ -15,6 +15,7 @@ import Animated, {
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
+import { rf } from '@/utils/responsive';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -325,12 +326,12 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     headerTitle: {
-        fontSize: 20,
+        fontSize: rf(20),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
-        fontSize: 14,
+        fontSize: rf(14),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
@@ -358,7 +359,6 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 12,
-        elevation: 4,
     },
 
     // ── Cover ──
@@ -377,19 +377,19 @@ const styles = StyleSheet.create({
         alignSelf: 'stretch',
     },
     titleText: {
-        fontSize: 13,
+        fontSize: rf(13),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
         marginBottom: 2,
     },
     authorText: {
-        fontSize: 11,
+        fontSize: rf(11),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.textMuted,
         marginBottom: 4,
     },
     descText: {
-        fontSize: 10,
+        fontSize: rf(10),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         lineHeight: 14,
@@ -421,12 +421,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     sellerAvatarInitial: {
-        fontSize: 9,
+        fontSize: rf(9),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.white,
     },
     sellerName: {
-        fontSize: 10,
+        fontSize: rf(10),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         flex: 1,

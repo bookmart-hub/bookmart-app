@@ -4,6 +4,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
+import { rf } from '@/utils/responsive';
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -182,7 +183,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   tabLabel: {
-    fontSize: 10,
+    fontSize: rf(10),
     fontFamily: FONTS?.montserrat?.medium || Platform.select({ ios: 'System', android: 'sans-serif-medium' }),
     marginTop: 2,
   },
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
     marginBottom: 1,
   },
   newModeText: {
-    fontSize: 11,
+    fontSize: rf(11),
     fontFamily: FONTS?.montserrat?.bold || Platform.select({ ios: 'System', android: 'sans-serif-bold' }),
     textAlign: 'center',
   },

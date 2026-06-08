@@ -1,5 +1,6 @@
 import { COLORS } from '@/constants/colors';
 import React, { memo, useMemo } from 'react';
+import { rf } from '@/utils/responsive';
 import {
     View,
     Text,
@@ -109,27 +110,27 @@ const styles = StyleSheet.create({
     },
 
     minusText: {
-        fontSize: 34,
+        fontSize: rf(34),
         fontWeight: '500',
         color: COLORS.grayHeavvy,
         lineHeight: 38,
     },
 
     plusText: {
-        fontSize: 38,
+        fontSize: rf(38),
         fontWeight: '400',
         color: COLORS.white,
         lineHeight: 42,
     },
 
     quantity: {
-        fontSize: 36,
+        fontSize: rf(36),
         fontFamily: 'Montserrat-SemiBold',
         color: COLORS.black,
     },
 
     price: {
-        fontSize: 34,
+        fontSize: rf(34),
         fontFamily: 'Montserrat-Bold',
         color: COLORS.primary,
     },

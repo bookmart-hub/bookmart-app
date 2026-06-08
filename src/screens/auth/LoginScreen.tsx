@@ -22,6 +22,7 @@ import { SPACING } from '@/constants/spacings';
 import { AuthStackParamList } from '@/navigation/AuthNavigator';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { rf } from '@/utils/responsive';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -252,13 +253,13 @@ const styles = StyleSheet.create({
         marginBottom: 40,
     },
     welcomeText: {
-        fontSize: 34,
+        fontSize: rf(34),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         lineHeight: 40,
     },
     signInText: {
-        fontSize: 34,
+        fontSize: rf(34),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         lineHeight: 40,
@@ -274,7 +275,7 @@ const styles = StyleSheet.create({
         paddingVertical: SPACING.xs,
     },
     forgotPasswordText: {
-        fontSize: 14,
+        fontSize: rf(14),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.black,
         textDecorationLine: 'underline',
@@ -297,7 +298,7 @@ const styles = StyleSheet.create({
     },
     dividerText: {
         marginHorizontal: SPACING.md,
-        fontSize: 14,
+        fontSize: rf(14),
         fontFamily: FONTS.montserrat.medium,
         color: COLORS.textMuted,
     },
@@ -328,7 +329,7 @@ const styles = StyleSheet.create({
         borderColor: COLORS.grayHeavvy,
     },
     loadingText: {
-        fontSize: 16,
+        fontSize: rf(16),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
@@ -339,7 +340,7 @@ const styles = StyleSheet.create({
         paddingVertical: SPACING.md,
     },
     footerText: {
-        fontSize: 14,
+        fontSize: rf(14),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.textMuted,
     },

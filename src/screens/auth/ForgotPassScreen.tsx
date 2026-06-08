@@ -21,6 +21,7 @@ import { SPACING } from '@/constants/spacings';
 import { AuthStackParamList } from '@/navigation/AuthNavigator';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { rf } from '@/utils/responsive';
 
 type ForgotPassScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'ForgotPassScreen'>;
 
@@ -212,14 +213,14 @@ const styles = StyleSheet.create({
         marginBottom: 30,
     },
     headingText: {
-        fontSize: 30,
+        fontSize: rf(30),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         lineHeight: 36,
         marginBottom: SPACING.sm,
     },
     subHeadingText: {
-        fontSize: 15,
+        fontSize: rf(15),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         lineHeight: 20,
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
         borderColor: COLORS.grayHeavvy,
     },
     loadingText: {
-        fontSize: 16,
+        fontSize: rf(16),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
@@ -242,7 +243,7 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     instructionText: {
-        fontSize: 13,
+        fontSize: rf(13),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         lineHeight: 18,

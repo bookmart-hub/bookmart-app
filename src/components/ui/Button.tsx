@@ -11,6 +11,7 @@ import {
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
+import { rf } from '@/utils/responsive';
 
 interface ButtonProps {
   title: string;
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
     marginRight: SPACING.sm + 4,
   },
   baseText: {
-    fontSize: 16,
+    fontSize: rf(16),
     fontFamily: FONTS.montserrat.semibold,
     textAlign: 'center',
   },

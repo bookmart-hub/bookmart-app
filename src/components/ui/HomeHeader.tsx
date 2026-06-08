@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
+import { rf } from '@/utils/responsive';
 
 interface HomeHeaderProps {
   avatarUri?: string;
@@ -74,7 +75,7 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.md,
   },
   brandLogo: {
-    fontSize: 25,
+    fontSize: rf(25),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
     lineHeight: 32,
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: COLORS.white,
-    fontSize: 9,
+    fontSize: rf(9),
     fontFamily: FONTS.montserrat.bold,
     lineHeight: 12,
   },

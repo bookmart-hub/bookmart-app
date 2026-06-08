@@ -17,6 +17,7 @@ const { width, height } = Dimensions.get('window');
 
 import { TextInput } from 'react-native';
 import HeartBurst from '@/components/ui/HeartBrust';
+import { rf } from '@/utils/responsive';
 
 const isAcademicCategory = (category: string) => {
     if (!category) return false;
@@ -327,7 +328,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.background,
     },
     errorText: {
-        fontSize: 16,
+        fontSize: rf(16),
         fontFamily: FONTS.montserrat.medium,
         color: COLORS.text,
     },
@@ -373,7 +374,7 @@ const styles = StyleSheet.create({
     },
     title: {
         flex: 1,
-        fontSize: 24,
+        fontSize: rf(24),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginRight: SPACING.md,
@@ -386,7 +387,7 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.xl,
     },
     authorName: {
-        fontSize: 14,
+        fontSize: rf(14),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.text,
     },
@@ -400,7 +401,7 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.xl,
     },
     reasonsHeader: {
-        fontSize: 16,
+        fontSize: rf(16),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         textDecorationLine: 'underline',
@@ -410,7 +411,7 @@ const styles = StyleSheet.create({
         gap: SPACING.sm,
     },
     reasonItem: {
-        fontSize: 14,
+        fontSize: rf(14),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted, // lighter gray matching the design's textMuted
         lineHeight: 22,
@@ -419,12 +420,12 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.white,
         marginTop: -SPACING.lg,
         borderRadius: 18,
-        padding: SPACING.md,
+        paddingHorizontal: SPACING.md,
+        paddingVertical: SPACING.sm,
         marginBottom: SPACING.md,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        elevation: 1,
         shadowColor: COLORS.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -432,18 +433,17 @@ const styles = StyleSheet.create({
     },
 
     priceSection: {
-        marginBottom: SPACING.sm,
+        gap: SPACING.sm,
     },
 
     priceLabel: {
-        fontSize: 12,
+        fontSize: rf(12),
         color: COLORS.textMuted,
         fontFamily: FONTS.manrope.medium,
-        marginBottom: 4,
     },
 
     priceValue: {
-        fontSize: 26,
+        fontSize: rf(26),
         color: COLORS.primary,
         fontFamily: FONTS.montserrat.bold,
     },
@@ -459,13 +459,13 @@ const styles = StyleSheet.create({
     },
 
     conditionValue: {
-        fontSize: 15,
+        fontSize: rf(15),
         color: COLORS.black,
         fontFamily: FONTS.montserrat.semibold,
     },
 
     conditionNote: {
-        fontSize: 13,
+        fontSize: rf(13),
         lineHeight: 20,
         color: COLORS.textMuted,
         fontFamily: FONTS.manrope.medium,
@@ -497,8 +497,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     primaryButtonText: {
-        fontSize: 16,
-        fontFamily: FONTS.manrope.semibold,
+        fontSize: rf(16),
+        fontFamily: FONTS.montserrat.semibold,
         color: COLORS.white,
     },
     secondaryButton: {
@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
         borderColor: COLORS.grayHeavvy,
     },
     reviewHeaderTitle: {
-        fontSize: 20,
+        fontSize: rf(20),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: SPACING.md,
@@ -534,13 +534,13 @@ const styles = StyleSheet.create({
         marginRight: SPACING.lg,
     },
     averageRatingText: {
-        fontSize: 36,
+        fontSize: rf(36),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: 4,
     },
     totalReviewsText: {
-        fontSize: 12,
+        fontSize: rf(12),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginTop: 6,
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
     },
     starLabel: {
         width: 12,
-        fontSize: 12,
+        fontSize: rf(12),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
         marginRight: 8,
@@ -589,17 +589,17 @@ const styles = StyleSheet.create({
         marginBottom: 6,
     },
     reviewerName: {
-        fontSize: 14,
+        fontSize: rf(14),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.black,
     },
     reviewDate: {
-        fontSize: 12,
+        fontSize: rf(12),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
     reviewComment: {
-        fontSize: 14,
+        fontSize: rf(14),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
         marginTop: 8,
@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     emptyReviewsText: {
-        fontSize: 14,
+        fontSize: rf(14),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
         borderTopColor: COLORS.grayLight,
     },
     addReviewTitle: {
-        fontSize: 18,
+        fontSize: rf(18),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: SPACING.sm,
@@ -633,7 +633,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.grayLight,
         borderRadius: 12,
         padding: SPACING.md,
-        fontSize: 14,
+        fontSize: rf(14),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.black,
         minHeight: 100,
@@ -650,13 +650,13 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.grayHeavvy,
     },
     submitReviewText: {
-        fontSize: 16,
+        fontSize: rf(16),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.white,
     },
     secondaryButtonText: {
-        fontSize: 16,
-        fontFamily: FONTS.manrope.semibold,
+        fontSize: rf(16),
+        fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
 });
