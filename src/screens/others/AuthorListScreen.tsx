@@ -9,6 +9,7 @@ import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import { AUTHOR_CATEGORIES, MOCK_AUTHORS, Author } from '@/data/authorMockData';
+import Header from '@/components/ui/Header';
 
 const { width } = Dimensions.get('window');
 
@@ -29,10 +30,10 @@ const AuthorListScreen = () => {
     const renderHeader = () => (
         <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <Ionicons name="arrow-back" size={28} color={COLORS.primary} />
+                <Ionicons name="arrow-back" size={28} color={COLORS.black} />
             </TouchableOpacity>
             <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <Ionicons name="search-outline" size={28} color={COLORS.primary} />
+                <Ionicons name="search-outline" size={28} color={COLORS.black} />
             </TouchableOpacity>
         </View>
     );

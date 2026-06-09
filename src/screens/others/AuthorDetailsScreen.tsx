@@ -10,6 +10,7 @@ import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import { Author } from '@/data/authorMockData';
+import Header from '@/components/ui/Header';
 
 const { width } = Dimensions.get('window');
 const COLUMN_GAP = SPACING.md;
@@ -72,14 +73,8 @@ const AuthorDetailsScreen = () => {
         : `${author.bio} Gunty was born and raised in South Bend, Indiana. She graduated from the University of Notre Dame with a Bachelor of Arts in English and from New York University.`;
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={28} color={COLORS.primary} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Authors</Text>
-                <View style={styles.headerRight} />
-            </View>
+        <View style={styles.container}>
+            <Header title="Authors" backButton onPress={() => navigation.goBack()} />
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
@@ -180,10 +175,11 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     name: {
-        fontSize: rf(22),
+        fontSize: rf(20),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: SPACING.sm,
+        paddingHorizontal: PADDING_HORIZONTAL
     },
     ratingContainer: {
         flexDirection: 'row',

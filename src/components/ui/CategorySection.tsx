@@ -1,9 +1,7 @@
-import React, { memo, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo, useRef, useEffect, useState } from 'react';
 import {
     Dimensions,
-    Platform,
     StyleSheet,
-    Text,
     View,
     TouchableOpacity,
 } from 'react-native';
@@ -34,98 +32,125 @@ const ITEM_GAP = 10;
 
 const SNAP_SIZE = ITEM_WIDTH + ITEM_GAP;
 
-const SIDE_PADDING =
-    (SCREEN_WIDTH - ITEM_WIDTH) / 2;
+// Fix layout issue: dynamically center the cards
+const SIDE_PADDING = (SCREEN_WIDTH - SNAP_SIZE) / 2;
 
-const LOOP_COPIES = 3; // Odd number, large enough for seamless looping
+const LOOP_COPIES = 3; // Create infinite loop illusion
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface ExtendedCategoryItem extends CategoryItem {
+    uniqueId: string;
+}
 
 // ── CategoryCard ──────────────────────────────────────────────────────────────
 
 interface CategoryCardProps {
-    item: CategoryItem;
+    item: ExtendedCategoryItem;
     index: number;
     scrollX: SharedValue<number>;
-    onPress: () => void;
+    onPress: (item: ExtendedCategoryItem) => void;
 }
 
-const CategoryCard = memo(({
-    item,
-    index,
-    scrollX,
-    onPress,
-}: CategoryCardProps) => {
-    const center = index * SNAP_SIZE;
-    const inputRange = [
-        center - SNAP_SIZE,
-        center,
-        center + SNAP_SIZE,
-    ];
+const CategoryCard = memo(
+    ({
+        item,
+        index,
+        scrollX,
+        onPress,
+    }: CategoryCardProps) => {
+        const handlePress = useCallback(() => {
+            onPress(item);
+        }, [item, onPress]);
 
-    const animatedStyle = useAnimatedStyle(() => {
-        'worklet';
-        const scale = interpolate(
-            scrollX.value,
-            inputRange,
-            [0.85, 1.25, 0.85],
-            Extrapolation.CLAMP
-        );
+        const animatedStyle = useAnimatedStyle(() => {
+            const centerPosition = index * SNAP_SIZE;
 
-        const borderColor = interpolateColor(
-            scrollX.value,
-            inputRange,
-            [
-                'transparent',
-                COLORS.primary,
-                'transparent',
-            ]
-        );
+            const scale = interpolate(
+                scrollX.value,
+                [
+                    centerPosition - SNAP_SIZE,
+                    centerPosition,
+                    centerPosition + SNAP_SIZE,
+                ],
+                [0.85, 1.18, 0.85],
+                Extrapolation.CLAMP
+            );
 
-        return {
-            transform: [{ scale }],
-            borderColor,
-        };
-    });
+            const borderColor = interpolateColor(
+                scrollX.value,
+                [
+                    centerPosition - SNAP_SIZE,
+                    centerPosition,
+                    centerPosition + SNAP_SIZE,
+                ],
+                ['transparent', COLORS.primary, 'transparent']
+            );
 
-    const labelAnimatedStyle = useAnimatedStyle(() => {
-        'worklet';
-        const opacity = interpolate(
-            scrollX.value,
-            inputRange,
-            [0, 1, 0],
-            Extrapolation.CLAMP
-        );
-        return {
-            opacity,
-        };
-    });
+            return {
+                transform: [{ scale }],
+                borderColor,
+            };
+        });
 
-    return (
-        <TouchableOpacity
-            style={styles.itemWrapper}
-            activeOpacity={0.8}
-            onPress={onPress}
-        >
-            <Animated.Text style={[styles.title, labelAnimatedStyle]} numberOfLines={1}>
-                {item.label}
-            </Animated.Text>
-            <Animated.View
-                style={[
-                    styles.cardContainer,
-                    animatedStyle,
-                ]}
+        const titleStyle = useAnimatedStyle(() => {
+            const centerPosition = index * SNAP_SIZE;
+
+            const opacity = interpolate(
+                scrollX.value,
+                [
+                    centerPosition - SNAP_SIZE / 2,
+                    centerPosition,
+                    centerPosition + SNAP_SIZE / 2,
+                ],
+                [0, 1, 0],
+                Extrapolation.CLAMP
+            );
+
+            return { opacity };
+        });
+
+        return (
+            <TouchableOpacity
+                activeOpacity={0.8}
+                style={styles.itemWrapper}
+                onPress={handlePress}
             >
-                <Image
-                    source={{ uri: item.imageUri }}
-                    style={styles.image}
-                    contentFit="cover"
-                    cachePolicy="memory-disk"
-                    recyclingKey={item.imageUri}
-                    transition={0}
-                />
-            </Animated.View>
-        </TouchableOpacity>
-    );
-});
+                <Animated.Text
+                    numberOfLines={1}
+                    style={[
+                        styles.title,
+                        titleStyle,
+                    ]}
+                >
+                    {item.label}
+                </Animated.Text>
+
+                <Animated.View style={[styles.cardContainer, animatedStyle]}>
+                    <Image
+                        source={{ uri: item.imageUri }}
+                        style={styles.image}
+                        contentFit="cover"
+                        transition={0}
+                        cachePolicy="memory-disk"
+                    />
+                </Animated.View>
+            </TouchableOpacity>
+        );
+    },
+    (prevProps, nextProps) => {
+        return (
+            prevProps.item.uniqueId ===
+            nextProps.item.uniqueId &&
+            prevProps.index ===
+            nextProps.index &&
+            prevProps.scrollX ===
+            nextProps.scrollX &&
+            prevProps.onPress ===
+            nextProps.onPress
+        );
+    }
+);
 
 // ── CategorySection ───────────────────────────────────────────────────────────
 
@@ -133,114 +158,193 @@ interface CategorySectionProps {
     categories?: CategoryItem[];
 }
 
-const CategorySection: React.FC<
-    CategorySectionProps
-> = memo(({
-    categories = CATEGORIES_LIST,
-}) => {
-    const scrollX = useSharedValue(0);
-    const flatListRef = useRef<any>(null);
-    const N = categories.length;
-    const navigation = useNavigation<any>();
+const CategorySection = memo(
+    ({ categories = CATEGORIES_LIST }: CategorySectionProps) => {
+        const navigation = useNavigation<any>();
+        const flatListRef = useRef<any>(null);
 
-    // Replicate data LOOP_COPIES times for infinite loop
-    const loopedData = useMemo(() => {
-        const arr = [];
-        for (let c = 0; c < LOOP_COPIES; c++) {
-            for (let i = 0; i < N; i++) {
-                arr.push({ ...categories[i], _key: `${categories[i].id}-${c}` });
-            }
-        }
-        return arr;
-    }, [categories, N]);
+        const loopedData = useMemo(() => {
+            return Array.from(
+                { length: LOOP_COPIES },
+                (_, copyIndex) =>
+                    categories.map((item) => ({
+                        ...item,
+                        uniqueId: `${copyIndex}-${item.id}`,
+                    }))
+            ).flat();
+        }, [categories]);
 
-    const middleCopy = Math.floor(LOOP_COPIES / 2);
-    const middleStartIndex = middleCopy * N;
+        const middleIndex =
+            Math.floor(LOOP_COPIES / 2) *
+            categories.length;
 
-    const onScroll = useAnimatedScrollHandler({
-        onScroll: (event) => {
-            'worklet';
-            scrollX.value = event.contentOffset.x;
-        },
-    });
+        const scrollX = useSharedValue(0);
 
-    // Reset boundary on momentum end
-    const handleMomentumScrollEnd = useCallback((e: any) => {
-        const x = e.nativeEvent.contentOffset.x;
-        const index = Math.round(x / SNAP_SIZE);
-        const originalIdx = ((index % N) + N) % N;
-        const newIndex = middleCopy * N + originalIdx;
+        useEffect(() => {
+            requestAnimationFrame(() => {
+                flatListRef.current?.scrollToIndex({
+                    index: middleIndex,
+                    animated: false,
+                });
 
-        if (index < N * 2 || index > loopedData.length - N * 2) {
-            flatListRef.current?.scrollToIndex({ index: newIndex, animated: false });
-            scrollX.value = newIndex * SNAP_SIZE;
-        }
-    }, [N, middleCopy, loopedData.length]);
-
-    // Scroll to middle copy on mount
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            flatListRef.current?.scrollToIndex({
-                index: middleStartIndex,
-                animated: false,
+                scrollX.value =
+                    middleIndex * SNAP_SIZE;
             });
-        }, 80);
-        return () => clearTimeout(timer);
-    }, [middleStartIndex]);
+        }, [middleIndex]);
 
-    const renderItem = useCallback(({ item, index }: any) => {
+        const onScroll =
+            useAnimatedScrollHandler({
+                onScroll: (event) => {
+                    scrollX.value =
+                        event.contentOffset.x;
+                },
+            });
+
+        const handleMomentumEnd =
+            useCallback(
+                (event: any) => {
+                    const x =
+                        event.nativeEvent
+                            .contentOffset.x;
+
+                    const index =
+                        Math.round(
+                            x / SNAP_SIZE
+                        );
+
+
+                    const total =
+                        categories.length;
+
+                    if (index < total) {
+                        const newIndex =
+                            index + total;
+
+                        flatListRef.current?.scrollToIndex({
+                            index: newIndex,
+                            animated: false,
+                        });
+
+                        scrollX.value =
+                            newIndex *
+                            SNAP_SIZE;
+                    }
+
+                    if (
+                        index >= total * 2
+                    ) {
+                        const newIndex =
+                            index - total;
+
+                        flatListRef.current?.scrollToIndex({
+                            index: newIndex,
+                            animated: false,
+                        });
+
+                        scrollX.value =
+                            newIndex *
+                            SNAP_SIZE;
+                    }
+                },
+                [categories.length]
+            );
+
+        const handlePress =
+            useCallback(
+                (
+                    item: ExtendedCategoryItem
+                ) => {
+                    navigation.navigate(
+                        'AppStack',
+                        {
+                            screen:
+                                item.screenName ||
+                                'ScinceFinction',
+                        }
+                    );
+                },
+                [navigation]
+            );
+
+        const renderItem =
+            useCallback(
+                ({
+                    item,
+                    index,
+                }: {
+                    item: ExtendedCategoryItem;
+                    index: number;
+                }) => (
+                    <CategoryCard
+                        item={item}
+                        index={index}
+                        scrollX={scrollX}
+                        onPress={
+                            handlePress
+                        }
+                    />
+                ),
+                [
+                    handlePress,
+                    scrollX,
+                ]
+            );
+
         return (
-            <CategoryCard
-                item={item}
-                index={index}
-                scrollX={scrollX}
-                onPress={() => {
-                    navigation.navigate('AppStack', {
-                        screen: item.screenName || 'ScinceFinction'
-                    });
-                }}
-            />
+            <View style={styles.container}>
+                <Animated.FlatList
+                    ref={flatListRef}
+                    horizontal
+                    data={loopedData}
+                    renderItem={renderItem}
+                    keyExtractor={(item) =>
+                        item.uniqueId
+                    }
+                    showsHorizontalScrollIndicator={
+                        false
+                    }
+                    snapToInterval={
+                        SNAP_SIZE
+                    }
+                    decelerationRate="fast"
+                    bounces={false}
+                    onScroll={onScroll}
+                    onMomentumScrollEnd={
+                        handleMomentumEnd
+                    }
+                    scrollEventThrottle={
+                        16
+                    }
+                    contentContainerStyle={{
+                        paddingHorizontal:
+                            SIDE_PADDING,
+                    }}
+                    getItemLayout={(
+                        _,
+                        index
+                    ) => ({
+                        length:
+                            SNAP_SIZE,
+                        offset:
+                            SNAP_SIZE *
+                            index,
+                        index,
+                    })}
+                    initialNumToRender={
+                        8
+                    }
+                    maxToRenderPerBatch={
+                        8
+                    }
+                    windowSize={5}
+                    removeClippedSubviews={
+                        false
+                    }
+                />
+            </View>
         );
-    }, [scrollX, navigation]);
-
-    const keyExtractor = useCallback((item: any) => item._key, []);
-
-    const getItemLayout = useCallback((_: any, index: number) => ({
-        length: SNAP_SIZE,
-        offset: SNAP_SIZE * index,
-        index,
-    }), []);
-
-    return (
-        <View style={styles.container}>
-            <Animated.FlatList
-                ref={flatListRef}
-                horizontal
-                data={loopedData}
-                keyExtractor={keyExtractor}
-                showsHorizontalScrollIndicator={false}
-                decelerationRate="fast"
-                snapToInterval={SNAP_SIZE}
-                bounces={false}
-                scrollEventThrottle={16}
-                onScroll={onScroll}
-                onMomentumScrollEnd={handleMomentumScrollEnd}
-                initialScrollIndex={middleStartIndex}
-                getItemLayout={getItemLayout}
-                contentContainerStyle={{
-                    paddingHorizontal: SIDE_PADDING,
-                    alignItems: 'center' as const,
-                    columnGap: ITEM_GAP,
-                }}
-                renderItem={renderItem}
-                initialNumToRender={3}
-                maxToRenderPerBatch={2}
-                windowSize={3}
-                removeClippedSubviews
-            />
-        </View>
-    );
-});
+    }
+);
 
 export default CategorySection;
 
@@ -260,45 +364,40 @@ const styles = StyleSheet.create({
     title: {
         position: 'absolute',
         top: 0,
-        fontSize: rf(14),
+        fontSize: rf(12),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.textMuted,
         width: ITEM_WIDTH * 1.5,
         textAlign: 'center',
         zIndex: 10,
+        lineHeight: rf(12),
     },
-
     itemWrapper: {
-        width: ITEM_WIDTH,
+        width: SNAP_SIZE,
         alignItems: 'center',
-        paddingTop: 30, // Space for the absolutely positioned label
+        paddingTop: 10,
     },
-
     cardContainer: {
         width: ITEM_WIDTH,
-        marginTop: 5,
         height: ITEM_HEIGHT,
-        marginBottom: 15,
-
-        borderRadius: 10,
+        borderRadius: 12,
         overflow: 'hidden',
-
         borderWidth: 2,
-        borderColor: 'transparent',
-
-        padding: 5,
         backgroundColor: COLORS.background,
-
+        padding: 4,
         shadowColor: COLORS.black,
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
         shadowOpacity: 0.04,
         shadowRadius: 2,
-        elevation: 0,
+        marginBottom: 10,
+        marginTop: 14,
     },
-
     image: {
         width: '100%',
         height: '100%',
-        borderRadius: 10
+        borderRadius: 10,
     },
 });
