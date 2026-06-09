@@ -14,6 +14,7 @@ import BookDetailsScreen from '@/screens/others/BookDetailsScreen';
 import CartScreen from '@/screens/others/CartScreen';
 import AuthorListScreen from '@/screens/others/AuthorListScreen';
 import AuthorDetailsScreen from '@/screens/others/AuthorDetailsScreen';
+import NearestBooksScreen from '@/screens/others/NearestBooksScreen';
 
 export type AppStackParamList = {
     Business: undefined;
@@ -29,6 +30,7 @@ export type AppStackParamList = {
     Cart: undefined;
     AuthorList: undefined;
     AuthorDetails: undefined;
+    NearestBooks: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -52,6 +54,7 @@ export default function AppStackNavigator() {
             <Stack.Screen name="Cart" component={CartScreen} />
             <Stack.Screen name="AuthorList" component={AuthorListScreen} />
             <Stack.Screen name="AuthorDetails" component={AuthorDetailsScreen} />
+            <Stack.Screen name="NearestBooks" component={NearestBooksScreen} />
         </Stack.Navigator>
     );
 }

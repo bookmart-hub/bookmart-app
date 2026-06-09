@@ -34,8 +34,8 @@ const HomeScreen = () => {
   }, [navigation]);
 
   const handleSeeAllPress = useCallback(() => {
-    // TODO: navigate to full nearest books list
-  }, []);
+    navigation.navigate('AppStack', { screen: 'NearestBooks' });
+  }, [navigation]);
 
   const handleInstituteBookPress = useCallback((book: InstituteBookItem) => {
     navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Textbooks' } });
