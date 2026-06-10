@@ -8,9 +8,13 @@ import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
-import { DISTANCE_FILTERS, MOCK_NEAREST_BOOKS, NearestBook } from '@/data/nearestBooksMockData';
+import { DISTANCE_FILTERS, MOCK_CATEGORIES, MOCK_NEAREST_BOOKS, NearestBook } from '@/data/nearestBooksMockData';
+import Animated, {
+    FadeIn,
+    FadeOut,
+} from 'react-native-reanimated';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 const COLUMN_GAP = SPACING.md;
 const PADDING_HORIZONTAL = SPACING.lg;
 // Adjusted for 2 columns with gaps
@@ -19,8 +23,9 @@ const CARD_WIDTH = (width - PADDING_HORIZONTAL * 2 - COLUMN_GAP) / 2;
 const NearestBooksScreen = () => {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
-    const [activeFilter, setActiveFilter] = useState('Upto 20KM');
+    const [activeFilter, setActiveFilter] = useState('Nearest To You');
     const [searchQuery, setSearchQuery] = useState('');
+    const [showFilter, setShowFilter] = useState(false);
 
     const filteredBooks = useMemo(() => {
         let books = MOCK_NEAREST_BOOKS;
@@ -63,10 +68,18 @@ const NearestBooksScreen = () => {
                 />
             </View>
 
-            <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <TouchableOpacity
+                onPress={() => setShowFilter(true)}
+                hitSlop={{
+                    // top: 10,
+                    // bottom: 10,
+                    // left: 10,
+                    // right: 10
+                }}
+            >
                 <Ionicons name="options-outline" size={28} color={COLORS.primary} />
             </TouchableOpacity>
-        </View>
+        </View >
     );
 
     const renderFilters = () => (
@@ -135,6 +148,81 @@ const NearestBooksScreen = () => {
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
             />
+            {showFilter && (
+                <Animated.View
+                    entering={FadeIn.duration(300)}
+                    exiting={FadeOut.duration(250)}
+                    style={[styles.overlay]}
+                >
+                    <TouchableOpacity
+                        activeOpacity={1}
+                        style={StyleSheet.absoluteFill}
+                        onPress={() => setShowFilter(false)}
+                    />
+
+                    <Animated.View
+                        entering={FadeIn.duration(250).springify().withInitialValues({
+                            transform: [
+                                { translateX: (width * 0.75) / 2 },
+                                { translateY: -(height * 0.6) / 2 },
+                                { scale: 0.05 },
+                            ],
+                        })}
+                        exiting={FadeOut.duration(250).withInitialValues({
+                            transform: [
+                                { translateX: (width * 0.75) / 2 },
+                                { translateY: -(height * 0.6) / 2 },
+                                { scale: 0.05 },
+                            ],
+                        })}
+                        style={[
+                            styles.filterModal,
+                            {
+                                transformOrigin: 'top right' as any,
+                            }
+                        ]}
+                    >
+                        {/* Filter Content */}
+                        <View
+                            style={{
+                                padding: 20,
+                                minHeight: 200,
+                            }}>
+                            <View
+                                style={styles.filterHeader}>
+                                <Ionicons name="close-outline" size={28} color={COLORS.black} onPress={() => setShowFilter(false)} />
+                                <Text
+                                    style={styles.filterTitle}>
+                                    Filters
+                                </Text>
+                                <View />
+                            </View>
+                            <View style={styles.filterCategoriesContainer}>
+                                <Text style={styles.filterCategoriesText}>Categories</Text>
+                                <FlatList
+                                    data={MOCK_CATEGORIES}
+                                    keyExtractor={item => item.id}
+                                    numColumns={2}
+                                    contentContainerStyle={{
+                                        paddingVertical: SPACING.sm,
+                                    }}
+                                    renderItem={({ item }) => (
+                                        <TouchableOpacity
+                                            style={styles.filterCategoriesColumnWrapper}
+                                            onPress={() => setShowFilter(false)}
+                                            activeOpacity={0.8}
+                                        >
+                                            <Text style={styles.filterCategory}>
+                                                {item.name}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    )}
+                                />
+                            </View>
+                        </View>
+                    </Animated.View>
+                </Animated.View>
+            )}
         </View>
     );
 };
@@ -176,15 +264,15 @@ const styles = StyleSheet.create({
         color: COLORS.black,
     },
     filtersWrapper: {
-        marginBottom: SPACING.lg,
+        marginBottom: SPACING.md,
     },
     filtersContainer: {
         paddingHorizontal: SPACING.lg,
         gap: SPACING.sm,
     },
     filterChip: {
-        paddingVertical: 8,
-        paddingHorizontal: 20,
+        paddingVertical: SPACING.sm,
+        paddingHorizontal: SPACING.lg,
         borderRadius: 20,
         borderWidth: 1,
         borderColor: COLORS.grayHeavvy,
@@ -192,14 +280,58 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    overlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: '#00000069',
+        justifyContent: 'flex-start',
+        alignItems: 'flex-end',
+    },
     activeFilterChip: {
         backgroundColor: COLORS.primary,
         borderColor: COLORS.primary,
     },
     filterText: {
-        fontSize: rf(14),
-        fontFamily: FONTS.montserrat.semibold,
+        fontSize: rf(10),
+        fontFamily: FONTS.montserrat.medium,
         color: COLORS.textMuted,
+    },
+    filterHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: SPACING.lg + SPACING.md,
+    },
+    filterTitle: {
+        fontFamily: FONTS.manrope.bold,
+        fontSize: rf(18),
+        color: COLORS.black,
+        textAlign: 'center'
+    },
+    filterCategoriesText: {
+        fontFamily: FONTS.manrope.medium,
+        fontSize: rf(14),
+        color: COLORS.text,
+    },
+    filterCategoriesContainer: {
+        marginTop: SPACING.md,
+    },
+    filterCategoriesColumnWrapper: {
+        flex: 1,
+        margin: SPACING.xs,
+        paddingVertical: SPACING.sm,
+        paddingHorizontal: SPACING.sm,
+        backgroundColor: COLORS.grayLight,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    filterCategory: {
+        fontFamily: FONTS.montserrat.medium,
+        fontSize: rf(11),
+        color: COLORS.text,
+        textAlign: 'center',
     },
     activeFilterText: {
         color: COLORS.white,
@@ -286,5 +418,19 @@ const styles = StyleSheet.create({
         elevation: 6,
         borderWidth: 2,
         borderColor: COLORS.white,
+    },
+    filterModal: {
+        width: width * 0.80,
+        height: height * 0.8,
+        backgroundColor: COLORS.white,
+        borderRadius: 24,
+        borderTopRightRadius: 4, // Make it look like it's pointing to the icon
+        overflow: 'hidden',
+        position: 'absolute',
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.15,
+        shadowRadius: 20,
+        elevation: 10,
     },
 });

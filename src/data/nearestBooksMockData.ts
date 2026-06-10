@@ -7,10 +7,29 @@ export interface NearestBook {
     distance: string;
 }
 
+export interface Category {
+    id: string;
+    name: string;
+}
+
+export const MOCK_CATEGORIES: Category[] = [
+    { id: '1', name: 'Scince Finction' },
+    { id: '2', name: 'Romance' },
+    { id: '3', name: 'Self Help' },
+    { id: '4', name: 'Biography' },
+    { id: '5', name: 'Business' },
+    { id: '6', name: 'Engineering' },
+    { id: '7', name: 'Medical' },
+    { id: '8', name: 'Law' },
+    { id: '9', name: 'Competitive Exams' },
+    { id: '10', name: 'Biography' },
+];
+
 export const DISTANCE_FILTERS = [
     'Nearest To You',
     'Upto 20KM',
     'Upto 50KM',
+    'Upto 100KM',
 ];
 
 export const MOCK_NEAREST_BOOKS: NearestBook[] = [
