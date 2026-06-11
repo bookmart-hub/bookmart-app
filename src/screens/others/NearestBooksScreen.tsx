@@ -73,12 +73,6 @@ const NearestBooksScreen = () => {
 
             <TouchableOpacity
                 onPress={() => setShowFilter(true)}
-                hitSlop={{
-                    // top: 10,
-                    // bottom: 10,
-                    // left: 10,
-                    // right: 10
-                }}
             >
                 <Ionicons name="options-outline" size={28} color={COLORS.primary} />
             </TouchableOpacity>

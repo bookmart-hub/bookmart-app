@@ -5,6 +5,7 @@ import {
   View,
   ViewStyle,
   TextInputProps,
+  TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
@@ -14,15 +15,19 @@ import { rf } from '@/utils/responsive';
 
 interface SearchBarProps extends TextInputProps {
   containerStyle?: ViewStyle;
+  onPress?: () => void;
+  onClearPress?: () => void;
 }
 
 const SearchBar: React.FC<SearchBarProps> = memo(({
   containerStyle,
   placeholder = 'Search Books...',
+  onPress,
+  onClearPress,
   ...props
 }) => {
   return (
-    <View style={[styles.container, containerStyle]}>
+    <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[styles.container, containerStyle]}>
       <View style={styles.inputWrapper}>
         <Ionicons
           name="search-outline"
@@ -39,8 +44,16 @@ const SearchBar: React.FC<SearchBarProps> = memo(({
           returnKeyType="search"
           {...props}
         />
+        {props.value ? (
+          <TouchableOpacity
+            onPress={onClearPress}
+            style={styles.clearIconWrapper}
+          >
+            <Ionicons name="close-circle" size={20} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        ) : null}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 });
 
@@ -74,5 +87,9 @@ const styles = StyleSheet.create({
     fontSize: rf(15),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.text,
+  },
+  clearIconWrapper: {
+    marginLeft: SPACING.sm,
+    padding: SPACING.xs,
   },
 });
