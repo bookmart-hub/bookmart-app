@@ -13,6 +13,8 @@ import Animated, {
     FadeIn,
     FadeOut,
 } from 'react-native-reanimated';
+import Slider from '@react-native-community/slider';
+import { Button } from '@/components/ui/Button';
 
 const { width, height } = Dimensions.get('window');
 const COLUMN_GAP = SPACING.md;
@@ -26,6 +28,7 @@ const NearestBooksScreen = () => {
     const [activeFilter, setActiveFilter] = useState('Nearest To You');
     const [searchQuery, setSearchQuery] = useState('');
     const [showFilter, setShowFilter] = useState(false);
+    const [priceRange, setPriceRange] = useState<number>(0);
 
     const filteredBooks = useMemo(() => {
         let books = MOCK_NEAREST_BOOKS;
@@ -55,7 +58,7 @@ const NearestBooksScreen = () => {
     const renderHeader = () => (
         <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <Ionicons name="arrow-back" size={28} color={COLORS.primary} />
+                <Ionicons name="arrow-back" size={28} color={COLORS.black} />
             </TouchableOpacity>
 
             <View style={styles.searchContainer}>
@@ -219,6 +222,30 @@ const NearestBooksScreen = () => {
                                     )}
                                 />
                             </View>
+
+                            <Text style={[styles.filterCategoriesText, { fontSize: rf(12) }]}>Price Range</Text>
+                            <Slider
+                                style={{ width: 320, height: 40, alignSelf: 'center', }}
+                                minimumValue={0}
+                                maximumValue={1000}
+                                step={1}
+                                minimumTrackTintColor={COLORS.text}
+                                maximumTrackTintColor={COLORS.grayHeavvy}
+                                thumbTintColor={COLORS.primary}
+                                onValueChange={value => {
+                                    console.log('Slider value:', value);
+                                    setPriceRange(value);
+                                }}
+                            />
+                            <View style={styles.priceRangeContainer}>
+                                <Text style={styles.priceRangeText}>₹ 0</Text>
+                                <Text style={styles.priceRangeText}>₹ {priceRange}</Text>
+                            </View>
+
+                            <View style={styles.filterButtonContainer}>
+                                <Button title='Clear' variant='outline' onPress={() => setShowFilter(false)} style={{ width: '48%' }} textStyle={{ fontSize: rf(15) }} />
+                                <Button title='Apply' onPress={() => setShowFilter(false)} style={{ width: '48%' }} textStyle={{ fontSize: rf(15) }} />
+                            </View>
                         </View>
                     </Animated.View>
                 </Animated.View>
@@ -311,6 +338,7 @@ const styles = StyleSheet.create({
         fontFamily: FONTS.manrope.medium,
         fontSize: rf(14),
         color: COLORS.text,
+        marginTop: SPACING.md,
     },
     filterCategoriesContainer: {
         marginTop: SPACING.md,
@@ -322,10 +350,32 @@ const styles = StyleSheet.create({
         paddingHorizontal: SPACING.sm,
         backgroundColor: COLORS.grayLight,
         borderRadius: 16,
-        borderWidth: 1,
+        borderTopWidth: 1,
+        borderBottomWidth: 0,
+        borderLeftWidth: 1,
+        borderRightWidth: 1,
         borderColor: COLORS.grayHeavvy,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    priceRangeContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    priceRangeText: {
+        fontFamily: FONTS.manrope.medium,
+        fontSize: rf(12),
+        color: COLORS.text,
+        textAlign: 'center',
+        marginTop: -SPACING.md,
+    },
+    filterButtonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: SPACING.lg,
+        width: '100%',
+        alignSelf: 'center'
     },
     filterCategory: {
         fontFamily: FONTS.montserrat.medium,
@@ -421,7 +471,7 @@ const styles = StyleSheet.create({
     },
     filterModal: {
         width: width * 0.80,
-        height: height * 0.8,
+        height: height * 0.75,
         backgroundColor: COLORS.white,
         borderRadius: 24,
         borderTopRightRadius: 4, // Make it look like it's pointing to the icon
