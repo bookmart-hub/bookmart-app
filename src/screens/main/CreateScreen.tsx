@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, ToastAndroid } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, ToastAndroid, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
@@ -25,7 +26,26 @@ const CreateScreen = () => {
     const [condition, setCondition] = useState('good');
     const [notes, setNotes] = useState('');
     const [price, setPrice] = useState('');
-    const [image, setImage] = useState(null);
+    const [image, setImage] = useState<string | null>(null);
+
+    const handleCaptureImage = async () => {
+        const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+        if (permissionResult.granted === false) {
+            ToastAndroid.show("Camera permission is required to take photos.", ToastAndroid.SHORT);
+            return;
+        }
+
+        const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            setImage(result.assets[0].uri);
+        }
+    };
 
     const handleSubmit = () => {
         if (!title || !author || !price || !condition || !image) {
@@ -54,12 +74,25 @@ const CreateScreen = () => {
                         <Text style={styles.sectionTitle}>Book Photo</Text>
                     </View>
                     <View style={styles.photoContainer}>
-                        <TouchableOpacity style={styles.dashedBox} activeOpacity={0.8}>
-                            <View style={styles.cameraIconWrapper}>
-                                <MaterialCommunityIcons name="camera-plus" size={32} color={COLORS.white} />
+                        {image ? (
+                            <View style={[styles.dashedBox, styles.previewContainer]}>
+                                <Image source={{ uri: image }} style={styles.previewImage} resizeMode="contain" />
+                                <TouchableOpacity
+                                    style={styles.removeImageBtn}
+                                    onPress={() => setImage(null)}
+                                    activeOpacity={0.8}
+                                >
+                                    <MaterialCommunityIcons name="delete" size={20} color={COLORS.white} />
+                                </TouchableOpacity>
                             </View>
-                            <Text style={styles.captureText}>Capture Image</Text>
-                        </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity style={styles.dashedBox} activeOpacity={0.8} onPress={handleCaptureImage}>
+                                <View style={styles.cameraIconWrapper}>
+                                    <MaterialCommunityIcons name="camera-plus" size={32} color={COLORS.white} />
+                                </View>
+                                <Text style={styles.captureText}>Capture Image</Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
                 </View>
 
@@ -211,7 +244,6 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingHorizontal: SPACING.lg,
         paddingBottom: 120, // Space for bottom bar
-        paddingTop: SPACING.md,
     },
     pageTitleRow: {
         flexDirection: 'row',
@@ -253,6 +285,27 @@ const styles = StyleSheet.create({
         borderStyle: 'dashed',
         borderRadius: 14,
         paddingVertical: SPACING.xl,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    previewContainer: {
+        paddingVertical: 0,
+        borderWidth: 0,
+        overflow: 'hidden',
+    },
+    previewImage: {
+        width: '100%',
+        height: 180,
+        borderRadius: 14,
+    },
+    removeImageBtn: {
+        position: 'absolute',
+        top: SPACING.sm,
+        right: SPACING.sm,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        width: 32,
+        height: 32,
+        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
     },
