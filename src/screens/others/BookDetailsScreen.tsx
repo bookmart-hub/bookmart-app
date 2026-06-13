@@ -12,6 +12,7 @@ import Header from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import StarRating from 'react-native-star-rating-widget';
 import QuantitySelector from '@/components/ui/QuantitySelector';
+import { MOCK_CATEGORIES } from '@/data/nearestBooksMockData';
 
 const { width, height } = Dimensions.get('window');
 
@@ -42,6 +43,16 @@ const BookDetailsScreen = () => {
     const categoryTitle: string = route.params?.categoryTitle || '';
 
     const isAcademic = useMemo(() => isAcademicCategory(categoryTitle), [categoryTitle]);
+
+    const genreName = useMemo(() => {
+        if (book?.genre) return book.genre;
+        if (book?.categoryId) {
+            const cat = MOCK_CATEGORIES.find(c => c.id === book.categoryId);
+            if (cat) return cat.name;
+        }
+        if (categoryTitle) return categoryTitle;
+        return 'General';
+    }, [book?.genre, book?.categoryId, categoryTitle]);
 
     const [localReviews, setLocalReviews] = useState(book?.reviews || []);
     const [localRatings, setLocalRatings] = useState(book?.ratings);
@@ -202,6 +213,14 @@ const BookDetailsScreen = () => {
                             ))}
                         </View>
                     </View>
+
+                    {/* Genre Section */}
+                    <View style={styles.genreSection}>
+                        <Text style={styles.sectionTitle}>Genre</Text>
+                        <View style={styles.genreChip}>
+                            <Text style={styles.genreText}>{genreName}</Text>
+                        </View>
+                    </View>
                 </View>
                 <View style={styles.reviewSection}>
                     <Text style={styles.reviewHeaderTitle}>Ratings and reviews</Text>
@@ -216,7 +235,6 @@ const BookDetailsScreen = () => {
                                 maxStars={5}
                                 starSize={20}
                                 color={COLORS.yellow}
-                                // enableHalfStar={true}
                                 enableSwiping={false}
                                 animationConfig={{ scale: 1 }}
                             />
@@ -276,7 +294,6 @@ const BookDetailsScreen = () => {
                             maxStars={5}
                             starSize={28}
                             color={COLORS.yellow}
-                            enableHalfStar={true}
                             style={{ alignSelf: 'flex-start', marginBottom: SPACING.md }}
                         />
                         <TextInput
@@ -415,6 +432,29 @@ const styles = StyleSheet.create({
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted, // lighter gray matching the design's textMuted
         lineHeight: 22,
+    },
+    genreSection: {
+        marginBottom: SPACING.xl,
+    },
+    sectionTitle: {
+        fontSize: rf(18),
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.black,
+        marginBottom: SPACING.sm,
+    },
+    genreChip: {
+        alignSelf: 'flex-start',
+        backgroundColor: COLORS.grayLight,
+        paddingHorizontal: SPACING.md,
+        paddingVertical: 8,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy,
+    },
+    genreText: {
+        fontSize: rf(13),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.primary,
     },
     bookMetaCard: {
         backgroundColor: COLORS.white,

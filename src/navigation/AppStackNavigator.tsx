@@ -15,6 +15,7 @@ import CartScreen from '@/screens/others/CartScreen';
 import AuthorListScreen from '@/screens/others/AuthorListScreen';
 import AuthorDetailsScreen from '@/screens/others/AuthorDetailsScreen';
 import NearestBooksScreen from '@/screens/others/NearestBooksScreen';
+import NearestBooksMapScreen from '@/screens/others/NearestBooksMapScreen';
 import SearchScreen from '@/screens/others/SearchScreen';
 
 export type AppStackParamList = {
@@ -32,6 +33,7 @@ export type AppStackParamList = {
     AuthorList: undefined;
     AuthorDetails: undefined;
     NearestBooks: undefined;
+    NearestBooksMap: undefined;
     Search: undefined;
 };
 
@@ -57,6 +59,7 @@ export default function AppStackNavigator() {
             <Stack.Screen name="AuthorList" component={AuthorListScreen} />
             <Stack.Screen name="AuthorDetails" component={AuthorDetailsScreen} />
             <Stack.Screen name="NearestBooks" component={NearestBooksScreen} />
+            <Stack.Screen name="NearestBooksMap" component={NearestBooksMapScreen} />
             <Stack.Screen name="Search" component={SearchScreen} />
         </Stack.Navigator>
     );

@@ -9,7 +9,7 @@ import { FONTS } from '@/constants/fonts';
 
 const PADDING_HORIZONTAL = SPACING.lg;
 interface HeaderProps {
-    title: string;
+    title?: string;
     backButton?: boolean;
     onPress?: () => void;
 }

@@ -33,7 +33,7 @@ const HomeScreen = () => {
   }, [navigation]);
 
   const handleSeeAllPress = useCallback(() => {
-    navigation.navigate('AppStack', { screen: 'NearestBooks' });
+    navigation.navigate('AppStack', { screen: 'NearestBooksMap' });
   }, [navigation]);
 
   const handleInstituteBookPress = useCallback((book: InstituteBookItem) => {

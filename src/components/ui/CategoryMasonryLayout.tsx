@@ -22,6 +22,7 @@ export type BookItem = {
   discount?: string;
   stock?: string;
   empty?: boolean;
+  author?: string;
 };
 
 interface CategoryMasonryLayoutProps {
@@ -68,8 +69,8 @@ const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({
             {item.title}
           </Text>
 
-          <Text style={styles.author}>
-            Andy Weir
+          <Text style={styles.author} numberOfLines={1}>
+            {item.author || 'Unknown'}
           </Text>
 
           <View style={styles.priceRow}>

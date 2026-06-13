@@ -22,9 +22,11 @@ const PADDING_HORIZONTAL = SPACING.lg;
 // Adjusted for 2 columns with gaps
 const CARD_WIDTH = (width - PADDING_HORIZONTAL * 2 - COLUMN_GAP) / 2;
 
-const NearestBooksScreen = () => {
+const NearestBooksScreen = ({ route }: any) => {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
+    const initialCategoryId = route?.params?.categoryId || 'all';
+    const [activeCategoryId, setActiveCategoryId] = useState<string>(initialCategoryId);
     const [activeFilter, setActiveFilter] = useState('Nearest To You');
     const [searchQuery, setSearchQuery] = useState('');
     const [showFilter, setShowFilter] = useState(false);
@@ -32,16 +34,19 @@ const NearestBooksScreen = () => {
 
     const filteredBooks = useMemo(() => {
         let books = MOCK_NEAREST_BOOKS;
+        if (activeCategoryId !== 'all') {
+            books = books.filter(b => b.categoryId === activeCategoryId);
+        }
         if (activeFilter) {
             // For demo purposes, we will just filter strictly by the string.
             // In a real app, logic would handle distances properly.
-            books = MOCK_NEAREST_BOOKS.filter(book => book.distance === activeFilter);
+            books = books.filter(book => book.distance === activeFilter);
         }
         if (searchQuery) {
             books = books.filter(book => book.title.toLowerCase().includes(searchQuery.toLowerCase()));
         }
         return books;
-    }, [activeFilter, searchQuery]);
+    }, [activeFilter, searchQuery, activeCategoryId]);
 
     const handleBookPress = useCallback((book: NearestBook) => {
         // Map NearestBook to Book model expected by BookDetailsScreen
@@ -51,6 +56,8 @@ const NearestBooksScreen = () => {
             imageUri: book.imageUri,
             price: book.price,
             discount: book.discount,
+            categoryId: book.categoryId,
+            condition: book.condition,
         };
         navigation.navigate('AppStack', { screen: 'BookDetails', params: { book: mappedBook, categoryTitle: 'Nearest' } });
     }, [navigation]);
@@ -81,6 +88,9 @@ const NearestBooksScreen = () => {
 
     const renderFilters = () => (
         <View style={styles.filtersWrapper}>
+            <TouchableOpacity style={styles.inlineMapButton} onPress={() => navigation.navigate('NearestBooksMap', { categoryId: activeCategoryId })}>
+                <Ionicons name="map" size={20} color={COLORS.primary} />
+            </TouchableOpacity>
             <FlatList
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -144,6 +154,7 @@ const NearestBooksScreen = () => {
                 columnWrapperStyle={styles.columnWrapper}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
             />
             {showFilter && (
                 <Animated.View
@@ -285,11 +296,25 @@ const styles = StyleSheet.create({
         color: COLORS.black,
     },
     filtersWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
         marginBottom: SPACING.md,
+        paddingHorizontal: SPACING.lg,
+    },
+    inlineMapButton: {
+        paddingVertical: SPACING.sm,
+        paddingHorizontal: SPACING.lg,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy,
+        backgroundColor: COLORS.white,
+        marginRight: SPACING.sm,
     },
     filtersContainer: {
-        paddingHorizontal: SPACING.lg,
         gap: SPACING.sm,
+        paddingRight: SPACING.lg,
     },
     filterChip: {
         paddingVertical: SPACING.sm,
@@ -476,5 +501,31 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.15,
         shadowRadius: 20,
         elevation: 10,
+    },
+    mapToggleButton: {
+        position: 'absolute',
+        bottom: 30,
+        alignSelf: 'center',
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: COLORS.white,
+        paddingHorizontal: SPACING.md,
+        paddingVertical: SPACING.sm,
+        borderRadius: 30,
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy,
+        zIndex: 1,
+    },
+    mapToggleText: {
+        fontFamily: FONTS.manrope.bold,
+        fontSize: rf(14),
+        color: COLORS.white,
+    },
+    listContainer: {
+        flexDirection: 'row',
     },
 });

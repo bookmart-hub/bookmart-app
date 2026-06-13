@@ -24,10 +24,12 @@ export interface Book {
   discount?: string;
   stock?: string;
   author?: string;
+  genre?: string;
   condition?: string;
   ratings?: Ratings;
   reviews?: Review[];
   empty?: boolean;
+  categoryId?: string;
 }
 
 export interface Category {
