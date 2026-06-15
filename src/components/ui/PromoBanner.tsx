@@ -13,6 +13,12 @@ import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  cancelAnimation,
+} from 'react-native-reanimated';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_HORIZONTAL_PADDING = SPACING.lg;
@@ -249,19 +255,45 @@ const PromoBanner: React.FC<PromoBannerProps> = memo(({
     </View>
   );
 });
-const PaginationDots = memo(
-  ({ count, activeIndex }: { count: number, activeIndex: number }) => {
+const ProgressIndicator = memo(
+  ({ active }: { active: boolean }) => {
+    const progress = useSharedValue(active ? 0 : 1);
+
+    useEffect(() => {
+      cancelAnimation(progress);
+
+      if (active) {
+        progress.value = 0;
+        progress.value = withTiming(1, {
+          duration: 4000,
+        });
+      } else {
+        progress.value = 0;
+      }
+    }, [active]);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+      width: `${progress.value * 100}%`,
+    }));
+
     return (
-      <View style={styles.dotsContainer}>
+      <View style={styles.indicatorTrack}>
+        <Animated.View
+          style={[styles.indicatorFill, animatedStyle]}
+        />
+      </View>
+    );
+  }
+);
+
+const PaginationDots = memo(
+  ({ count, activeIndex }: { count: number; activeIndex: number }) => {
+    return (
+      <View style={styles.indicatorContainer}>
         {Array.from({ length: count }).map((_, index) => (
-          <View
+          <ProgressIndicator
             key={index}
-            style={[
-              styles.dot,
-              index === activeIndex
-                ? styles.dotActive
-                : styles.dotInactive,
-            ]}
+            active={index === activeIndex}
           />
         ))}
       </View>
@@ -366,5 +398,24 @@ const styles = StyleSheet.create({
   },
   dotInactive: {
     backgroundColor: COLORS.grayHeavvy,
+  },
+  indicatorContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: SPACING.md,
+  },
+  indicatorTrack: {
+    width: 34,
+    height: 2,
+    borderRadius: 2,
+    overflow: 'hidden',
+    backgroundColor: COLORS.grayHeavvy,
+  },
+  indicatorFill: {
+    height: '100%',
+    borderRadius: 2,
+    backgroundColor: COLORS.primary,
   },
 });
