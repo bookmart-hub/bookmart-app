@@ -52,6 +52,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     headerRight: {
-        width: 24,
+        // width: 24,
     },
 })

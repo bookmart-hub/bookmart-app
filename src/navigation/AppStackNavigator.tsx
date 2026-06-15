@@ -41,10 +41,13 @@ const Stack = createNativeStackNavigator<AppStackParamList>();
 
 export default function AppStackNavigator() {
     return (
-        <Stack.Navigator screenOptions={{
-            headerShown: false,
-            animation: 'default'
-        }}>
+        <Stack.Navigator
+            id="AppStack"
+            screenOptions={{
+                headerShown: false,
+                animation: 'default'
+            }}
+        >
             <Stack.Screen name="Business" component={BusinessScreen} />
             <Stack.Screen name="Biography" component={BiographyScreen} />
             <Stack.Screen name="ScinceFinction" component={ScinceFinctionScreen} />

@@ -26,6 +26,7 @@ export interface Book {
   author?: string;
   genre?: string;
   condition?: string;
+  conditionNote?: string;
   ratings?: Ratings;
   reviews?: Review[];
   empty?: boolean;

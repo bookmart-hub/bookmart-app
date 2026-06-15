@@ -9,6 +9,7 @@ import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import Header from '@/components/ui/Header';
+import { Button } from '@/components/ui/Button';
 
 const CONDITIONS = [
     { id: 'like_new', label: 'Like New', icon: 'decagram-outline' as any },
@@ -38,7 +39,7 @@ const CreateScreen = () => {
 
         const result = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
-            aspect: [1, 1],
+            aspect: [16, 9],
             quality: 1,
         });
 
@@ -76,7 +77,7 @@ const CreateScreen = () => {
                     <View style={styles.photoContainer}>
                         {image ? (
                             <View style={[styles.dashedBox, styles.previewContainer]}>
-                                <Image source={{ uri: image }} style={styles.previewImage} resizeMode="contain" />
+                                <Image source={{ uri: image }} style={styles.previewImage} resizeMode="stretch" />
                                 <TouchableOpacity
                                     style={styles.removeImageBtn}
                                     onPress={() => setImage(null)}
@@ -202,15 +203,12 @@ const CreateScreen = () => {
                         </View>
                     </View>
                 </View>
-                <TouchableOpacity
-                    style={styles.submitBtn}
-                    activeOpacity={0.8}
+                <Button
+                    title="Go to Next Step"
                     onPress={handleSubmit}
-                >
-                    <Text style={styles.submitBtnText}>
-                        Go to Next Step
-                    </Text>
-                </TouchableOpacity>
+                    variant="primary"
+                    style={{ borderRadius: 12 }}
+                />
             </ScrollView>
 
         </View>
@@ -222,7 +220,7 @@ export default CreateScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.white, // Match screenshot background
+        backgroundColor: COLORS.background,
     },
     headerRow: {
         flexDirection: 'row',
@@ -248,7 +246,7 @@ const styles = StyleSheet.create({
     pageTitleRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: SPACING.lg,
+        marginBottom: SPACING.sm,
     },
     pageTitleText: {
         fontSize: rf(18),
@@ -257,7 +255,7 @@ const styles = StyleSheet.create({
         marginLeft: SPACING.sm,
     },
     photoSectionWrapper: {
-        backgroundColor: 'rgba(0, 150, 136, 0.08)', // Light teal background
+        backgroundColor: COLORS.secondary,
         borderRadius: 20,
         padding: SPACING.md,
         marginBottom: SPACING.xl,
@@ -302,7 +300,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: SPACING.sm,
         right: SPACING.sm,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: COLORS.completeTransparency,
         width: 32,
         height: 32,
         borderRadius: 16,
@@ -396,15 +394,15 @@ const styles = StyleSheet.create({
         width: '48%',
         backgroundColor: COLORS.grayLight,
         borderWidth: 1,
-        borderColor: '#E8E8E8',
+        borderColor: COLORS.grayHeavvy,
         borderRadius: 8,
         paddingVertical: SPACING.md,
         alignItems: 'center',
         justifyContent: 'center',
     },
     conditionBoxActive: {
-        backgroundColor: '#F0F5FF',
-        borderColor: '#3B82F6', // Blue border
+        backgroundColor: COLORS.grayLight,
+        borderColor: COLORS.blue, // Blue border
     },
     conditionIconWrapper: {
         width: 36,
@@ -416,7 +414,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     conditionIconWrapperActive: {
-        backgroundColor: '#3B82F6', // Blue background for active icon wrapper
+        backgroundColor: COLORS.blue, // Blue background for active icon wrapper
     },
     conditionText: {
         fontSize: rf(12),
@@ -481,13 +479,6 @@ const styles = StyleSheet.create({
         paddingTop: SPACING.md,
         borderTopWidth: 1,
         borderTopColor: COLORS.grayLight,
-    },
-    submitBtn: {
-        backgroundColor: COLORS.primary,
-        height: 54,
-        borderRadius: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     submitBtnText: {
         color: COLORS.white,

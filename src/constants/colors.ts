@@ -1,6 +1,6 @@
 export const COLORS = {
   primary: '#008080',
-  secondary: '#DBEDED',
+  secondary: '#00968814',
 
   background: '#F7F9F6',
 
@@ -30,4 +30,6 @@ export const COLORS = {
 
   red: '#EF4545',
   redLight: '#FDE8E8',
+
+  completeTransparency: '#00000080'
 };
