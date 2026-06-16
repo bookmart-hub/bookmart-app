@@ -10,6 +10,7 @@ import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import Header from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 
 const CONDITIONS = [
     { id: 'like_new', label: 'Like New', icon: 'decagram-outline' as any },
@@ -109,22 +110,20 @@ const CreateScreen = () => {
                     <View style={styles.cardContainer}>
                         <View style={styles.inputGroup}>
                             <Text style={styles.inputLabel}>Book Title <Text style={styles.asterisk}>*</Text></Text>
-                            <TextInput
-                                style={styles.inputField}
-                                placeholder="Introduction to Algorithm"
-                                placeholderTextColor={COLORS.textMuted}
+                            <Input
+                                placeholder="Book Title"
                                 value={title}
                                 onChangeText={setTitle}
+                                autoCapitalize="words"
                             />
                         </View>
                         <View style={styles.inputGroup}>
                             <Text style={styles.inputLabel}>Author<Text style={styles.asterisk}>*</Text></Text>
-                            <TextInput
-                                style={styles.inputField}
-                                placeholder="Thomas H. Corman"
-                                placeholderTextColor={COLORS.textMuted}
+                            <Input
+                                placeholder="Author"
                                 value={author}
                                 onChangeText={setAuthor}
+                                autoCapitalize="words"
                             />
                         </View>
                     </View>
@@ -176,30 +175,35 @@ const CreateScreen = () => {
                                     <Text style={styles.addBtnText}>Add</Text>
                                 </TouchableOpacity>
                             </View>
-                            <TextInput
+                            {/* <TextInput
                                 style={styles.inputField}
                                 placeholder="e.g minor Highlights on page no. 45 and 67"
                                 placeholderTextColor={COLORS.textMuted}
                                 value={notes}
                                 onChangeText={setNotes}
+                            /> */}
+                            <Input
+                                placeholder="Condition Notes (Optional)"
+                                value={notes}
+                                onChangeText={setNotes}
+                                autoCapitalize="words"
                             />
                         </View>
 
                         <View style={styles.inputGroup}>
                             <Text style={styles.inputLabel}>Price <Text style={styles.asterisk}>*</Text></Text>
-                            <View style={styles.priceInputWrapper}>
-                                <View style={styles.rupeeIconWrapper}>
-                                    <Text style={styles.rupeeText}>₹</Text>
-                                </View>
-                                <TextInput
-                                    style={styles.priceInputField}
-                                    placeholder="Enter Your Price"
-                                    placeholderTextColor={COLORS.textMuted}
-                                    keyboardType="numeric"
-                                    value={price}
-                                    onChangeText={setPrice}
-                                />
-                            </View>
+                            <Input
+                                placeholder="Enter Your Price"
+                                value={price}
+                                onChangeText={setPrice}
+                                keyboardType="numeric"
+                                containerStyle={{ marginVertical: 0 }}
+                                prefix={
+                                    <View style={[styles.rupeeIconWrapper, { marginRight: 8 }]}>
+                                        <Text style={styles.rupeeText}>₹</Text>
+                                    </View>
+                                }
+                            />
                         </View>
                     </View>
                 </View>

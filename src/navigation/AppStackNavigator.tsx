@@ -17,6 +17,7 @@ import AuthorDetailsScreen from '@/screens/others/AuthorDetailsScreen';
 import NearestBooksScreen from '@/screens/others/NearestBooksScreen';
 import NearestBooksMapScreen from '@/screens/others/NearestBooksMapScreen';
 import SearchScreen from '@/screens/others/SearchScreen';
+import RequestPostScreen from '@/screens/others/RequestPostScreen';
 
 export type AppStackParamList = {
     Business: undefined;
@@ -35,6 +36,7 @@ export type AppStackParamList = {
     NearestBooks: undefined;
     NearestBooksMap: undefined;
     Search: undefined;
+    RequestPost: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -64,6 +66,7 @@ export default function AppStackNavigator() {
             <Stack.Screen name="NearestBooks" component={NearestBooksScreen} />
             <Stack.Screen name="NearestBooksMap" component={NearestBooksMapScreen} />
             <Stack.Screen name="Search" component={SearchScreen} />
+            <Stack.Screen name="RequestPost" component={RequestPostScreen} />
         </Stack.Navigator>
     );
 }

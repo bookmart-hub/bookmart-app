@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
@@ -19,6 +20,13 @@ const QUICK_ACTIONS = [
 
 const ProfileScreen = () => {
     const insets = useSafeAreaInsets();
+    const navigation = useNavigation<any>();
+
+    const handleQuickAction = (id: string) => {
+        if (id === 'requests') {
+            navigation.navigate('AppStack', { screen: 'RequestPost' });
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -87,7 +95,12 @@ const ProfileScreen = () => {
                     <Text style={styles.sectionTitle}>Quick Actions</Text>
                     <View style={styles.quickActionsGrid}>
                         {QUICK_ACTIONS.map((action) => (
-                            <TouchableOpacity key={action.id} style={styles.quickActionCard} activeOpacity={0.8}>
+                            <TouchableOpacity 
+                                key={action.id} 
+                                style={styles.quickActionCard} 
+                                activeOpacity={0.8}
+                                onPress={() => handleQuickAction(action.id)}
+                            >
                                 <View style={[styles.actionIconWrapper, { backgroundColor: action.bg }]}>
                                     <Ionicons name={action.icon as any} size={24} color={action.color} />
                                 </View>
