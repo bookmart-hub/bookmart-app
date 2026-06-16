@@ -27,6 +27,12 @@ const AnalyticsScreen = () => {
         return MOCK_ANALYTICS_DATA[selectedMetric][selectedTimeframe];
     }, [selectedMetric, selectedTimeframe]);
 
+    const maxValue = Math.max(...chartData.map(item => item.value));
+    const data = chartData.map(item => ({
+        ...item,
+        showStrip: item.value === maxValue,
+    }));
+
     const handleBookPress = (book: TopBook) => {
         navigation.navigate('AppStack', {
             screen: 'BookDetails',
@@ -53,7 +59,7 @@ const AnalyticsScreen = () => {
     const metricSubtitleMap = {
         views: 'Views',
         clicks: 'Clicks',
-        waContacts: 'WA Contacts'
+        waContacts: 'Contacts'
     };
 
     const getSummaryCardStyle = (metric: MetricType) => {
@@ -63,6 +69,9 @@ const AnalyticsScreen = () => {
             isActive ? styles.summaryCardActive : styles.summaryCardInactive
         ];
     };
+
+    const chartWidth = width - SPACING.lg * 2;
+    const chartHeight = rf(120);
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -150,26 +159,40 @@ const AnalyticsScreen = () => {
 
                     <View style={styles.chartContainer}>
                         <LineChart
-                            data={chartData}
-                            width={width - SPACING.lg * 2 - 20}
-                            height={180}
+                            data={data}
+                            width={chartWidth}
+                            height={chartHeight}
+                            showVerticalLines
+                            verticalLinesColor={COLORS.grayHeavvy}
+                            verticalLinesStrokeDashArray={[4, 4]}
+                            stripColor={COLORS.grayHeavvy}
+                            stripWidth={1}
+                            stripHeight={180}
+                            stripStrokeDashArray={[4, 4]}
                             curved
                             color={COLORS.primary}
                             thickness={3}
-                            startFillColor="rgba(0, 150, 136, 0.3)"
-                            endFillColor="rgba(0, 150, 136, 0.0)"
-                            startOpacity={1}
-                            endOpacity={0.2}
-                            initialSpacing={10}
+                            startFillColor={COLORS.secondary}
+                            endFillColor={COLORS.secondary}
+                            startOpacity={0.4}
+                            endOpacity={0}
                             noOfSections={4}
                             maxValue={Math.max(...chartData.map(d => d.value)) * 1.2}
                             yAxisColor="transparent"
                             xAxisColor="transparent"
                             yAxisTextStyle={styles.axisText}
                             xAxisLabelTextStyle={styles.axisText}
+                            areaChart
                             hideRules
                             hideDataPoints
                             isAnimated
+                            spacing={
+                                selectedTimeframe === 'daily'
+                                    ? 50
+                                    : selectedTimeframe === 'weekly'
+                                        ? 43
+                                        : 85
+                            }
                         />
                     </View>
 
@@ -392,7 +415,7 @@ const styles = StyleSheet.create({
     },
     chartContainer: {
         alignItems: 'center',
-        marginLeft: -10, // adjust gifted chart padding
+        marginLeft: -5,
     },
     axisText: {
         color: COLORS.textMuted,
