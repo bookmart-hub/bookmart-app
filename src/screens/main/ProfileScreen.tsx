@@ -41,7 +41,10 @@ const ProfileScreen = () => {
                         <TouchableOpacity style={styles.iconCircle}>
                             <Ionicons name="share-social-outline" size={20} color={COLORS.white} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.iconCircle}>
+                        <TouchableOpacity 
+                            style={styles.iconCircle}
+                            onPress={() => navigation.navigate('AppStack', { screen: 'EditProfile' })}
+                        >
                             <Feather name="edit-2" size={18} color={COLORS.white} />
                         </TouchableOpacity>
                     </View>

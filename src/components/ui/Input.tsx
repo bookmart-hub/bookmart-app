@@ -59,6 +59,7 @@ export const Input: React.FC<InputProps> = ({
       <View
         style={[
           styles.inputContainer,
+          multiline && { height: undefined, minHeight: 100, paddingVertical: 12, alignItems: 'flex-start' },
           isFocused && styles.focusedInput,
           !!error && styles.errorInput,
         ]}
@@ -127,6 +128,7 @@ const styles = StyleSheet.create({
     color: COLORS.black,
     fontSize: rf(16),
     fontFamily: FONTS.manrope.medium,
+    textAlignVertical: 'top',
   },
   iconContainer: {
     padding: SPACING.xs,
