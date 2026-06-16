@@ -368,7 +368,6 @@ const styles = StyleSheet.create({
         fontSize: rf(13),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.textMuted,
-        marginBottom: SPACING.sm,
     },
     asterisk: {
         color: COLORS.textMuted,
@@ -451,9 +450,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 4,
     },
     rupeeIconWrapper: {
-        backgroundColor: '#10B981', // Green color from screenshot
-        width: 40,
-        height: 40,
+        backgroundColor: COLORS.green, // Green color from screenshot
+        width: 50,
+        height: 35,
         borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
