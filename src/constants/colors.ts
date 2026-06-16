@@ -15,13 +15,13 @@ export const COLORS = {
   grayHeavvy: '#CECECE',
 
   green: '#10B981',
-  greenlight: '#E2F6F0',
+  greenlight: '#10b9811a',
 
   yellow: '#F5C518',
-  yellowlight: '#FEF3C7',
+  yellowlight: '#f59e0b1a',
 
   blue: '#1877F2',
-  blueLight: '#DBDBFF',
+  blueLight: '#001aff23',
 
   pink: '#D52DC2',
   pinklight: '#FCE7F3',
@@ -30,7 +30,7 @@ export const COLORS = {
   purplelight: '#F4EAFE',
 
   red: '#EF4545',
-  redLight: '#FDE8E8',
+  redLight: '#ef44441a',
 
   completeTransparency: '#00000080'
 };

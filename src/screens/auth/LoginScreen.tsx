@@ -237,7 +237,7 @@ export default LoginScreen;
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: COLORS.white,
+        backgroundColor: COLORS.background,
     },
     keyboardView: {
         flex: 1,
