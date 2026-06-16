@@ -29,6 +29,8 @@ const CreateScreen = () => {
     const [notes, setNotes] = useState('');
     const [price, setPrice] = useState('');
     const [image, setImage] = useState<string | null>(null);
+    const [description, setDescription] = useState('');
+    const [currentStep, setCurrentStep] = useState(1);
 
     const handleCaptureImage = async () => {
         const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
@@ -49,12 +51,26 @@ const CreateScreen = () => {
         }
     };
 
-    const handleSubmit = () => {
+    const handleNextStep = () => {
         if (!title || !author || !price || !condition || !image) {
             ToastAndroid.show("Please fill all the required fields", ToastAndroid.SHORT);
         } else {
-            ToastAndroid.show("Book listed successfully", ToastAndroid.SHORT);
+            setCurrentStep(2);
         }
+    };
+
+    const handleFinalSubmit = () => {
+        ToastAndroid.show("Book listed successfully", ToastAndroid.SHORT);
+        // Reset state for future usage
+        setTitle('');
+        setAuthor('');
+        setCondition('good');
+        setNotes('');
+        setPrice('');
+        setImage(null);
+        setDescription('');
+        setCurrentStep(1);
+        navigation.navigate('Home' as never);
     };
 
     return (
@@ -63,156 +79,200 @@ const CreateScreen = () => {
             <Header title="Listing" />
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                {/* List Your Book Header */}
-                <View style={styles.pageTitleRow}>
-                    <Ionicons name="book-outline" size={26} color={COLORS.primary} />
-                    <Text style={styles.pageTitleText}>List Your Book</Text>
-                </View>
+                {currentStep === 1 ? (
+                    <>
+                        {/* List Your Book Header */}
+                        <View style={styles.pageTitleRow}>
+                            <Ionicons name="book-outline" size={26} color={COLORS.primary} />
+                            <Text style={styles.pageTitleText}>List Your Book</Text>
+                        </View>
 
-                {/* Book Photo Section */}
-                <View style={styles.photoSectionWrapper}>
-                    <View style={styles.sectionHeaderRow}>
-                        <Ionicons name="camera-outline" size={20} color={COLORS.primary} />
-                        <Text style={styles.sectionTitle}>Book Photo</Text>
-                    </View>
-                    <View style={styles.photoContainer}>
-                        {image ? (
-                            <View style={[styles.dashedBox, styles.previewContainer]}>
-                                <Image source={{ uri: image }} style={styles.previewImage} resizeMode="stretch" />
-                                <TouchableOpacity
-                                    style={styles.removeImageBtn}
-                                    onPress={() => setImage(null)}
-                                    activeOpacity={0.8}
-                                >
-                                    <MaterialCommunityIcons name="delete" size={20} color={COLORS.white} />
-                                </TouchableOpacity>
+                        {/* Book Photo Section */}
+                        <View style={styles.photoSectionWrapper}>
+                            <View style={styles.sectionHeaderRow}>
+                                <Ionicons name="camera-outline" size={20} color={COLORS.primary} />
+                                <Text style={styles.sectionTitle}>Book Photo</Text>
                             </View>
-                        ) : (
-                            <TouchableOpacity style={styles.dashedBox} activeOpacity={0.8} onPress={handleCaptureImage}>
-                                <View style={styles.cameraIconWrapper}>
-                                    <MaterialCommunityIcons name="camera-plus" size={32} color={COLORS.white} />
-                                </View>
-                                <Text style={styles.captureText}>Capture Image</Text>
-                            </TouchableOpacity>
-                        )}
-                    </View>
-                </View>
-
-                {/* Basic Info Section */}
-                <View style={styles.sectionWrapper}>
-                    <View style={styles.sectionHeaderRowWithNumber}>
-                        <View style={styles.numberCircle}>
-                            <Text style={styles.numberText}>1</Text>
-                        </View>
-                        <Text style={styles.sectionTitleBlack}>Basic Info</Text>
-                    </View>
-
-                    <View style={styles.cardContainer}>
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>Book Title <Text style={styles.asterisk}>*</Text></Text>
-                            <Input
-                                placeholder="Book Title"
-                                value={title}
-                                onChangeText={setTitle}
-                                autoCapitalize="words"
-                            />
-                        </View>
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>Author<Text style={styles.asterisk}>*</Text></Text>
-                            <Input
-                                placeholder="Author"
-                                value={author}
-                                onChangeText={setAuthor}
-                                autoCapitalize="words"
-                            />
-                        </View>
-                    </View>
-                </View>
-
-                {/* Condition & Price Section */}
-                <View style={styles.sectionWrapper}>
-                    <View style={styles.sectionHeaderRowWithNumber}>
-                        <View style={styles.numberCircle}>
-                            <Text style={styles.numberText}>2</Text>
-                        </View>
-                        <Text style={styles.sectionTitleBlack}>Condition & Price</Text>
-                    </View>
-
-                    <View style={styles.cardContainer}>
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>Condition <Text style={styles.asterisk}>*</Text></Text>
-                            <View style={styles.conditionGrid}>
-                                {CONDITIONS.map((item) => {
-                                    const isActive = condition === item.id;
-                                    return (
+                            <View style={styles.photoContainer}>
+                                {image ? (
+                                    <View style={[styles.dashedBox, styles.previewContainer]}>
+                                        <Image source={{ uri: image }} style={styles.previewImage} resizeMode="stretch" />
                                         <TouchableOpacity
-                                            key={item.id}
-                                            style={[styles.conditionBox, isActive && styles.conditionBoxActive]}
-                                            onPress={() => setCondition(item.id)}
+                                            style={styles.removeImageBtn}
+                                            onPress={() => setImage(null)}
                                             activeOpacity={0.8}
                                         >
-                                            <View style={[styles.conditionIconWrapper, isActive && styles.conditionIconWrapperActive]}>
-                                                <MaterialCommunityIcons
-                                                    name={item.icon}
-                                                    size={24}
-                                                    color={isActive ? COLORS.white : COLORS.textMuted}
-                                                />
-                                            </View>
-                                            <Text style={[styles.conditionText, isActive && styles.conditionTextActive]}>
-                                                {item.label}
-                                            </Text>
+                                            <MaterialCommunityIcons name="delete" size={20} color={COLORS.white} />
                                         </TouchableOpacity>
-                                    );
-                                })}
-                            </View>
-                        </View>
-
-                        <View style={styles.inputGroup}>
-                            <View style={styles.notesLabelRow}>
-                                <Text style={styles.inputLabel}>Condition Notes (Optional)</Text>
-                                <TouchableOpacity style={styles.addBtn}>
-                                    <Ionicons name="add" size={16} color={COLORS.primary} />
-                                    <Text style={styles.addBtnText}>Add</Text>
-                                </TouchableOpacity>
-                            </View>
-                            {/* <TextInput
-                                style={styles.inputField}
-                                placeholder="e.g minor Highlights on page no. 45 and 67"
-                                placeholderTextColor={COLORS.textMuted}
-                                value={notes}
-                                onChangeText={setNotes}
-                            /> */}
-                            <Input
-                                placeholder="Condition Notes (Optional)"
-                                value={notes}
-                                onChangeText={setNotes}
-                                autoCapitalize="words"
-                            />
-                        </View>
-
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>Price <Text style={styles.asterisk}>*</Text></Text>
-                            <Input
-                                placeholder="Enter Your Price"
-                                value={price}
-                                onChangeText={setPrice}
-                                keyboardType="numeric"
-                                containerStyle={{ marginVertical: 0 }}
-                                prefix={
-                                    <View style={[styles.rupeeIconWrapper, { marginRight: 8 }]}>
-                                        <Text style={styles.rupeeText}>₹</Text>
                                     </View>
-                                }
+                                ) : (
+                                    <TouchableOpacity style={styles.dashedBox} activeOpacity={0.8} onPress={handleCaptureImage}>
+                                        <View style={styles.cameraIconWrapper}>
+                                            <MaterialCommunityIcons name="camera-plus" size={32} color={COLORS.white} />
+                                        </View>
+                                        <Text style={styles.captureText}>Capture Image</Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        </View>
+
+                        {/* Basic Info Section */}
+                        <View style={styles.sectionWrapper}>
+                            <View style={styles.sectionHeaderRowWithNumber}>
+                                <View style={styles.numberCircle}>
+                                    <Text style={styles.numberText}>1</Text>
+                                </View>
+                                <Text style={styles.sectionTitleBlack}>Basic Info</Text>
+                            </View>
+
+                            <View style={styles.cardContainer}>
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.inputLabel}>Book Title <Text style={styles.asterisk}>*</Text></Text>
+                                    <Input
+                                        placeholder="Book Title"
+                                        value={title}
+                                        onChangeText={setTitle}
+                                        autoCapitalize="words"
+                                    />
+                                </View>
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.inputLabel}>Author<Text style={styles.asterisk}>*</Text></Text>
+                                    <Input
+                                        placeholder="Author"
+                                        value={author}
+                                        onChangeText={setAuthor}
+                                        autoCapitalize="words"
+                                    />
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* Condition & Price Section */}
+                        <View style={styles.sectionWrapper}>
+                            <View style={styles.sectionHeaderRowWithNumber}>
+                                <View style={styles.numberCircle}>
+                                    <Text style={styles.numberText}>2</Text>
+                                </View>
+                                <Text style={styles.sectionTitleBlack}>Condition & Price</Text>
+                            </View>
+
+                            <View style={styles.cardContainer}>
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.inputLabel}>Condition <Text style={styles.asterisk}>*</Text></Text>
+                                    <View style={styles.conditionGrid}>
+                                        {CONDITIONS.map((item) => {
+                                            const isActive = condition === item.id;
+                                            return (
+                                                <TouchableOpacity
+                                                    key={item.id}
+                                                    style={[styles.conditionBox, isActive && styles.conditionBoxActive]}
+                                                    onPress={() => setCondition(item.id)}
+                                                    activeOpacity={0.8}
+                                                >
+                                                    <View style={[styles.conditionIconWrapper, isActive && styles.conditionIconWrapperActive]}>
+                                                        <MaterialCommunityIcons
+                                                            name={item.icon}
+                                                            size={24}
+                                                            color={isActive ? COLORS.white : COLORS.textMuted}
+                                                        />
+                                                    </View>
+                                                    <Text style={[styles.conditionText, isActive && styles.conditionTextActive]}>
+                                                        {item.label}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            );
+                                        })}
+                                    </View>
+                                </View>
+
+                                <View style={styles.inputGroup}>
+                                    <View style={styles.notesLabelRow}>
+                                        <Text style={styles.inputLabel}>Condition Notes (Optional)</Text>
+                                        <TouchableOpacity style={styles.addBtn}>
+                                            <Ionicons name="add" size={16} color={COLORS.primary} />
+                                            <Text style={styles.addBtnText}>Add</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                    <Input
+                                        placeholder="Condition Notes (Optional)"
+                                        value={notes}
+                                        onChangeText={setNotes}
+                                        autoCapitalize="words"
+                                    />
+                                </View>
+
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.inputLabel}>Price <Text style={styles.asterisk}>*</Text></Text>
+                                    <Input
+                                        placeholder="Enter Your Price"
+                                        value={price}
+                                        onChangeText={setPrice}
+                                        keyboardType="numeric"
+                                        containerStyle={{ marginVertical: 0 }}
+                                        prefix={
+                                            <View style={[styles.rupeeIconWrapper, { marginRight: 8 }]}>
+                                                <Text style={styles.rupeeText}>₹</Text>
+                                            </View>
+                                        }
+                                    />
+                                </View>
+                            </View>
+                        </View>
+                        <Button
+                            title="Go to Next Step"
+                            onPress={handleNextStep}
+                            variant="primary"
+                            style={{ borderRadius: 12 }}
+                        />
+                    </>
+                ) : (
+                    <>
+                        {/* Step 3 Section */}
+                        <View style={styles.sectionWrapper}>
+                            <View style={styles.sectionHeaderRowWithNumber}>
+                                <View style={styles.numberCircle}>
+                                    <Text style={styles.numberText}>3</Text>
+                                </View>
+                                <Text style={styles.sectionTitleBlack}>Description & Note</Text>
+                            </View>
+
+                            <View style={styles.cardContainer}>
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.inputLabel}>Description <Text style={styles.asterisk}>*</Text></Text>
+                                    <Input
+                                        placeholder="Enter a detailed description about the book..."
+                                        value={description}
+                                        onChangeText={setDescription}
+                                        multiline
+                                        numberOfLines={6}
+                                        containerStyle={{ marginVertical: 0, marginTop: SPACING.sm }}
+                                    />
+                                </View>
+                            </View>
+                        </View>
+
+                        <View style={styles.actionButtonsRow}>
+                            <Button
+                                title="Skip"
+                                onPress={handleFinalSubmit}
+                                variant="outline"
+                                style={styles.skipBtn}
+                            />
+                            <Button
+                                title="Submit"
+                                onPress={() => {
+                                    if (!description.trim()) {
+                                        ToastAndroid.show("Description is required", ToastAndroid.SHORT);
+                                        return;
+                                    }
+                                    handleFinalSubmit();
+                                }}
+                                variant="primary"
+                                style={styles.submitBtnContainer}
                             />
                         </View>
-                    </View>
-                </View>
-                <Button
-                    title="Go to Next Step"
-                    onPress={handleSubmit}
-                    variant="primary"
-                    style={{ borderRadius: 12 }}
-                />
+                    </>
+                )}
             </ScrollView>
 
         </View>
@@ -490,5 +550,18 @@ const styles = StyleSheet.create({
     },
     submitBtnTextActive: {
         color: COLORS.white,
+    },
+    actionButtonsRow: {
+        flexDirection: 'row',
+        gap: SPACING.md,
+        marginTop: SPACING.xl,
+    },
+    skipBtn: {
+        flex: 1,
+        borderRadius: 12,
+    },
+    submitBtnContainer: {
+        flex: 2,
+        borderRadius: 12,
     },
 });
