@@ -35,11 +35,11 @@ const BookDetailsScreen = () => {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation();
     const route = useRoute<any>();
-    const [rating, setRating] = useState(0);
     const [isFavorite, setIsFavorite] = useState(false);
     const [showBurst, setShowBurst] = useState(false);
 
     const book: Book | undefined = route.params?.book;
+    console.log("🚀 ~ BookDetailsScreen ~ book:", book)
     const categoryTitle: string = route.params?.categoryTitle || '';
 
     const isAcademic = useMemo(() => isAcademicCategory(categoryTitle), [categoryTitle]);

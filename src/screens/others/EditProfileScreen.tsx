@@ -207,7 +207,6 @@ const EditProfileScreen = () => {
                             placeholder="Enter your city or address"
                             value={address}
                             onChangeText={setAddress}
-                            multiline
                             numberOfLines={3}
                             prefix={renderInputPrefix('map-pin')}
                             containerStyle={{ marginTop: SPACING.md, marginBottom: SPACING.xl + 10 }}
@@ -287,6 +286,7 @@ const styles = StyleSheet.create({
     inputPrefix: {
         marginRight: SPACING.sm,
         marginLeft: 2,
+        alignSelf: "center"
     },
     bottomContainer: {
         position: 'absolute',

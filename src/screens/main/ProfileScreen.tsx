@@ -8,6 +8,7 @@ import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
+import { StatusBar } from 'expo-status-bar';
 
 const { width } = Dimensions.get('window');
 
@@ -25,6 +26,8 @@ const ProfileScreen = () => {
     const handleQuickAction = (id: string) => {
         if (id === 'requests') {
             navigation.navigate('AppStack', { screen: 'RequestPost' });
+        } else if (id === 'interests') {
+            navigation.navigate('AppStack', { screen: 'Favourites' });
         }
     };
 
@@ -36,12 +39,13 @@ const ProfileScreen = () => {
             >
                 {/* Top Bar */}
                 <View style={styles.topBar}>
+                    <StatusBar style="light" />
                     <Text style={styles.headerTitle}>My Profile</Text>
                     <View style={styles.headerIcons}>
                         <TouchableOpacity style={styles.iconCircle}>
                             <Ionicons name="share-social-outline" size={20} color={COLORS.white} />
                         </TouchableOpacity>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={styles.iconCircle}
                             onPress={() => navigation.navigate('AppStack', { screen: 'EditProfile' })}
                         >
@@ -98,9 +102,9 @@ const ProfileScreen = () => {
                     <Text style={styles.sectionTitle}>Quick Actions</Text>
                     <View style={styles.quickActionsGrid}>
                         {QUICK_ACTIONS.map((action) => (
-                            <TouchableOpacity 
-                                key={action.id} 
-                                style={styles.quickActionCard} 
+                            <TouchableOpacity
+                                key={action.id}
+                                style={styles.quickActionCard}
                                 activeOpacity={0.8}
                                 onPress={() => handleQuickAction(action.id)}
                             >
@@ -146,9 +150,6 @@ const ProfileScreen = () => {
                 <View style={styles.sectionContainer}>
                     <View style={styles.recentHeader}>
                         <Text style={styles.sectionTitle}>Recent Activities</Text>
-                        <TouchableOpacity>
-                            <Text style={styles.seeAllText}>See All</Text>
-                        </TouchableOpacity>
                     </View>
 
                     <View style={styles.activityCard}>

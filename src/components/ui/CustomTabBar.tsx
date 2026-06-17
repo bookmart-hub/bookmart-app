@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { rf } from '@/utils/responsive';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -124,12 +125,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
         ]}
         onPress={handleNewModePress}
       >
-        <Text style={[
-          styles.newModeText,
-          { color: isNewMode ? COLORS.white : COLORS.primary }
-        ]}>
-          {isNewMode ? 'NEW MODE' : 'RESALE MODE'}
-        </Text>
+        <MaterialIcons name="stars" size={24} color={isNewMode ? COLORS.white : COLORS.primary} />
       </Pressable>
     </View>
   );
