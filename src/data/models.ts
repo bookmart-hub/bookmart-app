@@ -19,7 +19,7 @@ export interface Ratings {
 export interface Book {
   id: string;
   title: string;
-  imageUri: string;
+  coverUri: string;
   price: number;
   discount?: string;
   stock?: string;

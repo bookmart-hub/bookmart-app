@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
-        gap: 12,
+        gap: 5,
     },
     conditionBox: {
         width: '48%',
