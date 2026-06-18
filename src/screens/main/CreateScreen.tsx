@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, ToastAndroid, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, ToastAndroid, Image, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -11,6 +11,7 @@ import { rf } from '@/utils/responsive';
 import Header from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import * as Location from "expo-location";
 
 const CONDITIONS = [
     { id: 'like_new', label: 'Like New', icon: 'decagram-outline' as any },
@@ -31,8 +32,66 @@ const CreateScreen = () => {
     const [image, setImage] = useState<string | null>(null);
     const [description, setDescription] = useState('');
     const [currentStep, setCurrentStep] = useState(1);
+    const [location, setLocation] = useState<{
+        latitude: number;
+        longitude: number;
+        address: string;
+    } | null>(null);
+    const [isFetchingLocation, setIsFetchingLocation] = useState(false);
 
-    const handleCaptureImage = async () => {
+    const getCurrentLocation = async () => {
+        setIsFetchingLocation(true);
+        try {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+
+            if (status !== "granted") {
+                ToastAndroid.show(
+                    "Location permission is required to fetch pickup address.",
+                    ToastAndroid.SHORT
+                );
+                return false;
+            }
+
+            const current = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.High,
+            });
+
+            const reverse = await Location.reverseGeocodeAsync({
+                latitude: current.coords.latitude,
+                longitude: current.coords.longitude,
+            });
+
+            const place = reverse[0];
+            const addressString = `${place?.name ? place.name + ', ' : ''}${place?.street ? place.street + ', ' : ''}${place?.city ? place.city : ''}`.replace(/, $/, '');
+
+            setLocation({
+                latitude: current.coords.latitude,
+                longitude: current.coords.longitude,
+                address: addressString || "Location found, but address is unavailable.",
+            });
+
+            return true;
+        } catch (error) {
+            ToastAndroid.show("Failed to fetch location. Please ensure GPS is enabled.", ToastAndroid.SHORT);
+            return false;
+        } finally {
+            setIsFetchingLocation(false);
+        }
+    };
+
+    const handleImagePick = () => {
+        Alert.alert(
+            "Upload Photo",
+            "Choose an option",
+            [
+                { text: "Take Photo", onPress: takePhoto },
+                { text: "Choose from Gallery", onPress: pickImage },
+                { text: "Cancel", style: "cancel" }
+            ]
+        );
+    };
+
+    const takePhoto = async () => {
         const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
         if (permissionResult.granted === false) {
@@ -43,20 +102,48 @@ const CreateScreen = () => {
         const result = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
             aspect: [16, 9],
-            quality: 1,
+            quality: 0.5,
         });
 
-        if (!result.canceled) {
+        if (!result.canceled && result.assets && result.assets.length > 0) {
             setImage(result.assets[0].uri);
         }
     };
 
-    const handleNextStep = () => {
-        if (!title || !author || !price || !condition || !image) {
-            ToastAndroid.show("Please fill all the required fields", ToastAndroid.SHORT);
-        } else {
-            setCurrentStep(2);
+    const pickImage = async () => {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (permissionResult.granted === false) {
+            ToastAndroid.show("Gallery permission is required to choose photos.", ToastAndroid.SHORT);
+            return;
         }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [16, 9],
+            quality: 0.5,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+            setImage(result.assets[0].uri);
+        }
+    };
+
+    const handleNextStep = async () => {
+        if (!title || !author || !price || !condition || !image) {
+            ToastAndroid.show(
+                "Please fill all the required fields",
+                ToastAndroid.SHORT
+            );
+            return;
+        }
+
+        const success = await getCurrentLocation();
+
+        if (!success) return;
+
+        setCurrentStep(2);
     };
 
     const handleFinalSubmit = () => {
@@ -70,7 +157,8 @@ const CreateScreen = () => {
         setImage(null);
         setDescription('');
         setCurrentStep(1);
-        navigation.navigate('Home' as never);
+        // Reset navigation to go back to the root of the tab navigator, effectively returning to Create screen
+        navigation.reset({ index: 0, routes: [{ name: 'Create' as never }] });
     };
 
     return (
@@ -106,11 +194,11 @@ const CreateScreen = () => {
                                         </TouchableOpacity>
                                     </View>
                                 ) : (
-                                    <TouchableOpacity style={styles.dashedBox} activeOpacity={0.8} onPress={handleCaptureImage}>
+                                    <TouchableOpacity style={styles.dashedBox} activeOpacity={0.8} onPress={handleImagePick}>
                                         <View style={styles.cameraIconWrapper}>
                                             <MaterialCommunityIcons name="camera-plus" size={32} color={COLORS.white} />
                                         </View>
-                                        <Text style={styles.captureText}>Capture Image</Text>
+                                        <Text style={styles.captureText}>Upload Image</Text>
                                     </TouchableOpacity>
                                 )}
                             </View>
@@ -222,6 +310,7 @@ const CreateScreen = () => {
                             title="Go to Next Step"
                             onPress={handleNextStep}
                             variant="primary"
+                            loading={isFetchingLocation}
                             style={{ borderRadius: 12 }}
                         />
                     </>
@@ -238,18 +327,45 @@ const CreateScreen = () => {
 
                             <View style={styles.cardContainer}>
                                 <View style={styles.inputGroup}>
-                                    <Text style={styles.inputLabel}>Description <Text style={styles.asterisk}>*</Text></Text>
                                     <Input
-                                        placeholder="Enter a detailed description about the book..."
+                                        placeholder="Add a detailed description.."
                                         value={description}
                                         onChangeText={setDescription}
                                         multiline
-                                        numberOfLines={6}
+                                        numberOfLines={50}
                                         containerStyle={{ marginVertical: 0, marginTop: SPACING.sm }}
+                                        style={{ height: rf(150) }}
                                     />
                                 </View>
                             </View>
                         </View>
+                        {location && (
+                            <View style={styles.locationCard}>
+                                <Ionicons
+                                    name="location"
+                                    size={24}
+                                    color={COLORS.primary}
+                                />
+
+                                <View style={{ flex: 1, marginLeft: 10 }}>
+                                    <Text style={styles.locationTitle}>
+                                        Pickup Location
+                                    </Text>
+                                    <Text style={styles.locationText}>
+                                        {location.address}
+                                    </Text>
+                                </View>
+
+                                <TouchableOpacity
+                                    style={styles.refreshButton}
+                                    activeOpacity={0.7}
+                                    onPress={getCurrentLocation}
+                                    disabled={isFetchingLocation}
+                                >
+                                    <Ionicons name="refresh" size={20} color={COLORS.primary} />
+                                </TouchableOpacity>
+                            </View>
+                        )}
 
                         <View style={styles.actionButtonsRow}>
                             <Button
@@ -260,13 +376,7 @@ const CreateScreen = () => {
                             />
                             <Button
                                 title="Submit"
-                                onPress={() => {
-                                    if (!description.trim()) {
-                                        ToastAndroid.show("Description is required", ToastAndroid.SHORT);
-                                        return;
-                                    }
-                                    handleFinalSubmit();
-                                }}
+                                onPress={handleFinalSubmit}
                                 variant="primary"
                                 style={styles.submitBtnContainer}
                             />
@@ -561,7 +671,43 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     submitBtnContainer: {
-        flex: 2,
+        flex: 1,
         borderRadius: 12,
+    },
+    locationCard: {
+        backgroundColor: COLORS.white,
+        borderRadius: 16,
+        padding: SPACING.lg,
+        flexDirection: 'row',
+        alignItems: 'center',
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: COLORS.grayLight,
+        marginBottom: SPACING.xl,
+    },
+    locationTitle: {
+        fontSize: rf(14),
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.black,
+        marginBottom: 2,
+    },
+    locationText: {
+        fontSize: rf(13),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
+    },
+    refreshButton: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: COLORS.grayLight,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy,
     },
 });

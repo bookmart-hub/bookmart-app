@@ -28,7 +28,7 @@ import { rf } from '@/utils/responsive';
 
 const ITEM_WIDTH = 75;
 const ITEM_HEIGHT = 100;
-const ITEM_GAP = 10;
+const ITEM_GAP = 0;
 
 const SNAP_SIZE = ITEM_WIDTH + ITEM_GAP;
 

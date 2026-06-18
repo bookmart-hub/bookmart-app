@@ -195,21 +195,6 @@ const AnalyticsScreen = () => {
                             }
                         />
                     </View>
-
-                    <View style={styles.chartLegend}>
-                        <View style={styles.legendPill}>
-                            <View style={[styles.legendDot, { backgroundColor: COLORS.primary }]} />
-                            <Text style={styles.legendText}><Text style={styles.legendTextBold}>{MOCK_ANALYTICS_DATA.views.total}</Text> Views</Text>
-                        </View>
-                        <View style={styles.legendPill}>
-                            <View style={[styles.legendDot, { backgroundColor: '#8B5CF6' }]} />
-                            <Text style={styles.legendText}><Text style={styles.legendTextBold}>{MOCK_ANALYTICS_DATA.clicks.total}</Text> Clicks</Text>
-                        </View>
-                        <View style={styles.legendPill}>
-                            <View style={[styles.legendDot, { backgroundColor: COLORS.primary }]} />
-                            <Text style={styles.legendText}><Text style={styles.legendTextBold}>{MOCK_ANALYTICS_DATA.waContacts.total}</Text> WA</Text>
-                        </View>
-                    </View>
                 </View>
 
                 {/* Active Listings Card */}
