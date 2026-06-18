@@ -66,7 +66,11 @@ export const Input: React.FC<InputProps> = ({
       >
         {prefix}
         <TextInput
-          style={[styles.input, style]}
+          style={[
+            styles.input, 
+            multiline && { textAlignVertical: 'top', paddingTop: 0, paddingBottom: 0 }, 
+            style
+          ]}
           placeholderTextColor={COLORS.textMuted}
           secureTextEntry={isSecure}
           onFocus={handleFocus}
@@ -128,7 +132,6 @@ const styles = StyleSheet.create({
     color: COLORS.black,
     fontSize: rf(16),
     fontFamily: FONTS.manrope.medium,
-    textAlignVertical: 'top',
   },
   iconContainer: {
     padding: SPACING.xs,

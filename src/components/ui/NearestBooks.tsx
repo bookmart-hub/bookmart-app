@@ -166,15 +166,25 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
 
     const coverAnimStyle = useAnimatedStyle(() => {
         'worklet';
-        const progressVal = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
-        const targetY = interpolate(progressVal, [0, 1], [0, -COVER_FLOAT], Extrapolation.CLAMP);
-        const targetScale = interpolate(progressVal, [0, 1], [0.9, 1], Extrapolation.CLAMP);
+
+        const progress = interpolate(
+            scrollX.value,
+            inputRange,
+            [0, 1, 0],
+            Extrapolation.CLAMP
+        );
 
         return {
             transform: [
-                { translateY: targetY },
-                { scale: targetScale }
+                {
+                    translateY: interpolate(progress, [0, 1], [0, -COVER_FLOAT]),
+                },
+                {
+                    scale: interpolate(progress, [0, 1], [0.9, 1]),
+                },
             ],
+            borderBottomLeftRadius: interpolate(progress, [0, 1], [16, 0]),
+            borderBottomRightRadius: interpolate(progress, [0, 1], [16, 0]),
         };
     });
 
@@ -469,7 +479,8 @@ const styles = StyleSheet.create({
         width: '99%',
         height: 176,
         marginTop: 8,
-        borderRadius: 8,
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
         overflow: 'hidden',
         backgroundColor: COLORS.grayLight,
         zIndex: 2,
