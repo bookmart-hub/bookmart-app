@@ -1,93 +1,105 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { FlashList } from '@shopify/flash-list';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
+import { FeedItem } from '@/data/models';
 
-const { width } = Dimensions.get('window');
 const COLUMN_GAP = 16;
 const PADDING_HORIZONTAL = SPACING.lg;
-const COLUMN_WIDTH = (width - PADDING_HORIZONTAL * 2 - COLUMN_GAP) / 2;
-
-export type BookItem = {
-  id: string;
-  title: string;
-  imageUri: string;
-  price: number;
-  discount?: string;
-  stock?: string;
-  empty?: boolean;
-  author?: string;
-};
 
 interface CategoryMasonryLayoutProps {
-  title: string;
-  subtitle: string;
-  leftColumnData: BookItem[];
-  rightColumnData: BookItem[];
+  data: FeedItem[];
 }
-//TODO: images should autoscroll
-const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({
-  title,
-  subtitle,
-  leftColumnData,
-  rightColumnData,
-}) => {
+
+const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({ data }) => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
 
-  const renderBookCard = (item: BookItem) => {
-    if (item.empty) {
-      return <View key={item.id} style={styles.emptyCard} />;
-    }
+  const renderItem = ({ item }: { item: FeedItem }) => {
+    const wrapperStyle = {
+      paddingHorizontal: COLUMN_GAP / 2,
+      paddingBottom: COLUMN_GAP,
+    };
 
-    return (
-      <TouchableOpacity
-        key={item.id}
-        style={styles.card}
-        activeOpacity={0.9}
-        onPress={() => {
-          (navigation as any).navigate('BookDetails', {
-            book: item,
-            categoryTitle: title,
-          });
-        }}
-      >
-        <Image
-          source={{ uri: item.imageUri }}
-          style={styles.bookImage}
-          contentFit="cover"
-        />
+    switch (item.type) {
+      case 'header':
+        return (
+          <View style={[styles.headerContainer, wrapperStyle]}>
+            <Text style={styles.headerTitle}>{item.title.replace(' ', '\n')}</Text>
+            <Text style={styles.headerSubtitle}>{item.subtitle}</Text>
+          </View>
+        );
 
-        <View style={styles.cardContent}>
-          <Text style={styles.cardTitle} numberOfLines={2}>
-            {item.title}
-          </Text>
+      case 'ad':
+        return (
+          <View style={[wrapperStyle]}>
+            <View style={styles.adCard}>
+              <Image
+                source={{ uri: item.imageUrl }}
+                style={styles.adImage}
+                contentFit="cover"
+              />
+              {item.text && (
+                <View style={styles.adOverlay}>
+                  <Text style={styles.adText}>{item.text}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        );
 
-          <Text style={styles.author} numberOfLines={1}>
-            {item.author || 'Unknown'}
-          </Text>
-
-          <View style={styles.priceRow}>
-            <Text style={styles.priceText}>₹{item.price}</Text>
-
-            <TouchableOpacity style={styles.addButton}>
-              <Ionicons name="bag-handle-sharp" size={14} color={COLORS.white} />
+      case 'book':
+        const book = item.book;
+        return (
+          <View style={wrapperStyle}>
+            <TouchableOpacity
+              style={styles.card}
+              activeOpacity={0.9}
+              onPress={() => {
+                navigation.navigate('BookDetails', {
+                  book: book,
+                });
+              }}
+            >
+              <Image
+                source={{ uri: book.imageUri || book.coverUri }}
+                style={styles.bookImage}
+                contentFit="cover"
+              />
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle} numberOfLines={2}>
+                  {book.title}
+                </Text>
+                <Text style={styles.author} numberOfLines={1}>
+                  {book.author || 'Unknown'}
+                </Text>
+                <View style={styles.priceRow}>
+                  <Text style={styles.priceText}>₹{book.price}</Text>
+                  <TouchableOpacity style={styles.addButton}>
+                    <Ionicons name="bag-handle-sharp" size={14} color={COLORS.white} />
+                  </TouchableOpacity>
+                </View>
+                {(book.discount || book.stock) && (
+                  <View style={styles.metaRow}>
+                    {book.discount && <Text style={styles.discountText}>{book.discount}</Text>}
+                    {book.stock && <Text style={styles.stockText}>{book.stock}</Text>}
+                  </View>
+                )}
+              </View>
             </TouchableOpacity>
           </View>
+        );
 
-          <View style={styles.metaRow}>
-            <Text style={styles.discountText}>60% OFF</Text>
-            <Text style={styles.stockText}>2 left</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -101,26 +113,19 @@ const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({
         </TouchableOpacity>
       </View>
 
-      <ScrollView
+      <FlashList
+        data={data}
+        renderItem={renderItem}
+        numColumns={2}
+        masonry
+        getItemType={(item) => item.type}
+        contentContainerStyle={{
+          paddingHorizontal: PADDING_HORIZONTAL - (COLUMN_GAP / 2),
+          paddingBottom: SPACING.xl,
+        }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View style={styles.grid}>
-          {/* Left Column */}
-          <View style={styles.column}>
-            <View style={styles.headerContainer}>
-              <Text style={styles.headerTitle}>{title.replace(' ', '\n')}</Text>
-              <Text style={styles.headerSubtitle}>{subtitle}</Text>
-            </View>
-            {leftColumnData.map(renderBookCard)}
-          </View>
-
-          {/* Right Column */}
-          <View style={styles.column}>
-            {rightColumnData.map(renderBookCard)}
-          </View>
-        </View>
-      </ScrollView>
+        estimatedItemSize={250}
+      />
     </View>
   );
 };
@@ -134,7 +139,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: COLORS.white,
-    borderRadius: 20,
+    borderRadius: rf(15),
     overflow: 'hidden',
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 4 },
@@ -144,32 +149,20 @@ const styles = StyleSheet.create({
   },
   bookImage: {
     width: '100%',
-    height: 165,
+    height: rf(155),
   },
   cardContent: {
-    padding: 14,
+    padding: rf(13),
   },
   author: {
     fontSize: rf(12),
     color: COLORS.text,
-    marginTop: 4,
-    marginBottom: 8,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  condition: {
-    fontSize: rf(11),
-    color: COLORS.textMuted,
-  },
-  rating: {
-    fontSize: rf(11),
+    marginTop: rf(4),
+    marginBottom: rf(7),
   },
   cardTitle: {
-    fontSize: rf(15),
-    lineHeight: 20,
+    fontSize: rf(14),
+    lineHeight: rf(18),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
   },
@@ -179,58 +172,51 @@ const styles = StyleSheet.create({
     paddingHorizontal: PADDING_HORIZONTAL,
     paddingVertical: SPACING.md,
   },
-  scrollContent: {
-    paddingHorizontal: PADDING_HORIZONTAL,
-    paddingBottom: SPACING.xl,
-  },
-  grid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  column: {
-    width: COLUMN_WIDTH,
-    gap: COLUMN_GAP,
-  },
   headerContainer: {
     marginBottom: SPACING.sm,
   },
   headerTitle: {
     fontSize: rf(32),
-    lineHeight: 38,
+    lineHeight: rf(30),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
-    marginBottom: 8,
+    marginBottom: rf(5),
   },
   headerSubtitle: {
     fontSize: rf(14),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.black,
-    lineHeight: 20,
+    lineHeight: rf(18),
   },
-  emptyCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    height: 80,
+  adCard: {
+    borderRadius: rf(15),
+    overflow: 'hidden',
+    height: rf(170),
+    backgroundColor: COLORS.grayLight,
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 2,
   },
-  imageContainer: {
+  adImage: {
     width: '100%',
-    aspectRatio: 0.7,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: COLORS.grayLight,
-    marginBottom: 12,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+    height: '100%',
+    position: 'absolute',
   },
-  image: {
-    width: '70%',
-    height: '70%',
+  adOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    paddingHorizontal: rf(12),
+    paddingVertical: rf(6),
+    borderRadius: rf(8),
+  },
+  adText: {
+    color: COLORS.white,
+    fontFamily: FONTS.montserrat.bold,
+    fontSize: rf(14),
   },
   priceRow: {
     flexDirection: 'row',
@@ -243,9 +229,9 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   addButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: rf(22),
+    height: rf(22),
+    borderRadius: rf(11),
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -254,7 +240,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: rf(12),
   },
   discountText: {
     fontSize: rf(12),

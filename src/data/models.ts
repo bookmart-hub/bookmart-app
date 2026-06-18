@@ -41,9 +41,34 @@ export interface Category {
   books?: Book[]; // we can structure books either in left/right arrays or just one array and we split them.
 }
 
+export type FeedItemType = 'header' | 'book' | 'ad';
+
+export interface BaseFeedItem {
+  type: FeedItemType;
+  id: string;
+}
+
+export interface HeaderFeedItem extends BaseFeedItem {
+  type: 'header';
+  title: string;
+  subtitle: string;
+}
+
+export interface BookFeedItem extends BaseFeedItem {
+  type: 'book';
+  book: Book;
+}
+
+export interface AdFeedItem extends BaseFeedItem {
+  type: 'ad';
+  imageUrl?: string;
+  text?: string;
+  link?: string;
+}
+
+export type FeedItem = HeaderFeedItem | BookFeedItem | AdFeedItem;
+
 // For masonry layout compatibility
 export interface MasonryCategoryData {
-  subtitle: string;
-  left: Book[];
-  right: Book[];
+  items: FeedItem[];
 }
