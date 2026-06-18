@@ -154,17 +154,11 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
     const cardAnimatedStyle = useAnimatedStyle(() => {
         'worklet';
         const progressVal = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
-        const activeProgressVal = interpolate(progressVal, [0.4, 0.7], [0, 1], Extrapolation.CLAMP);
-        const active = activeProgressVal > 0.5;
 
         return {
-            // minHeight: withSpring(active ? 300 : 220, SPRING_CONFIG),
             transform: [
                 {
-                    scale: withSpring(
-                        active ? 1 : 0.94,
-                        SPRING_CONFIG
-                    )
+                    scale: interpolate(progressVal, [0, 1], [0.94, 1], Extrapolation.CLAMP)
                 }
             ],
         };
@@ -174,26 +168,34 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
         'worklet';
         const progressVal = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
         const targetY = interpolate(progressVal, [0, 1], [0, -COVER_FLOAT], Extrapolation.CLAMP);
+        const targetScale = interpolate(progressVal, [0, 1], [0.9, 1], Extrapolation.CLAMP);
 
         return {
-            transform: [{ translateY: withSpring(targetY, COVER_SPRING_CONFIG) }],
+            transform: [
+                { translateY: targetY },
+                { scale: targetScale }
+            ],
+        };
+    });
+
+    const bgStyle = useAnimatedStyle(() => {
+        'worklet';
+        const progressVal = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
+        return {
+            bottom: interpolate(progressVal, [0, 1], [80, 0], Extrapolation.CLAMP),
         };
     });
 
     const detailsStyle = useAnimatedStyle(() => {
         'worklet';
         const progressVal = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
-        const activeProgressVal = interpolate(progressVal, [0.4, 0.7], [0, 1], Extrapolation.CLAMP);
-        const active = activeProgressVal > 0.5;
+        const activeProgressVal = interpolate(progressVal, [0.5, 1], [0, 1], Extrapolation.CLAMP);
 
         return {
-            opacity: withTiming(active ? 1 : 0, REVEAL_TIMING),
+            opacity: activeProgressVal,
             transform: [
                 {
-                    translateY: withTiming(
-                        active ? 0 : 20,
-                        REVEAL_TIMING
-                    ),
+                    translateY: interpolate(activeProgressVal, [0, 1], [15, 0], Extrapolation.CLAMP),
                 },
             ],
         };
@@ -202,12 +204,11 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
     const priceStyle = useAnimatedStyle(() => {
         'worklet';
         const progressVal = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
-        const activeProgressVal = interpolate(progressVal, [0.4, 0.7], [0, 1], Extrapolation.CLAMP);
-        const active = activeProgressVal > 0.5;
+        const activeProgressVal = interpolate(progressVal, [0.5, 1], [0, 1], Extrapolation.CLAMP);
 
         return {
-            opacity: withTiming(active ? 1 : 0, REVEAL_TIMING_SLOW),
-            transform: [{ scale: withSpring(active ? 1 : 0.5, SPRING_CONFIG) }],
+            opacity: activeProgressVal,
+            transform: [{ scale: interpolate(activeProgressVal, [0, 1], [0.8, 1], Extrapolation.CLAMP) }],
         };
     });
 
@@ -219,7 +220,7 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
         >
             <Animated.View style={[styles.cardRoot, cardAnimatedStyle]}>
                 {/* Expandable card background */}
-                <View style={styles.whiteBg} />
+                <Animated.View style={[styles.whiteBg, bgStyle]} />
 
                 {/* Floating Cover */}
                 <Animated.View style={[styles.coverWrap, coverAnimStyle]}>
@@ -401,7 +402,7 @@ const NearestBooks: React.FC<NearestBooksProps> = memo(({
                 initialNumToRender={3}
                 maxToRenderPerBatch={2}
                 windowSize={3}
-                removeClippedSubviews={true}
+                removeClippedSubviews={false}
             />
         </View>
     );
@@ -445,12 +446,15 @@ const styles = StyleSheet.create({
     },
     cardRoot: {
         width: '100%',
+        height: '100%',
         alignItems: 'center',
         position: 'relative',
-        overflow: 'hidden',
     },
     whiteBg: {
-        ...StyleSheet.absoluteFillObject,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
         backgroundColor: COLORS.white,
         borderRadius: 16,
         borderWidth: 1,
@@ -459,12 +463,12 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 12,
-        // elevation: 4,
+        elevation: 4,
     },
     coverWrap: {
-        width: '88%',
-        height: 160,
-        marginTop: 12,
+        width: '99%',
+        height: 176,
+        marginTop: 8,
         borderRadius: 8,
         overflow: 'hidden',
         backgroundColor: COLORS.grayLight,
