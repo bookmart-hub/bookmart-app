@@ -2,7 +2,8 @@ import React from 'react';
 import {
   StyleSheet,
   Text,
-  TouchableOpacity,
+  Pressable,
+  Platform,
   ActivityIndicator,
   View,
   ViewStyle,
@@ -12,6 +13,7 @@ import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
+import { TouchableRipple } from 'react-native-paper';
 
 interface ButtonProps {
   title: string;
@@ -57,21 +59,30 @@ export const Button: React.FC<ButtonProps> = ({
   ];
 
   return (
-    <TouchableOpacity
+    <TouchableRipple
       onPress={onPress}
       disabled={disabled || loading}
-      activeOpacity={0.7}
-      style={containerStyles as ViewStyle[]}
+      rippleColor={
+        isPrimary
+          ? 'rgba(255,255,255,0.25)'
+          : 'rgba(0,0,0,0.08)'
+      }
+      borderless={false}
+      style={containerStyles}
     >
-      {loading ? (
-        <ActivityIndicator color={isPrimary ? COLORS.white : COLORS.primary} size="small" />
-      ) : (
-        <View style={styles.contentContainer}>
-          {icon && <View style={styles.iconContainer}>{icon}</View>}
-          <Text style={textStyles as TextStyle[]}>{title}</Text>
-        </View>
-      )}
-    </TouchableOpacity>
+      <View style={styles.contentContainer}>
+        {loading ? (
+          <ActivityIndicator
+            color={isPrimary ? COLORS.white : COLORS.primary}
+          />
+        ) : (
+          <>
+            {icon && <View style={styles.iconContainer}>{icon}</View>}
+            <Text style={textStyles as TextStyle[]}>{title}</Text>
+          </>
+        )}
+      </View>
+    </TouchableRipple>
   );
 };
 
@@ -79,6 +90,7 @@ const styles = StyleSheet.create({
   baseContainer: {
     height: 56,
     borderRadius: 28,
+    overflow: 'hidden', // Required for ripple to stay inside rounded corners
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',

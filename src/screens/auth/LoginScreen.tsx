@@ -177,11 +177,11 @@ const LoginScreen: React.FC = () => {
                     {/* Action Button */}
                     <View style={styles.buttonContainer}>
                         {isLoading ? (
-                            <View style={styles.loadingContainer}>
-                                <Text style={styles.loadingText}>
-                                    {loadingText}
-                                </Text>
-                            </View>
+                            <Button
+                                title={loadingText}
+                                onPress={handleSignIn}
+                                variant='primary'
+                            />
                         ) : (
                             <Button
                                 title="Sign In"

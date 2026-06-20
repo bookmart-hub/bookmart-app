@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import { StatusBar } from 'expo-status-bar';
+import { Divider, Menu } from 'react-native-paper';
 
 const { width } = Dimensions.get('window');
 
@@ -22,6 +23,7 @@ const QUICK_ACTIONS = [
 const ProfileScreen = () => {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
+    const [menuVisible, setMenuVisible] = useState(false);
 
     const handleQuickAction = (id: string) => {
         if (id === 'requests') {
@@ -30,6 +32,8 @@ const ProfileScreen = () => {
             navigation.navigate('AppStack', { screen: 'Favourites' });
         }
     };
+    const openMenu = () => setMenuVisible(true);
+    const closeMenu = () => setMenuVisible(false);
 
     return (
         <View style={styles.container}>
@@ -40,18 +44,57 @@ const ProfileScreen = () => {
                 {/* Top Bar */}
                 <View style={styles.topBar}>
                     <StatusBar style="light" />
+
                     <Text style={styles.headerTitle}>My Profile</Text>
-                    <View style={styles.headerIcons}>
-                        <TouchableOpacity style={styles.iconCircle}>
-                            <Ionicons name="share-social-outline" size={20} color={COLORS.white} />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={styles.iconCircle}
-                            onPress={() => navigation.navigate('AppStack', { screen: 'EditProfile' })}
-                        >
-                            <Feather name="edit-2" size={18} color={COLORS.white} />
-                        </TouchableOpacity>
-                    </View>
+
+                    <Menu
+                        visible={menuVisible}
+                        onDismiss={closeMenu}
+                        anchor={
+                            <TouchableOpacity
+                                style={styles.iconCircle}
+                                onPress={openMenu}
+                            >
+                                <Feather
+                                    name="more-vertical"
+                                    size={20}
+                                    color={COLORS.white}
+                                />
+                            </TouchableOpacity>
+                        }
+                        contentStyle={styles.menu}
+                    >
+                        <Menu.Item
+                            leadingIcon="share-variant-outline"
+                            onPress={() => {
+                                closeMenu();
+                                // Share logic
+                            }}
+                            title="Share Profile"
+                        />
+
+                        <Menu.Item
+                            leadingIcon="account-edit-outline"
+                            onPress={() => {
+                                closeMenu();
+                                navigation.navigate('AppStack', {
+                                    screen: 'EditProfile',
+                                });
+                            }}
+                            title="Edit Profile"
+                        />
+
+                        <Divider />
+
+                        <Menu.Item
+                            leadingIcon="flag-outline"
+                            onPress={() => {
+                                closeMenu();
+                                // Report logic
+                            }}
+                            title="Report"
+                        />
+                    </Menu>
                 </View>
 
                 {/* Profile Info */}
@@ -184,6 +227,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: COLORS.background,
+    },
+    menu: {
+        borderRadius: 14,
+        backgroundColor: COLORS.white,
+        elevation: 5,
     },
     headerContainer: {
         paddingBottom: SPACING.lg,
