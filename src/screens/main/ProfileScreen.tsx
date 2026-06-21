@@ -24,6 +24,7 @@ const ProfileScreen = () => {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
     const [menuVisible, setMenuVisible] = useState(false);
+    const [ispublic, setIsPublic] = useState(true);
 
     const handleQuickAction = (id: string) => {
         if (id === 'requests') {
@@ -83,17 +84,25 @@ const ProfileScreen = () => {
                             }}
                             title="Edit Profile"
                         />
-
                         <Divider />
 
-                        <Menu.Item
+                        {ispublic ? (<Menu.Item
                             leadingIcon="flag-outline"
                             onPress={() => {
                                 closeMenu();
-                                // Report logic
+                                navigation.navigate('AppStack', {
+                                    screen: 'Report',
+                                    params: { initialTab: 'User' }
+                                });
                             }}
                             title="Report"
-                        />
+                        />) : (<Menu.Item
+                            leadingIcon="delete-outline"
+                            onPress={() => {
+                                closeMenu();
+                            }}
+                            title="Delete Account"
+                        />)}
                     </Menu>
                 </View>
 

@@ -21,7 +21,7 @@ const Header = ({ title, backButton, onPress }: HeaderProps) => {
             <View style={styles.appBar}>
                 {backButton && (
                     <TouchableOpacity
-                        onPress={() => navigation.goBack()}
+                        onPress={onPress ? onPress : () => navigation.goBack()}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
                         <Ionicons name="arrow-back" size={24} color={COLORS.text} />
@@ -42,7 +42,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: PADDING_HORIZONTAL,
         paddingVertical: SPACING.lg,
-        marginTop: SPACING.lg,
     },
     title: {
         fontSize: rf(20),

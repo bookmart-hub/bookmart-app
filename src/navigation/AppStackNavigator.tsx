@@ -20,6 +20,7 @@ import RequestPostScreen from '@/screens/others/RequestPostScreen';
 import EditProfileScreen from '@/screens/others/EditProfileScreen';
 import FavouritesScreen from '@/screens/others/FavouritesScreen';
 import SearchScreen from '@/screens/others/SearchScreen';
+import ReportScreen from '@/screens/others/ReportScreen';
 
 export type AppStackParamList = {
     Business: undefined;
@@ -41,6 +42,7 @@ export type AppStackParamList = {
     RequestPost: undefined;
     EditProfile: undefined;
     Favourites: undefined;
+    Report: { initialTab?: 'Listing' | 'User'; targetId?: string };
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -73,6 +75,7 @@ export default function AppStackNavigator() {
             <Stack.Screen name="RequestPost" component={RequestPostScreen} />
             <Stack.Screen name="EditProfile" component={EditProfileScreen} />
             <Stack.Screen name="Favourites" component={FavouritesScreen} />
+            <Stack.Screen name="Report" component={ReportScreen} />
         </Stack.Navigator>
     );
 }
