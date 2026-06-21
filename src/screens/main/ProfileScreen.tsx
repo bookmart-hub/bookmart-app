@@ -31,6 +31,10 @@ const ProfileScreen = () => {
             navigation.navigate('AppStack', { screen: 'RequestPost' });
         } else if (id === 'interests') {
             navigation.navigate('AppStack', { screen: 'Favourites' });
+        } else if (id === 'listings') {
+            navigation.navigate('AppStack', { screen: 'MyListings' });
+        } else if (id === 'sold') {
+            navigation.navigate('AppStack', { screen: 'SoldBooks' });
         }
     };
     const openMenu = () => setMenuVisible(true);
@@ -173,7 +177,11 @@ const ProfileScreen = () => {
                 <View style={styles.sectionContainer}>
                     <Text style={styles.sectionTitle}>Seller Tools</Text>
 
-                    <TouchableOpacity style={styles.toolCard} activeOpacity={0.8}>
+                    <TouchableOpacity 
+                        style={styles.toolCard} 
+                        activeOpacity={0.8}
+                        onPress={() => navigation.navigate('AppStack', { screen: 'MyListings' })}
+                    >
                         <View style={[styles.toolIconWrap, { backgroundColor: 'rgba(0, 128, 128, 0.1)' }]}>
                             <Ionicons name="list" size={24} color={COLORS.primary} />
                         </View>
