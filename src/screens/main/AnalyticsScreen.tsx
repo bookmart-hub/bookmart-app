@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -11,14 +11,13 @@ import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import { MOCK_ANALYTICS_DATA, MOCK_TOP_BOOKS, TopBook } from '@/data/analyticsMockData';
 
-const { width } = Dimensions.get('window');
-
 type MetricType = 'views' | 'clicks' | 'waContacts';
 type TimeframeType = 'daily' | 'weekly' | 'monthly';
 
 const AnalyticsScreen = () => {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
+    const { width } = useWindowDimensions();
 
     const [selectedMetric, setSelectedMetric] = useState<MetricType>('views');
     const [selectedTimeframe, setSelectedTimeframe] = useState<TimeframeType>('daily');
@@ -70,7 +69,7 @@ const AnalyticsScreen = () => {
         ];
     };
 
-    const chartWidth = width - SPACING.lg * 2;
+    const chartWidth = width - (SPACING.lg * 4);
     const chartHeight = rf(120);
 
     return (
@@ -185,6 +184,8 @@ const AnalyticsScreen = () => {
                             areaChart
                             hideRules
                             hideDataPoints
+                            initialSpacing={SPACING.md}
+                            endSpacing={SPACING.md}
                             isAnimated
                             spacing={
                                 selectedTimeframe === 'daily'
@@ -364,6 +365,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: SPACING.lg,
+        marginLeft: -SPACING.sm
     },
     sectionTitle: {
         fontSize: rf(16),
@@ -383,7 +385,7 @@ const styles = StyleSheet.create({
         padding: 4,
     },
     segmentBtn: {
-        paddingHorizontal: SPACING.md,
+        paddingHorizontal: SPACING.sm,
         paddingVertical: 6,
         borderRadius: 16,
     },
@@ -400,7 +402,7 @@ const styles = StyleSheet.create({
     },
     chartContainer: {
         alignItems: 'center',
-        marginLeft: -5,
+        marginLeft: -SPACING.md,
     },
     axisText: {
         color: COLORS.textMuted,
