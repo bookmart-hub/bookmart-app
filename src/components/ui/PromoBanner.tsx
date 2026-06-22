@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: CARD_WIDTH,
-    height: rf(140),
+    height: rf(150),
     borderRadius: rf(16),
     flexDirection: 'row',
     overflow: 'hidden',
@@ -342,13 +342,13 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   cardTitle: {
-    fontSize: rf(12),
+    fontSize: rf(15),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.text,
     lineHeight: rf(18),
   },
   cardSubtitle: {
-    fontSize: rf(10.5),
+    fontSize: rf(11),
     fontFamily: FONTS.manrope.semibold,
     color: COLORS.textMuted,
     marginTop: 4,
@@ -356,13 +356,13 @@ const styles = StyleSheet.create({
   ctaButton: {
     backgroundColor: COLORS.text,
     alignSelf: 'flex-start',
-    paddingHorizontal: rf(10),
-    paddingVertical: rf(5),
+    paddingHorizontal: rf(12),
+    paddingVertical: rf(7),
     borderRadius: rf(20),
     marginTop: rf(6),
   },
   ctaText: {
-    fontSize: rf(11),
+    fontSize: rf(12),
     fontFamily: FONTS.montserrat.semibold,
     color: COLORS.white,
   },

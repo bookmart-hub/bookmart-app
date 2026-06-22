@@ -73,7 +73,7 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, animatio
 
         if (animationType === 'fade') {
             return {
-                opacity: interpolate(progress, [-1, 0, 1], [0.3, 1, 0.3]),
+                opacity: interpolate(progress, [-1, 0, 1], [0.65, 1, 0.65]),
             };
         }
 
@@ -197,9 +197,11 @@ const HorizontalBookList: React.FC<HorizontalBookListProps> = memo(({
 
     const snapInterval = cardWidth + itemGap;
 
+    const LOOP_COPIES = 15;
+
     const loopedData = React.useMemo(() => {
         if (!loop) return books.map((b, i) => ({ ...b, uniqueId: `${b.id}-${i}` }));
-        return Array(3).fill(books).flat().map((book, idx) => ({
+        return Array(LOOP_COPIES).fill(books).flat().map((book, idx) => ({
             ...book,
             uniqueId: `${book.id}-${idx}`,
         }));
@@ -208,7 +210,7 @@ const HorizontalBookList: React.FC<HorizontalBookListProps> = memo(({
     useEffect(() => {
         if (loop && books.length > 0 && listRef.current) {
             const timer = setTimeout(() => {
-                const middleIndex = books.length;
+                const middleIndex = Math.floor(LOOP_COPIES / 2) * books.length;
                 listRef.current?.scrollToIndex({ index: middleIndex, animated: false });
                 scrollX.value = middleIndex * snapInterval;
             }, 60);
@@ -228,13 +230,15 @@ const HorizontalBookList: React.FC<HorizontalBookListProps> = memo(({
         const x = e.nativeEvent.contentOffset.x;
         const index = Math.round(x / snapInterval);
         const bLen = books.length;
+        const loopedLen = loopedData.length;
+        const originalIdx = ((index % bLen) + bLen) % bLen;
+        const newIndex = Math.floor(LOOP_COPIES / 2) * bLen + originalIdx;
 
-        if (index < bLen || index > bLen * 2) {
-            const newIndex = bLen + (index % bLen);
+        if (index < bLen * 2 || index > loopedLen - bLen * 2) {
             listRef.current?.scrollToIndex({ index: newIndex, animated: false });
             scrollX.value = newIndex * snapInterval;
         }
-    }, [books.length, loop, scrollX, snapInterval]);
+    }, [books.length, loop, scrollX, snapInterval, loopedData.length]);
 
     const renderItem = useCallback(({ item, index }: any) => (
         <BookCard item={item} index={index} scrollX={scrollX} animationType={animationType} cardLayout={cardLayout} snapInterval={snapInterval} onPress={onBookPress} />
@@ -278,8 +282,8 @@ const HorizontalBookList: React.FC<HorizontalBookListProps> = memo(({
                 windowSize={3}
                 maxToRenderPerBatch={3}
                 initialNumToRender={4}
-                updateCellsBatchingPeriod={30}
-                removeClippedSubviews={Platform.OS === 'android'}
+                updateCellsBatchingPeriod={40}
+                removeClippedSubviews={false}
             />
         </View>
     );

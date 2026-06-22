@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '@/constants/colors';
@@ -14,10 +14,38 @@ import { Divider, Menu } from 'react-native-paper';
 const { width } = Dimensions.get('window');
 
 const QUICK_ACTIONS = [
-    { id: 'listings', title: 'My Listings', icon: 'book-outline', color: COLORS.blue, bg: COLORS.blueLight },
-    { id: 'sold', title: 'Sold Books', icon: 'cube-outline', color: COLORS.green, bg: COLORS.greenlight },
-    { id: 'interests', title: 'My Interests', icon: 'heart-outline', color: COLORS.red, bg: COLORS.redLight },
-    { id: 'requests', title: 'Request Posts', icon: 'chatbox-ellipses-outline', color: COLORS.yellow, bg: COLORS.yellowlight },
+    {
+        id: 'waContacts',
+        title: 'Contacts',
+        Icon: Ionicons,
+        icon: 'chatbox-ellipses-outline',
+        color: COLORS.blue,
+        bg: COLORS.blueLight,
+    },
+    {
+        id: 'sold',
+        title: 'Sold Books',
+        Icon: Feather,
+        icon: 'shopping-bag',
+        color: COLORS.green,
+        bg: COLORS.greenlight,
+    },
+    {
+        id: 'interests',
+        title: 'My Interests',
+        Icon: Ionicons,
+        icon: 'heart-outline',
+        color: COLORS.red,
+        bg: COLORS.redLight,
+    },
+    {
+        id: 'requests',
+        title: 'Requests',
+        Icon: MaterialCommunityIcons,
+        icon: 'clipboard-text-outline',
+        color: COLORS.yellow,
+        bg: COLORS.yellowlight,
+    },
 ];
 
 const ProfileScreen = () => {
@@ -165,7 +193,11 @@ const ProfileScreen = () => {
                                 onPress={() => handleQuickAction(action.id)}
                             >
                                 <View style={[styles.actionIconWrapper, { backgroundColor: action.bg }]}>
-                                    <Ionicons name={action.icon as any} size={24} color={action.color} />
+                                    <action.Icon
+                                        name={action.icon as any}
+                                        size={20}
+                                        color={action.color}
+                                    />
                                 </View>
                                 <Text style={styles.quickActionText}>{action.title}</Text>
                             </TouchableOpacity>
@@ -177,8 +209,8 @@ const ProfileScreen = () => {
                 <View style={styles.sectionContainer}>
                     <Text style={styles.sectionTitle}>Seller Tools</Text>
 
-                    <TouchableOpacity 
-                        style={styles.toolCard} 
+                    <TouchableOpacity
+                        style={styles.toolCard}
                         activeOpacity={0.8}
                         onPress={() => navigation.navigate('AppStack', { screen: 'MyListings' })}
                     >
@@ -387,11 +419,11 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
     },
     quickActionCard: {
-        width: (width - SPACING.lg * 2 - SPACING.sm * 3) / 4, // 4 items per row exactly
+        width: (width - SPACING.lg * 2 - SPACING.sm * 3) / 4,
         backgroundColor: COLORS.white,
         borderRadius: 16,
-        paddingVertical: SPACING.sm,
-        paddingHorizontal: 4,
+        paddingVertical: SPACING.xs,
+        paddingHorizontal: SPACING.xs - 1,
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: COLORS.black,

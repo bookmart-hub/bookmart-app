@@ -141,6 +141,7 @@ const HomeScreen = () => {
           cardLayout="standard"
           onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Recently Added' } })}
           onSeeAllPress={() => { }}
+          loop={true}
         />
 
         <HorizontalBookList
@@ -156,7 +157,7 @@ const HomeScreen = () => {
         <HorizontalBookList
           title="Ending Soon"
           books={ENDING_SOON}
-          animationType="fade"
+          animationType="standard"
           cardLayout="horizontal"
           onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Ending Soon' } })}
           onSeeAllPress={() => { }}
