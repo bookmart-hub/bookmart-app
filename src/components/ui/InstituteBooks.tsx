@@ -88,11 +88,11 @@ const DEFAULT_INSTITUTE_BOOKS: InstituteBookItem[] = [
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 
-const CARD_WIDTH = 250;
-const CARD_HEIGHT = 130;
-const COVER_WIDTH = 75;
-const COVER_HEIGHT = CARD_HEIGHT - 20; // fits card height with padding 10
-const ITEM_GAP = 16;
+const CARD_WIDTH = 230;
+const CARD_HEIGHT = 120;
+const COVER_WIDTH = 70;
+const COVER_HEIGHT = CARD_HEIGHT - 16; // fits card height with padding 8
+const ITEM_GAP = 12;
 const SNAP_INTERVAL = CARD_WIDTH + ITEM_GAP;
 const HORIZONTAL_PADDING = SPACING.lg;
 
@@ -326,12 +326,12 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     headerTitle: {
-        fontSize: rf(20),
+        fontSize: rf(18),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
-        fontSize: rf(14),
+        fontSize: rf(13),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
@@ -349,10 +349,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'flex-start',
         backgroundColor: COLORS.white,
-        borderRadius: 16,
+        borderRadius: 14,
         borderWidth: 1,
         borderColor: 'rgba(0,0,0,0.04)',
-        padding: 10,
+        padding: 8,
         marginRight: ITEM_GAP,
 
         shadowColor: COLORS.black,
@@ -377,19 +377,19 @@ const styles = StyleSheet.create({
         alignSelf: 'stretch',
     },
     titleText: {
-        fontSize: rf(13),
+        fontSize: rf(12),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
         marginBottom: 2,
     },
     authorText: {
-        fontSize: rf(11),
+        fontSize: rf(10.5),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.textMuted,
         marginBottom: 4,
     },
     descText: {
-        fontSize: rf(10),
+        fontSize: rf(9.5),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         lineHeight: 14,

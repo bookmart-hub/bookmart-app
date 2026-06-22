@@ -180,19 +180,19 @@ const HorizontalBookList: React.FC<HorizontalBookListProps> = memo(({
     const scrollX = useSharedValue(0);
 
     // Determine sizes based on layout
-    const itemGap = 12;
-    let cardWidth = SCREEN_WIDTH * 0.38;
-    let cardHeight = 220;
+    const itemGap = 10;
+    let cardWidth = SCREEN_WIDTH * 0.36;
+    let cardHeight = 200;
 
     if (cardLayout === 'horizontal') {
-        cardWidth = SCREEN_WIDTH * 0.75;
-        cardHeight = 120;
+        cardWidth = SCREEN_WIDTH * 0.72;
+        cardHeight = 110;
     } else if (cardLayout === 'compact') {
-        cardWidth = SCREEN_WIDTH * 0.28;
-        cardHeight = 160;
+        cardWidth = SCREEN_WIDTH * 0.26;
+        cardHeight = 145;
     } else if (cardLayout === 'featured') {
-        cardWidth = SCREEN_WIDTH * 0.55;
-        cardHeight = 250;
+        cardWidth = SCREEN_WIDTH * 0.52;
+        cardHeight = 230;
     }
 
     const snapInterval = cardWidth + itemGap;
@@ -305,69 +305,183 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     headerTitle: {
-        fontSize: rf(18),
+        fontSize: rf(16),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
-        fontSize: rf(13),
+        fontSize: rf(12),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
     listContent: {
         paddingHorizontal: HORIZONTAL_PADDING,
-        paddingTop: 10,
-        paddingBottom: 10,
+        paddingTop: 8,
+        paddingBottom: 8,
     },
 
     // Standard Card
-    cardStandard: { width: SCREEN_WIDTH * 0.38, height: 220, marginRight: 12 },
+    cardStandard: { width: SCREEN_WIDTH * 0.36, height: 200, marginRight: 10 },
     cardRootStandard: {
-        width: '100%', height: '100%', backgroundColor: COLORS.white, borderRadius: 12, overflow: 'hidden',
-        borderWidth: 1, borderColor: COLORS.grayHeavvy || 'rgba(0,0,0,0.05)',
-        shadowColor: COLORS.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
+        width: '100%',
+        height: '100%',
+        backgroundColor: COLORS.white,
+        borderRadius: 12,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy || 'rgba(0,0,0,0.05)',
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+        elevation: 2,
     },
-    standardCoverWrap: { width: '100%', height: 140, overflow: 'hidden', backgroundColor: COLORS.background },
-    standardInfoWrap: { padding: 8, justifyContent: 'center' },
+    standardCoverWrap: {
+        width: '100%',
+        height: 125,
+        overflow: 'hidden',
+        backgroundColor: COLORS.background
+    },
+    standardInfoWrap: {
+        padding: 8,
+        justifyContent: 'center'
+    },
 
     // Compact Card
-    cardCompact: { width: SCREEN_WIDTH * 0.28, height: 160, marginRight: 12 },
+    cardCompact: { width: SCREEN_WIDTH * 0.26, height: 145, marginRight: 10 },
     cardRootCompact: {
-        width: '100%', height: '100%', backgroundColor: COLORS.white, borderRadius: 10, overflow: 'hidden',
-        borderWidth: 1, borderColor: COLORS.grayHeavvy || 'rgba(0,0,0,0.05)',
-        shadowColor: COLORS.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4, elevation: 1,
+        width: '100%',
+        height: '100%',
+        backgroundColor: COLORS.white,
+        borderRadius: 10,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy || 'rgba(0,0,0,0.05)',
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.03,
+        shadowRadius: 4,
+        elevation: 1,
     },
-    compactCoverWrap: { width: '100%', height: 100, overflow: 'hidden', backgroundColor: COLORS.background },
-    compactInfoWrap: { padding: 6, justifyContent: 'center' },
+    compactCoverWrap: {
+        width: '100%',
+        height: 90,
+        overflow: 'hidden',
+        backgroundColor: COLORS.background
+    },
+    compactInfoWrap: {
+        padding: 6,
+        justifyContent: 'center'
+    },
 
     // Horizontal Card
-    cardHorizontal: { width: SCREEN_WIDTH * 0.75, height: 120, marginRight: 12 },
+    cardHorizontal: { width: SCREEN_WIDTH * 0.72, height: 110, marginRight: 10 },
     cardRootHorizontal: {
-        width: '100%', height: '100%', backgroundColor: COLORS.white, borderRadius: 12, overflow: 'hidden',
-        borderWidth: 1, borderColor: COLORS.grayHeavvy || 'rgba(0,0,0,0.05)', flexDirection: 'row',
-        shadowColor: COLORS.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
+        width: '100%',
+        height: '100%',
+        backgroundColor: COLORS.white,
+        borderRadius: 12,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy || 'rgba(0,0,0,0.05)',
+        flexDirection: 'row',
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+        elevation: 2,
     },
-    horizontalCoverWrap: { width: 80, height: '100%', backgroundColor: COLORS.background },
-    horizontalInfoWrap: { flex: 1, padding: 12, justifyContent: 'space-between' },
-    horizontalMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    horizontalBadge: { backgroundColor: COLORS.blueLight, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-    horizontalBadgeText: { fontSize: rf(9), fontFamily: FONTS.manrope.bold, color: COLORS.blue },
+    horizontalCoverWrap: {
+        width: 72,
+        height: '100%',
+        backgroundColor: COLORS.background
+    },
+    horizontalInfoWrap: {
+        flex: 1,
+        padding: 10,
+        justifyContent: 'space-between'
+    },
+    horizontalMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+    },
+    horizontalBadge: {
+        backgroundColor: COLORS.blueLight,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4
+    },
+    horizontalBadgeText: {
+        fontSize: rf(8.5),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.blue
+    },
 
     // Featured Card
-    cardFeatured: { width: SCREEN_WIDTH * 0.55, height: 250, marginRight: 12 },
-    cardRootFeatured: {
-        width: '100%', height: '100%', backgroundColor: COLORS.black, borderRadius: 16, overflow: 'hidden',
-        shadowColor: COLORS.black, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4,
+    cardFeatured: {
+        width: SCREEN_WIDTH * 0.52,
+        height: 230,
+        marginRight: 10
     },
-    featuredOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' },
-    featuredInfoWrap: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 12 },
-    featuredTitle: { fontSize: rf(14), fontFamily: FONTS.montserrat.bold, color: COLORS.white, marginBottom: 2 },
-    featuredAuthor: { fontSize: rf(11), fontFamily: FONTS.manrope.medium, color: 'rgba(255,255,255,0.8)', marginBottom: 6 },
-    featuredPrice: { fontSize: rf(15), fontFamily: FONTS.montserrat.bold, color: COLORS.white },
+    cardRootFeatured: {
+        width: '100%',
+        height: '100%',
+        backgroundColor: COLORS.black,
+        borderRadius: 16,
+        overflow: 'hidden',
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 4,
+    },
+    featuredOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0,0,0,0.4)'
+    },
+    featuredInfoWrap: {
+        position: 'absolute',
+        bottom: 0, left: 0, right: 0, padding: 10
+    },
+    featuredTitle: {
+        fontSize: rf(13),
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.white,
+        marginBottom: 2
+    },
+    featuredAuthor: {
+        fontSize: rf(10.5),
+        fontFamily: FONTS.manrope.medium,
+        color: 'rgba(255,255,255,0.8)',
+        marginBottom: 6
+    },
+    featuredPrice: {
+        fontSize: rf(14),
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.white
+    },
 
     // Shared Texts
-    coverImg: { width: '100%', height: '100%' },
-    titleText: { fontSize: rf(12), fontFamily: FONTS.manrope.bold, color: COLORS.text, marginBottom: 2 },
-    authorText: { fontSize: rf(10), fontFamily: FONTS.manrope.medium, color: COLORS.textMuted, marginBottom: 4 },
-    priceText: { fontSize: rf(13), fontFamily: FONTS.montserrat.bold, color: COLORS.primary },
+    coverImg: {
+        width: '100%',
+        height: '100%'
+    },
+    titleText: {
+        fontSize: rf(11),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.text,
+        marginBottom: 2
+    },
+    authorText: {
+        fontSize: rf(9.5),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
+        marginBottom: 4
+    },
+    priceText: {
+        fontSize: rf(12),
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.primary
+    },
 });

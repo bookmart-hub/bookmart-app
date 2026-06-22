@@ -26,8 +26,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { CATEGORIES_LIST, CategoryItem } from '@/data/categoryMockData';
 import { rf } from '@/utils/responsive';
 
-const ITEM_WIDTH = 65;
-const ITEM_HEIGHT = 90;
+const ITEM_WIDTH = 58;
+const ITEM_HEIGHT = 82;
 const ITEM_GAP = 0;
 
 const SNAP_SIZE = ITEM_WIDTH + ITEM_GAP;
@@ -364,27 +364,27 @@ const styles = StyleSheet.create({
     title: {
         position: 'absolute',
         top: 0,
-        fontSize: rf(12),
+        fontSize: rf(11),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.textMuted,
         width: ITEM_WIDTH * 1.5,
         textAlign: 'center',
         zIndex: 10,
-        lineHeight: rf(12),
+        lineHeight: rf(11),
     },
     itemWrapper: {
         width: SNAP_SIZE,
         alignItems: 'center',
-        paddingTop: 10,
+        paddingTop: 8,
     },
     cardContainer: {
         width: ITEM_WIDTH,
         height: ITEM_HEIGHT,
-        borderRadius: 12,
+        borderRadius: 10,
         overflow: 'hidden',
         borderWidth: 2,
         backgroundColor: COLORS.background,
-        padding: 3,
+        padding: 2,
         shadowColor: COLORS.black,
         shadowOffset: {
             width: 0,
@@ -392,12 +392,12 @@ const styles = StyleSheet.create({
         },
         shadowOpacity: 0.04,
         shadowRadius: 2,
-        marginBottom: 10,
-        marginTop: rf(15),
+        marginBottom: 8,
+        marginTop: rf(12),
     },
     image: {
         width: '100%',
         height: '100%',
-        borderRadius: 10,
+        borderRadius: 8,
     },
 });

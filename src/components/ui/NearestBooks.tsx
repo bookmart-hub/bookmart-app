@@ -91,14 +91,14 @@ const DEFAULT_BOOKS: NearestBookItem[] = [
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 
-const CARD_WIDTH = SCREEN_WIDTH * 0.44;
-const ITEM_GAP = 16;
+const CARD_WIDTH = SCREEN_WIDTH * 0.42;
+const ITEM_GAP = 12;
 const SNAP_INTERVAL = CARD_WIDTH + ITEM_GAP;
 const HORIZONTAL_PADDING = SPACING.lg;
 
-const CARD_HEIGHT = 300;
+const CARD_HEIGHT = 280;
 const LIST_HEIGHT = CARD_HEIGHT + 20;
-const COVER_FLOAT = 12;
+const COVER_FLOAT = 10;
 
 const LOOP_COUNT = 3;
 
@@ -158,7 +158,7 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
         return {
             transform: [
                 {
-                    scale: interpolate(progressVal, [0, 1], [0.94, 1], Extrapolation.CLAMP)
+                    scale: interpolate(progressVal, [0, 1], [0.95, 1], Extrapolation.CLAMP)
                 }
             ],
         };
@@ -192,7 +192,7 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
         'worklet';
         const progressVal = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
         return {
-            bottom: interpolate(progressVal, [0, 1], [80, 0], Extrapolation.CLAMP),
+            bottom: interpolate(progressVal, [0, 1], [75, 0], Extrapolation.CLAMP),
         };
     });
 
@@ -205,7 +205,7 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
             opacity: activeProgressVal,
             transform: [
                 {
-                    translateY: interpolate(activeProgressVal, [0, 1], [15, 0], Extrapolation.CLAMP),
+                    translateY: interpolate(activeProgressVal, [0, 1], [12, 0], Extrapolation.CLAMP),
                 },
             ],
         };
@@ -264,23 +264,6 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
                     <Text style={styles.authorText} numberOfLines={1}>
                         {item.author}
                     </Text>
-
-                    {/* Seller row */}
-                    {item.sellerAvatarUri && item.description && (
-                        <View style={styles.sellerRow}>
-                            <Image
-                                source={{ uri: item.sellerAvatarUri }}
-                                style={styles.sellerAvatar}
-                                contentFit="cover"
-                                recyclingKey={item.sellerAvatarUri}
-                                cachePolicy="memory-disk"
-                                transition={0}
-                            />
-                            <Text style={styles.sellerDesc} numberOfLines={2}>
-                                {item.description}
-                            </Text>
-                        </View>
-                    )}
 
                     {/* Meta Row ── Condition / Distance */}
                     <View style={styles.metaRow}>
@@ -432,12 +415,12 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     headerTitle: {
-        fontSize: rf(20),
+        fontSize: rf(18),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
-        fontSize: rf(14),
+        fontSize: rf(13),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
@@ -466,7 +449,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         backgroundColor: COLORS.white,
-        borderRadius: 16,
+        borderRadius: 14,
         borderWidth: 1,
         borderColor: 'rgba(0,0,0,0.04)',
         shadowColor: COLORS.black,
@@ -477,10 +460,10 @@ const styles = StyleSheet.create({
     },
     coverWrap: {
         width: '99%',
-        height: 176,
+        height: 160,
         marginTop: 8,
-        borderTopLeftRadius: 16,
-        borderTopRightRadius: 16,
+        borderTopLeftRadius: 14,
+        borderTopRightRadius: 14,
         overflow: 'hidden',
         backgroundColor: COLORS.grayLight,
         zIndex: 2,
@@ -508,14 +491,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     titleText: {
-        fontSize: rf(13.5),
+        fontSize: rf(12.5),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
         flex: 1,
         marginRight: 4,
     },
     priceText: {
-        fontSize: rf(13),
+        fontSize: rf(12),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
@@ -526,7 +509,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     authorText: {
-        fontSize: rf(11),
+        fontSize: rf(10.5),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginTop: 1,
@@ -547,30 +530,29 @@ const styles = StyleSheet.create({
     },
     sellerDesc: {
         flex: 1,
-        fontSize: rf(9),
+        fontSize: rf(8.5),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
-        lineHeight: 11,
+        lineHeight: 10,
     },
     metaRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 8,
+        marginTop: rf(8)
     },
     conditionBadge: {
         backgroundColor: COLORS.secondary + '20',
-        paddingHorizontal: 6,
-        paddingVertical: 2,
+        paddingVertical: 1,
         borderRadius: 6,
     },
     conditionLabel: {
-        fontSize: rf(9),
+        fontSize: rf(8.5),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
     distanceLabel: {
-        fontSize: rf(10),
+        fontSize: rf(9.5),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.textMuted,
     },
