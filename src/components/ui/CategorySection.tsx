@@ -26,8 +26,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { CATEGORIES_LIST, CategoryItem } from '@/data/categoryMockData';
 import { rf } from '@/utils/responsive';
 
-const ITEM_WIDTH = 75;
-const ITEM_HEIGHT = 100;
+const ITEM_WIDTH = 65;
+const ITEM_HEIGHT = 90;
 const ITEM_GAP = 0;
 
 const SNAP_SIZE = ITEM_WIDTH + ITEM_GAP;
@@ -350,11 +350,11 @@ export default CategorySection;
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: SPACING.sm,
+        marginTop: rf(5),
     },
     header: {
         paddingHorizontal: SPACING.lg,
-        marginBottom: 2,
+        marginBottom: 10,
     },
     subtitle: {
         fontSize: rf(20),
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         borderWidth: 2,
         backgroundColor: COLORS.background,
-        padding: 4,
+        padding: 3,
         shadowColor: COLORS.black,
         shadowOffset: {
             width: 0,
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.04,
         shadowRadius: 2,
         marginBottom: 10,
-        marginTop: 14,
+        marginTop: rf(15),
     },
     image: {
         width: '100%',
