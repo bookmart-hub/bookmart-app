@@ -1,74 +1,101 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
-import { ScrollView } from 'react-native'
-import { ImageBackground } from 'expo-image'
-import { COLORS } from '@/constants/colors'
-import { FONTS } from '@/constants/fonts'
-import { rf } from '@/utils/responsive'
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import Carousel from 'react-native-reanimated-carousel';
+import Animated, {
+    interpolate,
+    useAnimatedStyle,
+} from 'react-native-reanimated';
+import { ImageBackground } from 'expo-image';
 
-const EditorsChoiceComp = ({ item }: { item: any }) => {
-    console.log('items from editors choice', item);
+import { COLORS } from '@/constants/colors';
+import { FONTS } from '@/constants/fonts';
+import { rf } from '@/utils/responsive';
 
+const CARD_WIDTH = rf(170);
+const CARD_HEIGHT = rf(200);
+
+const EditorsChoiceComp = ({ item }: { item: any[] }) => {
     return (
         <View style={styles.sectionContainer}>
             <Text style={styles.headerTitle}>Editor's Choice</Text>
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.container}
-            >
-                {item.map((item: any, key: number) => (
-                    <ImageBackground
-                        source={{ uri: item.coverUri }}
-                        style={styles.box}
-                        contentFit='cover'
-                        key={key}
-                    >
-                        <View style={styles.textContainer}>
-                            <Text style={styles.title}>{item.title}</Text>
-                            <Text style={styles.author}>{item.author}</Text>
-                            <Text style={styles.price}>{item.price}</Text>
-                        </View>
-                    </ImageBackground>
-                ))}
-            </ScrollView>
-        </View>
-    )
-}
 
-export default EditorsChoiceComp
+            <Carousel
+                loop
+                width={CARD_WIDTH + 10}
+                height={CARD_HEIGHT}
+                data={item}
+                autoPlay={false}
+                pagingEnabled
+                snapEnabled
+                style={{
+                    width: '100%',
+                    marginTop: 10,
+                }}
+                renderItem={({ item, animationValue }) => {
+                    const imageStyle = useAnimatedStyle(() => {
+                        const scale = interpolate(
+                            animationValue.value,
+                            [-1, 0, 1],
+                            [1, 1.08, 1]
+                        );
+
+                        return {
+                            transform: [{ scale }],
+                        };
+                    });
+
+                    return (
+                        <View style={styles.box}>
+                            <Animated.View
+                                style={[StyleSheet.absoluteFillObject, imageStyle]}
+                            >
+                                <ImageBackground
+                                    source={{ uri: item.coverUri }}
+                                    style={StyleSheet.absoluteFill}
+                                    contentFit="cover"
+                                >
+                                    <View style={styles.overlay}>
+                                        <Text style={styles.title}>{item.title}</Text>
+                                        <Text style={styles.author}>{item.author}</Text>
+                                        <Text style={styles.price}>{item.price}</Text>
+                                    </View>
+                                </ImageBackground>
+                            </Animated.View>
+                        </View>
+                    );
+                }}
+            />
+        </View>
+    );
+};
+
+export default EditorsChoiceComp;
 
 const styles = StyleSheet.create({
-    container: {
-        flexDirection: "row",
-        paddingVertical: 10,
-        gap: 10,
-        paddingHorizontal: rf(20)
+    sectionContainer: {
+        marginTop: rf(12),
+        marginBottom: rf(10),
+        paddingLeft: rf(20),
     },
     headerTitle: {
         fontSize: rf(16),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
-        paddingHorizontal: rf(20)
+        paddingHorizontal: rf(20),
     },
     box: {
-        width: rf(170),
-        height: rf(200),
-        marginRight: 10,
-        backgroundColor: "#fff",
+        width: CARD_WIDTH,
+        height: CARD_HEIGHT,
         borderRadius: 10,
-        overflow: "hidden",
+        overflow: 'hidden',
+        backgroundColor: COLORS.white,
     },
-    sectionContainer: {
-        marginTop: rf(12),
-        marginBottom: rf(10)
-    },
-    textContainer: {
+
+    overlay: {
         flex: 1,
-        justifyContent: "flex-end",
+        justifyContent: 'flex-end',
         padding: 10,
         backgroundColor: COLORS.completeTransparency,
-        borderRadius: 10,
     },
     title: {
         fontSize: rf(14),
@@ -76,16 +103,18 @@ const styles = StyleSheet.create({
         fontFamily: FONTS.manrope.medium,
         textShadowColor: COLORS.black,
         textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 1
+        textShadowRadius: 1,
     },
+
     author: {
         fontSize: rf(13),
         color: COLORS.white,
-        fontFamily: FONTS.manrope.light
+        fontFamily: FONTS.manrope.light,
     },
+
     price: {
         fontSize: rf(12),
         color: COLORS.white,
-        fontFamily: FONTS.manrope.regular
+        fontFamily: FONTS.manrope.regular,
     },
-})
+});
