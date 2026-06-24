@@ -12,9 +12,10 @@ interface HeaderProps {
     title?: string;
     backButton?: boolean;
     onPress?: () => void;
+    rightElement?: React.ReactNode;
 }
 
-const Header = ({ title, backButton, onPress }: HeaderProps) => {
+const Header = ({ title, backButton, onPress, rightElement }: HeaderProps) => {
     const navigation = useNavigation();
     return (
         <View>
@@ -28,7 +29,7 @@ const Header = ({ title, backButton, onPress }: HeaderProps) => {
                     </TouchableOpacity>
                 )}
                 <Text style={styles.title}>{title}</Text>
-                <View style={styles.headerRight} />
+                {rightElement ? rightElement : <View style={{ width: 24 }} />}
             </View>
         </View>
     )

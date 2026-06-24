@@ -224,7 +224,11 @@ const ProfileScreen = () => {
                         <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.toolCard} activeOpacity={0.8}>
+                    <TouchableOpacity
+                        style={styles.toolCard}
+                        activeOpacity={0.8}
+                        onPress={() => navigation.navigate('AppStack', { screen: 'BoostListing' })}
+                    >
                         <View style={[styles.toolIconWrap, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}>
                             <Ionicons name="rocket-outline" size={24} color="#F59E0B" />
                         </View>

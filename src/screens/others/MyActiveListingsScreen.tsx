@@ -191,7 +191,11 @@ export default function MyActiveListingsScreen() {
                 </View>
                 <Text style={styles.promoDesc}>Get 3x more visibility and reach more buyers.</Text>
             </View>
-            <TouchableOpacity style={styles.boostBtn} activeOpacity={0.8}>
+            <TouchableOpacity 
+                style={styles.boostBtn} 
+                activeOpacity={0.8}
+                onPress={() => navigation.navigate('BoostListing')}
+            >
                 <Text style={styles.boostBtnText}>Boost Now</Text>
             </TouchableOpacity>
         </View>
