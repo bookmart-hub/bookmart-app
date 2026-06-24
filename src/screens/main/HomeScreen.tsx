@@ -12,6 +12,7 @@ import NearestBooks, { NearestBookItem } from '@/components/ui/NearestBooks';
 import AuthorsSection, { AuthorItem } from '@/components/ui/AuthorsSection';
 import InstituteBooks, { InstituteBookItem } from '@/components/ui/InstituteBooks';
 import HorizontalBookList from '@/components/ui/HorizontalBookList';
+import EditorsChoiceComp from '@/components/smallComp/EditorsChoiceComp';
 
 const RECENTLY_ADDED = [
   { id: 'ra1', title: 'The Silent Patient', author: 'Alex Michaelides', price: 250, coverUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop', condition: 'Like New', distance: '1km' },
@@ -40,7 +41,7 @@ const EXCELLENT_CONDITION = [
 
 const EDITORS_CHOICE = [
   { id: 'ed1', title: 'Steve Jobs', author: 'Walter Isaacson', price: 500, coverUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=300&h=440&fit=crop', condition: 'Like New', distance: '4km' },
-  { id: 'ed2', title: 'Shoe Dog', author: 'Phil Knight', price: 400, coverUri: 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=300&h=440&fit=crop', condition: 'Good', distance: '2km' },
+  { id: 'ed2', title: 'Shoe Dog', author: 'Phil Knight', price: 400, coverUri: 'https://images.unsplash.com/photo-1656266724092-d979cb85469b?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', condition: 'Good', distance: '2km' },
   { id: 'ed3', title: 'Zero to One', author: 'Peter Thiel', price: 350, coverUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=300&h=440&fit=crop', condition: 'Like New', distance: '1km' },
 ];
 
@@ -174,7 +175,7 @@ const HomeScreen = () => {
           loop={true}
         />
 
-        <HorizontalBookList
+        {/* <HorizontalBookList
           title="Editor's Choice"
           books={EDITORS_CHOICE}
           animationType="standard"
@@ -182,7 +183,8 @@ const HomeScreen = () => {
           onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Editor\'s Choice' } })}
           onSeeAllPress={() => { }}
           loop={true}
-        />
+        /> */}
+        <EditorsChoiceComp item={EDITORS_CHOICE} />
 
       </ScrollView>
     </View>
