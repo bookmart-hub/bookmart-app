@@ -23,6 +23,7 @@ import SearchScreen from '@/screens/others/SearchScreen';
 import ReportScreen from '@/screens/others/ReportScreen';
 import MyListingsScreen from '@/screens/others/MyListingsScreen';
 import SoldBooksScreen from '@/screens/others/SoldBooksScreen';
+import MyActiveListingsScreen from '@/screens/others/MyActiveListingsScreen';
 
 export type AppStackParamList = {
     Business: undefined;
@@ -47,6 +48,7 @@ export type AppStackParamList = {
     Report: { initialTab?: 'Listing' | 'User'; targetId?: string };
     MyListings: undefined;
     SoldBooks: undefined;
+    MyActiveListings: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -82,6 +84,7 @@ export default function AppStackNavigator() {
             <Stack.Screen name="Report" component={ReportScreen} />
             <Stack.Screen name="MyListings" component={MyListingsScreen} />
             <Stack.Screen name="SoldBooks" component={SoldBooksScreen} />
+            <Stack.Screen name="MyActiveListings" component={MyActiveListingsScreen} />
         </Stack.Navigator>
     );
 }

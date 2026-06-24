@@ -175,15 +175,6 @@ const HomeScreen = () => {
           loop={true}
         />
 
-        {/* <HorizontalBookList
-          title="Editor's Choice"
-          books={EDITORS_CHOICE}
-          animationType="standard"
-          cardLayout="featured"
-          onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Editor\'s Choice' } })}
-          onSeeAllPress={() => { }}
-          loop={true}
-        /> */}
         <EditorsChoiceComp item={EDITORS_CHOICE} />
 
       </ScrollView>

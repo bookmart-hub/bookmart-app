@@ -199,7 +199,11 @@ const AnalyticsScreen = () => {
                 </View>
 
                 {/* Active Listings Card */}
-                <View style={styles.activeListingsCard}>
+                <TouchableOpacity
+                    style={styles.activeListingsCard}
+                    onPress={() => navigation.navigate('AppStack', { screen: 'MyActiveListings' })}
+                    activeOpacity={0.8}
+                >
                     <View style={styles.activeListingsLeft}>
                         <View style={styles.activeListingsIconWrap}>
                             <Ionicons name="book-outline" size={24} color={COLORS.primary} />
@@ -213,7 +217,7 @@ const AnalyticsScreen = () => {
                         <Text style={styles.activeListingsCount}>4</Text>
                         <Feather name="arrow-up-right" size={20} color={COLORS.primary} />
                     </View>
-                </View>
+                </TouchableOpacity>
 
                 {/* Top Performing List */}
                 <View style={styles.topPerformingSection}>
@@ -447,6 +451,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.secondary, // TODO: Implement gradient theme
         padding: SPACING.lg,
         borderRadius: 20,
+        boxShadow: '0px 3px 5px 0px rgba(0, 0, 0, 0.1)'
     },
     activeListingsLeft: {
         flexDirection: 'row',
