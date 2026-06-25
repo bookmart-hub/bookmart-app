@@ -244,7 +244,7 @@ export default function BoostListingScreen() {
             <Header
                 title="Boost Listing"
                 backButton
-                rightAction={() =>
+                rightElement={
                     <TouchableOpacity style={styles.helpIconBtn}>
                         <Ionicons name="help-circle-outline" size={24} color={COLORS.primary} />
                     </TouchableOpacity>

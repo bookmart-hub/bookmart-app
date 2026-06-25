@@ -1,440 +1,640 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, RefreshControl, TextInput, Pressable } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import {
+    StyleSheet,
+    Text,
+    View,
+    ScrollView,
+    TouchableOpacity,
+    Image,
+    Platform,
+    ToastAndroid
+} from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AppStackParamList } from '@/navigation/AppStackNavigator';
-import { Menu, Divider } from 'react-native-paper';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
+import Header from '@/components/ui/Header';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 import { StatusBar } from 'expo-status-bar';
 
-type NavigationProp = NativeStackNavigationProp<AppStackParamList>;
+const SectionCard = ({ children, style }: any) => (
+    <View style={[styles.sectionCard, style]}>{children}</View>
+);
 
-// Dummy data
-const MY_LISTINGS = [
-    {
-        id: '1',
-        title: 'Project Hail Mary',
-        price: 290,
-        status: 'Available',
-        coverUri: 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=400&h=600&fit=crop',
-        condition: 'Like New',
-        views: 120,
-        likes: 15,
-        listedOn: '2023-10-01'
-    },
-    {
-        id: '2',
-        title: '1984 by George Orwell',
-        price: 150,
-        status: 'Available',
-        coverUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop',
-        condition: 'Good',
-        views: 340,
-        likes: 42,
-        listedOn: '2023-09-15'
-    },
-    {
-        id: '3',
-        title: 'The Martian Chronicles',
-        price: 200,
-        status: 'Available',
-        coverUri: 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=400&h=600&fit=crop',
-        condition: 'Acceptable',
-        views: 80,
-        likes: 5,
-        listedOn: '2023-10-05'
-    },
-    {
-        id: '4',
-        title: 'Dune',
-        price: 300,
-        status: 'Sold',
-        coverUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop',
-        condition: 'Like New',
-        views: 500,
-        likes: 80,
-        listedOn: '2023-08-20'
-    }
-];
+const SectionHeader = ({ icon, title, showInfo = false, iconColor = COLORS.primary, customIcon }: any) => (
+    <View style={styles.sectionHeader}>
+        <View style={styles.sectionHeaderLeft}>
+            <View style={[styles.iconWrapper, { backgroundColor: iconColor + '15' }]}>
+                {customIcon ? customIcon : <Ionicons name={icon} size={20} color={iconColor} />}
+            </View>
+            <Text style={[styles.sectionTitle, { color: COLORS.black }]}>{title}</Text>
+        </View>
+        {showInfo && <Ionicons name="help-circle-outline" size={22} color={COLORS.primary} />}
+    </View>
+);
 
-const FILTER_CHIPS = ['All', 'Available', 'Sold'];
+const RadioOption = ({ label, selected, onPress }: any) => (
+    <TouchableOpacity style={styles.radioContainer} onPress={onPress} activeOpacity={0.7}>
+        <View style={[styles.radioOuter, selected && styles.radioOuterSelected]}>
+            {selected && <View style={styles.radioInner} />}
+        </View>
+        <Text style={styles.radioLabel}>{label}</Text>
+    </TouchableOpacity>
+);
 
-export default function MyListingsScreen() {
+const MyListingsScreen = () => {
     const insets = useSafeAreaInsets();
-    const navigation = useNavigation<NavigationProp>();
+    const navigation = useNavigation<any>();
 
-    const [searchQuery, setSearchQuery] = useState('');
-    const [activeFilter, setActiveFilter] = useState('All');
-    const [refreshing, setRefreshing] = useState(false);
-    const [visibleMenu, setVisibleMenu] = useState<string | null>(null);
+    const [condition, setCondition] = useState('Good');
+    const [visibility, setVisibility] = useState('My College Only');
+    const [status, setStatus] = useState('Active');
+    const [description, setDescription] = useState('This book is in good condition.\nNo pages missing.\nMinimal highlighting.');
 
-    const openMenu = (id: string) => setVisibleMenu(id);
-    const closeMenu = () => setVisibleMenu(null);
-
-    const onRefresh = useCallback(() => {
-        setRefreshing(true);
-        setTimeout(() => setRefreshing(false), 1000);
-    }, []);
-
-    const filteredData = MY_LISTINGS.filter(item => {
-        const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesFilter = activeFilter === 'All' || item.status === activeFilter;
-        return matchesSearch && matchesFilter;
-    });
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'Available': return COLORS.green;
-            case 'Sold': return COLORS.red;
-            default: return COLORS.primary;
-        }
+    const renderPhotosSection = () => {
+        return (
+            <View style={styles.photosSection}>
+                <View style={styles.photoGrid}>
+                    <View style={styles.photoBlock}>
+                        <Image
+                            source={{ uri: 'https://m.media-amazon.com/images/I/91bYsX41DVL.jpg' }}
+                            style={styles.bookPhoto}
+                            resizeMode='contain'
+                        />
+                        <TouchableOpacity style={styles.removePhotoBtn}>
+                            <Ionicons name="close" size={14} color={COLORS.white} />
+                        </TouchableOpacity>
+                    </View>
+                    {[1, 2, 3, 4, 5].map((item) => (
+                        <TouchableOpacity key={item} style={styles.emptyPhotoBlock}>
+                            <Feather name="plus" size={24} color={COLORS.textMuted} />
+                        </TouchableOpacity>
+                    ))}
+                </View>
+                <View style={styles.dragReorder}>
+                    <Ionicons name="swap-vertical" size={16} color={COLORS.textMuted} />
+                    <Text style={styles.dragText}>Drag to reorder photos</Text>
+                </View>
+            </View>
+        );
     };
-
-    const renderItem = ({ item }: { item: typeof MY_LISTINGS[0] }) => (
-        <Pressable
-            style={styles.card}
-        // onPress={() => navigation.navigate('AppStack', { screen: 'BookDetails' })}
-        >
-            <View style={styles.cardHeader}>
-                <Image source={{ uri: item.coverUri }} style={styles.coverImage} />
-                <View style={styles.cardInfo}>
-                    <View style={styles.titleRow}>
-                        <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
-                        <Menu
-                            visible={visibleMenu === item.id}
-                            onDismiss={closeMenu}
-                            anchor={
-                                <TouchableOpacity onPress={() => openMenu(item.id)} style={styles.moreIcon}>
-                                    <Feather name="more-vertical" size={20} color={COLORS.textMuted} />
-                                </TouchableOpacity>
-                            }
-                            contentStyle={{ backgroundColor: COLORS.white, borderRadius: 12 }}
-                        >
-                            <Menu.Item leadingIcon="pencil-outline" onPress={closeMenu} title="Edit" />
-                            <Menu.Item leadingIcon="check-circle-outline" onPress={closeMenu} title="Mark as Sold" />
-                            <Menu.Item leadingIcon="share-variant-outline" onPress={closeMenu} title="Share" />
-                            <Menu.Item leadingIcon="chart-bar" onPress={closeMenu} title="View Analytics" />
-                            <Divider />
-                            <Menu.Item leadingIcon="delete-outline" onPress={closeMenu} title="Delete" titleStyle={{ color: COLORS.red }} />
-                        </Menu>
-                    </View>
-                    <Text style={styles.price}>₹{item.price}</Text>
-                    <View style={styles.badgeRow}>
-                        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
-                            <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) }]} />
-                            <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>{item.status}</Text>
-                        </View>
-                        <View style={styles.conditionBadge}>
-                            <Text style={styles.conditionText}>{item.condition}</Text>
-                        </View>
-                    </View>
-                </View>
-            </View>
-            <View style={styles.cardFooter}>
-                <View style={styles.statsRow}>
-                    <View style={styles.statItem}>
-                        <Ionicons name="eye-outline" size={16} color={COLORS.textMuted} />
-                        <Text style={styles.statText}>{item.views} Views</Text>
-                    </View>
-                    <View style={styles.statItem}>
-                        <Ionicons name="heart-outline" size={16} color={COLORS.textMuted} />
-                        <Text style={styles.statText}>{item.likes} Likes</Text>
-                    </View>
-                </View>
-                <Text style={styles.dateText}>Listed {item.listedOn}</Text>
-            </View>
-        </Pressable>
-    );
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
             <StatusBar style="dark" />
 
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color={COLORS.text} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>My Listings</Text>
-                <View style={{ width: 40 }} />
-            </View>
-
-            {/* Search */}
-            <View style={styles.searchContainer}>
-                <Ionicons name="search" size={20} color={COLORS.textMuted} style={styles.searchIcon} />
-                <TextInput
-                    style={styles.searchInput}
-                    placeholder="Search your listings..."
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    placeholderTextColor={COLORS.textMuted}
-                />
-                {searchQuery.length > 0 && (
-                    <TouchableOpacity onPress={() => setSearchQuery('')}>
-                        <Ionicons name="close-circle" size={20} color={COLORS.textMuted} />
+            <Header
+                title="Edit Listing"
+                backButton
+                rightElement={
+                    <TouchableOpacity onPress={() => ToastAndroid.show('Preview version', ToastAndroid.SHORT)}>
+                        <Ionicons name="eye-outline" size={25} color={COLORS.primary} />
                     </TouchableOpacity>
-                )}
-            </View>
-
-            {/* Filter Chips */}
-            <View style={styles.filtersWrapper}>
-                <FlatList
-                    data={FILTER_CHIPS}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.filtersContainer}
-                    keyExtractor={(item) => item}
-                    renderItem={({ item }) => (
-                        <TouchableOpacity
-                            style={[
-                                styles.filterChip,
-                                activeFilter === item && styles.filterChipActive
-                            ]}
-                            onPress={() => setActiveFilter(item)}
-                        >
-                            <Text style={[
-                                styles.filterChipText,
-                                activeFilter === item && styles.filterChipTextActive
-                            ]}>
-                                {item}
-                            </Text>
-                        </TouchableOpacity>
-                    )}
-                />
-            </View>
-
-            {/* List */}
-            <FlatList
-                data={filteredData}
-                keyExtractor={(item) => item.id}
-                renderItem={renderItem}
-                contentContainerStyle={styles.listContainer}
-                showsVerticalScrollIndicator={false}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} />
-                }
-                ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                        <Ionicons name="book-outline" size={64} color={COLORS.textMuted} />
-                        <Text style={styles.emptyTitle}>No listings found</Text>
-                        <Text style={styles.emptySubtitle}>You don't have any books listed matching your search or filter.</Text>
-                    </View>
                 }
             />
+
+            <ScrollView
+                contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]}
+                showsVerticalScrollIndicator={false}
+            >
+                {renderPhotosSection()}
+
+                <SectionCard>
+                    <SectionHeader icon="information-circle-outline" title="Basic Information" />
+                    <View style={styles.row}>
+                        <View style={{ flex: 1, paddingRight: SPACING.xs }}>
+                            <Input label="Book Title *" value="Atomic Habits" placeholder="Enter title" />
+                        </View>
+                        <View style={{ flex: 1, paddingLeft: SPACING.xs }}>
+                            <Input label="Author *" value="James Clear" placeholder="Enter author" />
+                        </View>
+                    </View>
+                    <View style={styles.row}>
+                        <View style={{ flex: 1, paddingRight: SPACING.xs }}>
+                            <TouchableOpacity activeOpacity={0.8}>
+                                <View pointerEvents="none">
+                                    <Input
+                                        label="Category *"
+                                        value="Self Help"
+                                        placeholder="Select category"
+                                    />
+                                    <Ionicons name="chevron-down" size={20} color={COLORS.textMuted} style={styles.dropdownIcon} />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={{ flex: 1, paddingLeft: SPACING.xs }}>
+                            <Input label="ISBN (Optional)" value="9781847941831" placeholder="Enter ISBN" />
+                        </View>
+                    </View>
+                </SectionCard>
+
+                <View style={styles.row}>
+                    <SectionCard style={{ flex: 1, marginRight: SPACING.xs }}>
+                        <SectionHeader icon="shield-checkmark-outline" title="Condition" showInfo />
+                        <View style={styles.conditionGrid}>
+                            {['Like New', 'Good', 'Fair', 'Poor'].map((cond) => {
+                                const isSelected = condition === cond;
+                                return (
+                                    <TouchableOpacity
+                                        key={cond}
+                                        style={[styles.conditionBtn, isSelected && styles.conditionBtnSelected]}
+                                        onPress={() => setCondition(cond)}
+                                    >
+                                        <Text style={[styles.conditionText, isSelected && styles.conditionTextSelected]}>{cond}</Text>
+                                        {isSelected && <Ionicons name="checkmark-circle" size={16} color={COLORS.white} style={{ marginLeft: 4 }} />}
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    </SectionCard>
+
+                    <SectionCard style={{ flex: 1, marginLeft: SPACING.xs }}>
+                        <SectionHeader icon="pricetag-outline" title="Pricing" />
+                        <Input label="Selling Price *" value="₹350" placeholder="₹0" />
+                        <Input label="Original Price (Optional)" value="₹699" placeholder="₹0" />
+                    </SectionCard>
+                </View>
+
+                <SectionCard>
+                    <SectionHeader icon="list-outline" title="Description" />
+                    <View style={styles.descriptionContainer}>
+                        <Input
+                            multiline
+                            numberOfLines={4}
+                            value={description}
+                            onChangeText={setDescription}
+                            placeholder="Describe your book's condition..."
+                            style={styles.descriptionInput}
+                            containerStyle={{ marginVertical: 0 }}
+                        />
+                        <Text style={styles.charCount}>{description.length} / 500</Text>
+                    </View>
+                </SectionCard>
+
+                <View style={styles.row}>
+                    <SectionCard style={{ flex: 1, marginRight: SPACING.xs }}>
+                        <SectionHeader icon="eye-outline" title="Visibility" showInfo />
+                        <View style={styles.radioGroup}>
+                            <RadioOption label="Everyone" selected={visibility === 'Everyone'} onPress={() => setVisibility('Everyone')} />
+                            <RadioOption label="My College Only" selected={visibility === 'My College Only'} onPress={() => setVisibility('My College Only')} />
+                        </View>
+                        <View style={styles.collegeInfoBox}>
+                            <View style={styles.collegeNameRow}>
+                                <Ionicons name="school" size={16} color={COLORS.primary} />
+                                <Text style={styles.collegeName} numberOfLines={1}>Shri Ram College of Commerce</Text>
+                            </View>
+                            <TouchableOpacity>
+                                <Text style={styles.changeText}>Change</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </SectionCard>
+
+                    <SectionCard style={styles.performanceSection}>
+                        <SectionHeader icon="bar-chart-outline" title="Listing Performance" showInfo />
+                        <View style={styles.performanceGrid}>
+                            <View style={styles.perfItem}>
+                                <Ionicons name="eye" size={20} color={COLORS.primary} />
+                                <Text style={styles.perfValue}>152</Text>
+                                <Text style={styles.perfLabel}>Views</Text>
+                            </View>
+                            <View style={styles.perfDivider} />
+                            <View style={styles.perfItem}>
+                                <Ionicons name="heart-outline" size={20} color={COLORS.primary} />
+                                <Text style={styles.perfValue}>22</Text>
+                                <Text style={styles.perfLabel}>Interested</Text>
+                            </View>
+                            <View style={styles.perfDivider} />
+                            <View style={styles.perfItem}>
+                                <Ionicons name="logo-whatsapp" size={20} color={COLORS.primary} />
+                                <Text style={styles.perfValue}>8</Text>
+                                <Text style={styles.perfLabel}>WhatsApp Clicks</Text>
+                            </View>
+                        </View>
+                        <Text style={styles.listedDate}>Listed on 12 May 2024</Text>
+                    </SectionCard>
+                </View>
+
+                <View style={styles.row}>
+                    <SectionCard style={{ flex: 1, marginRight: SPACING.xs }}>
+                        <SectionHeader icon="flag-outline" title="Listing Status" showInfo />
+                        <View style={styles.radioGroup}>
+                            <RadioOption label="Active" selected={status === 'Active'} onPress={() => setStatus('Active')} />
+                            <RadioOption label="Pause Listing" selected={status === 'Pause Listing'} onPress={() => setStatus('Pause Listing')} />
+                            <RadioOption label="Mark as Sold" selected={status === 'Mark as Sold'} onPress={() => setStatus('Mark as Sold')} />
+                        </View>
+                    </SectionCard>
+
+                    <SectionCard style={{ flex: 1, backgroundColor: COLORS.secondary, elevation: -10 }}>
+                        <SectionHeader icon="rocket-outline" title="Boost Listing" iconColor={COLORS.primary} />
+                        <View style={styles.boostContent}>
+                            <Text style={styles.boostSub}>Current Position</Text>
+                            <Text style={styles.boostPosition}>#14 in Self Help</Text>
+                            <Text style={styles.boostDesc}>Boosted listings get more visibility.</Text>
+                            <Button
+                                title="Boost Now"
+                                style={styles.boostBtn}
+                                textStyle={styles.boostBtnText}
+                                onPress={() => navigation.navigate('AppStack', { screen: 'BoostListing' })}
+                            />
+                        </View>
+                    </SectionCard>
+                </View>
+
+                <View style={styles.dangerSection}>
+                    <View style={styles.dangerHeader}>
+                        <View style={styles.dangerIconWrap}>
+                            <Ionicons name="trash-outline" size={20} color={COLORS.red} />
+                        </View>
+                        <View>
+                            <Text style={styles.dangerTitle}>Delete Listing</Text>
+                            <Text style={styles.dangerSub}>This action cannot be undone.</Text>
+                        </View>
+                    </View>
+                </View>
+
+            </ScrollView>
+
+            <View style={[styles.bottomBar, { paddingBottom: insets.bottom || SPACING.md }]}>
+                <View style={styles.bottomBarRow}>
+                    <Button
+                        title="Cancel"
+                        variant="outline"
+                        style={styles.cancelBtn}
+                        onPress={() => navigation.goBack()}
+                    />
+                    <Button
+                        title="Save Changes"
+                        style={styles.saveBtn}
+                    />
+                </View>
+            </View>
         </View>
     );
-}
+};
+
+export default MyListingsScreen;
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.background },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: SPACING.lg,
-        paddingVertical: SPACING.md,
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 20,
-        backgroundColor: COLORS.white,
-        shadowColor: COLORS.black,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-        elevation: 2,
-    },
-    headerTitle: {
-        fontSize: rf(18),
-        fontFamily: FONTS.montserrat.bold,
-        color: COLORS.text
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: COLORS.white,
-        marginHorizontal: SPACING.lg,
-        paddingHorizontal: SPACING.md,
-        borderRadius: 12,
-        height: 48,
-        marginBottom: SPACING.md,
-        shadowColor: COLORS.black,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-        elevation: 2,
-    },
-    searchIcon: {
-        marginRight: SPACING.sm
-    },
-    searchInput: {
+    container: {
         flex: 1,
-        fontSize: rf(13),
-        fontFamily: FONTS.manrope.medium,
-        color: COLORS.text
+        backgroundColor: COLORS.background,
     },
-    filtersWrapper: {
-        marginBottom: SPACING.sm
+    previewText: {
+        fontSize: rf(12),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.primary,
     },
-    filtersContainer: {
+    performanceSection: {
+        flex: 1,
+        marginLeft: SPACING.xs
+    },
+    scrollContent: {
         paddingHorizontal: SPACING.lg,
-        gap: SPACING.sm
+        paddingTop: SPACING.md,
     },
-    filterChip: {
-        paddingHorizontal: SPACING.md,
-        paddingVertical: SPACING.xs + 2,
-        borderRadius: 20,
-        backgroundColor: COLORS.white,
+    photosSection: {
+        marginBottom: SPACING.xl,
+    },
+    photosScroll: {
+        gap: SPACING.md,
+        paddingRight: SPACING.lg,
+    },
+    photoGrid: {
+        display: 'flex',
+        gap: 10,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        alignItems: 'stretch',
+        justifyContent: 'center',
         borderWidth: 1,
         borderColor: COLORS.grayHeavvy,
+        borderRadius: rf(18),
+        padding: rf(18)
     },
-    filterChipActive: {
-        backgroundColor: COLORS.primary,
-        borderColor: COLORS.primary
+    photoBlock: {
+        width: 80,
+        height: 100,
+        borderRadius: 8,
+        overflow: 'hidden',
+        position: 'relative',
     },
-    filterChipText: {
+    bookPhoto: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    removePhotoBtn: {
+        position: 'absolute',
+        top: 4,
+        right: 4,
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    emptyPhotoBlock: {
+        width: 80,
+        height: 100,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy,
+        borderStyle: 'dashed',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: COLORS.white,
+    },
+    dragReorder: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: SPACING.md,
+        gap: 6,
+    },
+    dragText: {
         fontSize: rf(12),
-        fontFamily: FONTS.manrope.semibold,
-        color: COLORS.textMuted
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
     },
-    filterChipTextActive: {
-        color: COLORS.white
-    },
-    listContainer: {
-        padding: SPACING.lg,
-        paddingBottom: SPACING.xl,
-        gap: SPACING.md
-    },
-    card: {
+    sectionCard: {
         backgroundColor: COLORS.white,
         borderRadius: 16,
         padding: SPACING.md,
+        marginBottom: SPACING.lg,
         shadowColor: COLORS.black,
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 8,
-        elevation: 3,
+        elevation: 2,
     },
-    cardHeader: {
+    sectionHeader: {
         flexDirection: 'row',
-        gap: SPACING.md,
-        marginBottom: SPACING.md
-    },
-    coverImage: {
-        width: 70,
-        height: 100,
-        borderRadius: 8,
-        backgroundColor: COLORS.grayHeavvy
-    },
-    cardInfo: {
-        flex: 1,
-        justifyContent: 'space-between'
-    },
-    titleRow: {
-        flexDirection: 'row',
+        alignItems: 'center',
         justifyContent: 'space-between',
-        alignItems: 'flex-start'
+        marginBottom: SPACING.md,
     },
-    title: {
-        flex: 1,
-        fontSize: rf(14),
-        fontFamily: FONTS.montserrat.semibold,
-        color: COLORS.text,
-        marginRight: SPACING.sm
-    },
-    moreIcon: {
-        padding: 4
-    },
-    price: {
-        fontSize: rf(15),
-        fontFamily: FONTS.montserrat.bold,
-        color: COLORS.primary,
-        marginVertical: 4
-    },
-    badgeRow: {
-        flexDirection: 'row',
-        gap: SPACING.sm
-    },
-    statusBadge: {
+    sectionHeaderLeft: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-        gap: 4
+        gap: SPACING.sm,
     },
-    statusDot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3
-    },
-    statusText: {
-        fontSize: rf(10),
-        fontFamily: FONTS.manrope.bold
-    },
-    conditionBadge: {
-        backgroundColor: COLORS.background,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12
-    },
-    conditionText: {
-        fontSize: rf(10),
-        fontFamily: FONTS.manrope.medium,
-        color: COLORS.textMuted
-    },
-    cardFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingTop: SPACING.sm,
-        borderTopWidth: 1,
-        borderTopColor: COLORS.grayHeavvy
-    },
-    statsRow: {
-        flexDirection: 'row',
-        gap: SPACING.md
-    },
-    statItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4
-    },
-    statText: {
-        fontSize: rf(11),
-        fontFamily: FONTS.manrope.medium,
-        color: COLORS.textMuted
-    },
-    dateText: {
-        fontSize: rf(10),
-        fontFamily: FONTS.manrope.regular,
-        color: COLORS.textMuted
-    },
-    emptyContainer: {
+    iconWrapper: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: SPACING.xl
     },
-    emptyTitle: {
+    sectionTitle: {
+        fontSize: rf(15),
+        fontFamily: FONTS.montserrat.bold,
+    },
+    row: {
+        flexDirection: 'column',
+        marginBottom: 0,
+    },
+    dropdownIcon: {
+        position: 'absolute',
+        right: 12,
+        top: 45,
+    },
+    conditionGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: SPACING.xs,
+        marginTop: SPACING.xs,
+    },
+    conditionBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy,
+        borderRadius: 8,
+        paddingVertical: 8,
+        width: '47%',
+    },
+    conditionBtnSelected: {
+        backgroundColor: COLORS.primary,
+        borderColor: COLORS.primary,
+    },
+    conditionText: {
+        fontSize: rf(12),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.text,
+    },
+    conditionTextSelected: {
+        color: COLORS.white,
+    },
+    descriptionContainer: {
+        position: 'relative',
+    },
+    descriptionInput: {
+        height: 100,
+    },
+    charCount: {
+        position: 'absolute',
+        bottom: -20,
+        right: 0,
+        fontSize: rf(11),
+        fontFamily: FONTS.manrope.regular,
+        color: COLORS.textMuted,
+    },
+    radioGroup: {
+        gap: SPACING.sm,
+        marginTop: SPACING.xs,
+    },
+    radioContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: SPACING.sm,
+    },
+    radioOuter: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: COLORS.grayHeavvy,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    radioOuterSelected: {
+        borderColor: COLORS.primary,
+    },
+    radioInner: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: COLORS.primary,
+    },
+    radioLabel: {
+        fontSize: rf(13),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.text,
+    },
+    collegeInfoBox: {
+        marginTop: SPACING.md,
+        backgroundColor: COLORS.secondary,
+        borderRadius: 8,
+        padding: SPACING.sm,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    collegeNameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        flex: 1,
+        paddingRight: SPACING.sm,
+    },
+    collegeName: {
+        fontSize: rf(11),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.primary,
+        flexShrink: 1,
+    },
+    changeText: {
+        fontSize: rf(11),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.primary,
+    },
+    performanceGrid: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: SPACING.xs,
+    },
+    perfItem: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    perfValue: {
         fontSize: rf(16),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
-        marginTop: SPACING.md,
-        marginBottom: SPACING.xs
+        marginTop: 4,
     },
-    emptySubtitle: {
-        fontSize: rf(13),
-        fontFamily: FONTS.manrope.regular,
+    perfLabel: {
+        fontSize: rf(10),
+        fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         textAlign: 'center',
-        paddingHorizontal: SPACING.xl
     },
+    perfDivider: {
+        width: 1,
+        height: 30,
+        backgroundColor: COLORS.grayHeavvy,
+    },
+    listedDate: {
+        fontSize: rf(11),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
+        marginTop: SPACING.md,
+        textAlign: 'center',
+    },
+    boostContent: {
+        marginTop: SPACING.xs,
+    },
+    boostSub: {
+        fontSize: rf(11),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
+    },
+    boostPosition: {
+        fontSize: rf(14),
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.primary,
+        marginVertical: 4,
+    },
+    boostDesc: {
+        fontSize: rf(11),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.text,
+        marginBottom: SPACING.md,
+    },
+    boostBtn: {
+        height: 40,
+    },
+    boostBtnText: {
+        fontSize: rf(13),
+    },
+    dangerSection: {
+        backgroundColor: COLORS.redLight,
+        borderRadius: 16,
+        padding: SPACING.md,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderWidth: 1,
+        borderColor: 'rgba(239, 68, 68, 0.2)',
+        marginBottom: SPACING.xl,
+    },
+    dangerHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: SPACING.sm,
+        flex: 1,
+    },
+    dangerIconWrap: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    dangerTitle: {
+        fontSize: rf(14),
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.red,
+    },
+    dangerSub: {
+        fontSize: rf(11),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
+    },
+    deleteBtn: {
+        height: 36,
+        width: 100,
+        borderColor: COLORS.red,
+        marginVertical: 0,
+    },
+    deleteBtnText: {
+        color: COLORS.red,
+        fontSize: rf(12),
+    },
+    bottomBar: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: COLORS.white,
+        borderTopWidth: 1,
+        borderTopColor: COLORS.grayHeavvy,
+        paddingHorizontal: SPACING.lg,
+        paddingTop: SPACING.md,
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 10,
+    },
+    bottomBarRow: {
+        flexDirection: 'row',
+        gap: SPACING.md,
+    },
+    cancelBtn: {
+        flex: 1,
+        height: rf(50),
+    },
+    saveBtn: {
+        flex: 1,
+        height: rf(50),
+    }
 });

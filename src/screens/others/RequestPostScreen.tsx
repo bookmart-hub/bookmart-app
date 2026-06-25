@@ -10,6 +10,7 @@ import { rf } from '@/utils/responsive';
 import Header from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { StatusBar } from 'expo-status-bar';
 
 const CONDITIONS = ['New', 'Like New', 'Good', 'Acceptable'];
 
@@ -41,6 +42,7 @@ const RequestPostScreen = () => {
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
+            <StatusBar style="dark" />
             <Header title="Post a Requirement" backButton />
 
             <KeyboardAvoidingView

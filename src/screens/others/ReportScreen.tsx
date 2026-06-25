@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, Dimensions, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, Dimensions, Keyboard, ToastAndroid } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -11,6 +11,7 @@ import { rf } from '@/utils/responsive';
 import Header from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { StatusBar } from 'expo-status-bar';
 
 const { width } = Dimensions.get('window');
 
@@ -133,20 +134,19 @@ export default function ReportScreen() {
         setIsSubmitting(true);
         setTimeout(() => {
             setIsSubmitting(false);
-            Alert.alert('Report Submitted', 'Thank you for your report. We will review it shortly.', [
-                { text: 'OK', onPress: () => navigation.goBack() }
-            ]);
+            ToastAndroid.show('Report Submitted', ToastAndroid.SHORT);
+            navigation.goBack();
         }, 1500);
     };
 
     const handleNext = () => {
         if (activeTab === 'Listing') {
             if (listingStep === 1 && !listingCategory) {
-                Alert.alert('Error', 'Please select a category.');
+                ToastAndroid.show('Please select a category.', ToastAndroid.SHORT);
                 return;
             }
             if (listingStep === 2 && !listingReason) {
-                Alert.alert('Error', 'Please select a reason.');
+                ToastAndroid.show('Please select a reason.', ToastAndroid.SHORT);
                 return;
             }
             if (listingStep < 3) {
@@ -156,7 +156,7 @@ export default function ReportScreen() {
             }
         } else {
             if (userStep === 1 && !userReason) {
-                Alert.alert('Error', 'Please select a reason.');
+                ToastAndroid.show('Please select a reason.', ToastAndroid.SHORT);
                 return;
             }
             if (userStep < 2) {
@@ -370,6 +370,7 @@ export default function ReportScreen() {
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
+            <StatusBar style="dark" />
             <Header title="Report" backButton />
 
             <KeyboardAvoidingView
@@ -618,13 +619,12 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         padding: SPACING.md,
         marginBottom: SPACING.sm,
-        borderWidth: 2,
+        borderWidth: 1,
         borderColor: 'transparent',
         shadowColor: COLORS.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.04,
         shadowRadius: 8,
-        elevation: 2,
     },
     gridCardSelected: {
         borderColor: COLORS.primary,

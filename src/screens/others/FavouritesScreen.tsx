@@ -9,6 +9,7 @@ import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import Header from '@/components/ui/Header';
+import { StatusBar } from 'expo-status-bar';
 
 const { width, height } = Dimensions.get('window');
 
@@ -79,6 +80,7 @@ const FavouritesScreen = () => {
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
+            <StatusBar style="dark" />
             <Header title="My Interests" backButton />
 
             <FlatList
