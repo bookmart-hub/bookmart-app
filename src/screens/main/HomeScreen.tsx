@@ -13,6 +13,7 @@ import AuthorsSection, { AuthorItem } from '@/components/ui/AuthorsSection';
 import InstituteBooks, { InstituteBookItem } from '@/components/ui/InstituteBooks';
 import HorizontalBookList from '@/components/ui/HorizontalBookList';
 import EditorsChoiceComp from '@/components/smallComp/EditorsChoiceComp';
+import ExcellentCondition from '@/components/smallComp/ExcellentCondition';
 
 const RECENTLY_ADDED = [
   { id: 'ra1', title: 'The Silent Patient', author: 'Alex Michaelides', price: 250, coverUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop', condition: 'Like New', distance: '1km' },
@@ -174,6 +175,7 @@ const HomeScreen = () => {
           onSeeAllPress={() => { }}
           loop={true}
         />
+        {/* <ExcellentCondition item={EXCELLENT_CONDITION} /> */}
 
         <EditorsChoiceComp item={EDITORS_CHOICE} />
 

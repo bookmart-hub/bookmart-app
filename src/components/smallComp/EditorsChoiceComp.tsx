@@ -80,8 +80,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: rf(16),
         fontFamily: FONTS.montserrat.bold,
-        color: COLORS.text,
-        paddingHorizontal: rf(20),
+        color: COLORS.text
     },
     box: {
         width: CARD_WIDTH,
