@@ -74,8 +74,8 @@ const HomeScreen = () => {
   }, [navigation]);
 
   const handleInstituteSeeAllPress = useCallback(() => {
-    // TODO: navigate to institute books list
-  }, []);
+    navigation.navigate('AppStack', { screen: 'CollegeInsights' });
+  }, [navigation]);
 
   const handleAuthorPress = useCallback((author: AuthorItem) => {
     navigation.navigate('AppStack', { screen: 'AuthorDetails', params: { author } });

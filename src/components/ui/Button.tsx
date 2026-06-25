@@ -16,7 +16,7 @@ import { rf } from '@/utils/responsive';
 import { TouchableRipple } from 'react-native-paper';
 
 interface ButtonProps {
-  title: string;
+  title?: string;
   onPress?: () => void;
   variant?: 'primary' | 'outline' | 'text';
   icon?: React.ReactNode;
