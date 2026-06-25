@@ -91,7 +91,7 @@ const MyListingsScreen = () => {
                 title="Edit Listing"
                 backButton
                 rightElement={
-                    <TouchableOpacity onPress={() => ToastAndroid.show('Preview version', ToastAndroid.SHORT)}>
+                    <TouchableOpacity onPress={() => navigation.navigate('PublicProfile')}>
                         <Ionicons name="eye-outline" size={25} color={COLORS.primary} />
                     </TouchableOpacity>
                 }
@@ -574,6 +574,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'rgba(239, 68, 68, 0.2)',
         marginBottom: SPACING.xl,
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
     },
     dangerHeader: {
         flexDirection: 'row',

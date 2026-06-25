@@ -25,6 +25,7 @@ import MyListingsScreen from '@/screens/others/MyListingsScreen';
 import SoldBooksScreen from '@/screens/others/SoldBooksScreen';
 import MyActiveListingsScreen from '@/screens/others/MyActiveListingsScreen';
 import BoostListingScreen from '@/screens/others/BoostListingScreen';
+import PublicProfileScreen from '@/screens/others/PublicProfileScreen';
 
 export type AppStackParamList = {
     Business: undefined;
@@ -51,6 +52,7 @@ export type AppStackParamList = {
     SoldBooks: undefined;
     MyActiveListings: undefined;
     BoostListing: undefined;
+    PublicProfile: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -88,6 +90,7 @@ export default function AppStackNavigator() {
             <Stack.Screen name="SoldBooks" component={SoldBooksScreen} />
             <Stack.Screen name="MyActiveListings" component={MyActiveListingsScreen} />
             <Stack.Screen name="BoostListing" component={BoostListingScreen} />
+            <Stack.Screen name="PublicProfile" component={PublicProfileScreen} />
         </Stack.Navigator>
     );
 }

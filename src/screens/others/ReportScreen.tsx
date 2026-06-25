@@ -12,6 +12,11 @@ import Header from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { StatusBar } from 'expo-status-bar';
+import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    withTiming,
+} from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
 
@@ -130,6 +135,20 @@ export default function ReportScreen() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const tabWidth = (width - SPACING.lg * 2 - 8) / 2;
+
+    const translateX = useSharedValue(
+        initialTab === 'User' ? tabWidth : 0
+    );
+
+    const indicatorStyle = useAnimatedStyle(() => ({
+        transform: [
+            {
+                translateX: translateX.value,
+            },
+        ],
+    }));
+
     const handleSubmit = () => {
         setIsSubmitting(true);
         setTimeout(() => {
@@ -185,26 +204,73 @@ export default function ReportScreen() {
 
     const renderTabs = () => (
         <View style={styles.tabContainer}>
+
+            <Animated.View
+                style={[
+                    styles.tabIndicator,
+                    indicatorStyle,
+                    { width: tabWidth },
+                ]}
+            />
+
             <TouchableOpacity
-                style={[styles.tabButton, activeTab === 'Listing' && styles.activeTab]}
+                style={styles.tabButton}
                 onPress={() => {
                     setActiveTab('Listing');
                     setListingStep(1);
+                    translateX.value = withTiming(0);
                 }}
             >
-                <Ionicons name="home-outline" size={18} color={activeTab === 'Listing' ? COLORS.white : COLORS.textMuted} />
-                <Text style={[styles.tabText, activeTab === 'Listing' && styles.activeTabText]}>Listing</Text>
+                <Ionicons
+                    name="home-outline"
+                    size={18}
+                    color={
+                        activeTab === 'Listing'
+                            ? COLORS.white
+                            : COLORS.textMuted
+                    }
+                />
+
+                <Text
+                    style={[
+                        styles.tabText,
+                        activeTab === 'Listing' &&
+                        styles.activeTabText,
+                    ]}
+                >
+                    Listing
+                </Text>
             </TouchableOpacity>
+
             <TouchableOpacity
-                style={[styles.tabButton, activeTab === 'User' && styles.activeTab]}
+                style={styles.tabButton}
                 onPress={() => {
                     setActiveTab('User');
                     setUserStep(1);
+                    translateX.value = withTiming(tabWidth);
                 }}
             >
-                <Ionicons name="person-outline" size={18} color={activeTab === 'User' ? COLORS.white : COLORS.textMuted} />
-                <Text style={[styles.tabText, activeTab === 'User' && styles.activeTabText]}>User</Text>
+                <Ionicons
+                    name="person-outline"
+                    size={18}
+                    color={
+                        activeTab === 'User'
+                            ? COLORS.white
+                            : COLORS.textMuted
+                    }
+                />
+
+                <Text
+                    style={[
+                        styles.tabText,
+                        activeTab === 'User' &&
+                        styles.activeTabText,
+                    ]}
+                >
+                    User
+                </Text>
             </TouchableOpacity>
+
         </View>
     );
 
@@ -453,9 +519,19 @@ const styles = StyleSheet.create({
     tabContainer: {
         flexDirection: 'row',
         backgroundColor: COLORS.grayHeavvy,
-        borderRadius: 12,
+        borderRadius: 14,
         padding: 4,
         marginTop: SPACING.lg,
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    tabIndicator: {
+        position: 'absolute',
+        top: 4,
+        left: 4,
+        bottom: 4,
+        borderRadius: 10,
+        backgroundColor: COLORS.primary,
     },
     tabButton: {
         flex: 1,

@@ -109,7 +109,14 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, animatio
         return (
             <Pressable onPress={handlePress} style={cardStyles}>
                 <Animated.View style={[rootStyle, animatedStyle]}>
-                    <Image recyclingKey={item.id} cachePolicy="memory-disk" source={{ uri: item.coverUri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={0} />
+                    <Image
+                        recyclingKey={item.id}
+                        cachePolicy="memory-disk"
+                        source={{ uri: item.coverUri }}
+                        style={StyleSheet.absoluteFill}
+                        contentFit="contain"
+                        transition={0}
+                    />
                     <View style={styles.featuredOverlay} />
                     <View style={styles.featuredInfoWrap}>
                         <Text style={styles.featuredTitle} numberOfLines={2}>{item.title}</Text>
