@@ -10,6 +10,7 @@ import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import { StatusBar } from 'expo-status-bar';
 import { Divider, Menu } from 'react-native-paper';
+import { Image } from 'expo-image';
 
 const { width } = Dimensions.get('window');
 
@@ -71,7 +72,10 @@ const ProfileScreen = () => {
     return (
         <View style={styles.container}>
             {/* Header Section (Gradient Background) */}
-            <View
+            <LinearGradient
+                colors={[COLORS.secondary, COLORS.background]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
                 style={[styles.headerContainer, { paddingTop: insets.top + SPACING.md }]}
             >
                 {/* Top Bar */}
@@ -140,7 +144,11 @@ const ProfileScreen = () => {
 
                 {/* Profile Info */}
                 <View style={styles.profileInfoRow}>
-                    <View style={styles.avatarPlaceholder} />
+                    <Image
+                        source={{ uri: 'https://media.istockphoto.com/id/2220866251/photo/isolated-generic-gray-human-figure-placeholder.webp?a=1&b=1&s=612x612&w=0&k=20&c=vkqNIInBzzIYcuk-wV5KC28xiXfFfYZmAgVOaYebNEA=' }}
+                        contentFit='cover'
+                        style={styles.avatarPlaceholder}
+                    />
                     <View style={styles.profileDetails}>
                         <View style={styles.nameRow}>
                             <Text style={styles.profileName}>Amit Roy</Text>
@@ -150,11 +158,11 @@ const ProfileScreen = () => {
                             </View>
                         </View>
                         <View style={styles.infoRow}>
-                            <Ionicons name="school-outline" size={14} color={COLORS.white} />
+                            <Ionicons name="school-outline" size={14} color={COLORS.text} />
                             <Text style={styles.infoText}>B.G.C college, B.sc, Computer science</Text>
                         </View>
                         <View style={styles.infoRow}>
-                            <Ionicons name="location-outline" size={14} color={COLORS.white} />
+                            <Ionicons name="location-outline" size={14} color={COLORS.text} />
                             <Text style={styles.infoText}>Kolkata, india</Text>
                         </View>
                     </View>
@@ -177,7 +185,7 @@ const ProfileScreen = () => {
                         <Text style={styles.statLabel}>Active Listings</Text>
                     </View>
                 </View>
-            </View>
+            </LinearGradient>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
@@ -307,7 +315,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: rf(20),
         fontFamily: FONTS.montserrat.bold,
-        color: COLORS.white,
+        color: COLORS.text,
     },
     headerIcons: {
         flexDirection: 'row',
@@ -345,7 +353,7 @@ const styles = StyleSheet.create({
     profileName: {
         fontSize: rf(20),
         fontFamily: FONTS.montserrat.bold,
-        color: COLORS.white,
+        color: COLORS.text,
         marginRight: 8,
     },
     topSellerBadge: {
@@ -371,12 +379,12 @@ const styles = StyleSheet.create({
     infoText: {
         fontSize: rf(11),
         fontFamily: FONTS.manrope.medium,
-        color: 'rgba(255, 255, 255, 0.8)',
+        color: COLORS.text,
         flexShrink: 1,
     },
     statsBlock: {
         flexDirection: 'row',
-        backgroundColor: 'rgba(0, 0, 0, 0.15)', // Darker teal effect
+        backgroundColor: COLORS.completeTransparency,
         marginHorizontal: SPACING.lg,
         borderRadius: 16,
         paddingVertical: SPACING.md,
