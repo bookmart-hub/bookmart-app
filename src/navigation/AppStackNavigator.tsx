@@ -9,7 +9,6 @@ import EngineeringScreen from '@/screens/others/EngineeringScreen';
 import MedicalScreen from '@/screens/others/MedicalScreen';
 import LawScreen from '@/screens/others/LawScreen';
 import CompetitiveExamsScreen from '@/screens/others/CompetitiveExamsScreen';
-
 import BookDetailsScreen from '@/screens/others/BookDetailsScreen';
 import CartScreen from '@/screens/others/CartScreen';
 import AuthorListScreen from '@/screens/others/AuthorListScreen';

@@ -91,16 +91,16 @@ const DEFAULT_BOOKS: NearestBookItem[] = [
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 
-const CARD_WIDTH = SCREEN_WIDTH * 0.42;
-const ITEM_GAP = 12;
+const CARD_WIDTH = SCREEN_WIDTH * 0.32;
+const ITEM_GAP = 5;
 const SNAP_INTERVAL = CARD_WIDTH + ITEM_GAP;
-const HORIZONTAL_PADDING = SPACING.lg;
+const HORIZONTAL_PADDING = SPACING.md;
 
-const CARD_HEIGHT = 280;
+const CARD_HEIGHT = 195;
 const LIST_HEIGHT = CARD_HEIGHT + 20;
 const COVER_FLOAT = 10;
 
-const LOOP_COUNT = 15;
+const LOOP_COUNT = 3;
 
 // ── Shared animation configs (defined once at module scope) ──────────────────
 
@@ -192,7 +192,7 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
         'worklet';
         const progressVal = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
         return {
-            bottom: interpolate(progressVal, [0, 1], [75, 0], Extrapolation.CLAMP),
+            bottom: interpolate(progressVal, [0, 1], [35, 0], Extrapolation.CLAMP),
         };
     });
 
@@ -270,7 +270,7 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
                         <View style={styles.conditionBadge}>
                             <Text style={styles.conditionLabel}>{item.condition}</Text>
                         </View>
-                        <Text style={styles.distanceLabel}>{item.distance} away</Text>
+                        <Text style={styles.distanceLabel}>{item.distance}</Text>
                     </View>
                 </Animated.View>
             </Animated.View>
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     },
     coverWrap: {
         width: '99%',
-        height: 160,
+        height: 110,
         marginTop: 8,
         borderTopLeftRadius: 14,
         borderTopRightRadius: 14,
@@ -482,8 +482,8 @@ const styles = StyleSheet.create({
     },
     titleContainer: {
         width: '100%',
-        paddingHorizontal: 12,
-        paddingTop: 8,
+        paddingHorizontal: 8,
+        paddingTop: 6,
     },
     titleRow: {
         flexDirection: 'row',
@@ -491,25 +491,25 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     titleText: {
-        fontSize: rf(12.5),
+        fontSize: rf(11),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
         flex: 1,
         marginRight: 4,
     },
     priceText: {
-        fontSize: rf(12),
+        fontSize: rf(11),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
     details: {
         width: '100%',
-        paddingHorizontal: 12,
-        paddingTop: 4,
+        paddingHorizontal: 8,
+        paddingTop: 2,
         overflow: 'hidden',
     },
     authorText: {
-        fontSize: rf(10.5),
+        fontSize: rf(9.5),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginTop: 1,
@@ -547,12 +547,12 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     conditionLabel: {
-        fontSize: rf(8.5),
+        fontSize: rf(7.5),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
     distanceLabel: {
-        fontSize: rf(9.5),
+        fontSize: rf(8.5),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.textMuted,
     },

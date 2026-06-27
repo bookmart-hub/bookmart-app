@@ -349,8 +349,8 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.white,
         marginHorizontal: SPACING.lg,
         marginBottom: SPACING.md,
-        borderRadius: 16,
-        padding: SPACING.sm,
+        borderRadius: 12,
+        padding: 10,
         borderWidth: 1,
         borderColor: COLORS.grayLight,
         shadowColor: COLORS.black,
@@ -360,8 +360,8 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     bookCover: {
-        width: 80,
-        height: 110,
+        width: 70,
+        height: 95,
         borderRadius: 8,
         backgroundColor: COLORS.grayLight,
     },
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: SPACING.sm,
         justifyContent: 'space-between',
-        paddingVertical: 4,
+        paddingVertical: 2,
     },
     bookHeaderRow: {
         flexDirection: 'row',
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     bookStatsRow: {
         flexDirection: 'row',
         gap: SPACING.md,
-        marginVertical: SPACING.sm,
+        marginVertical: 6,
     },
     bookStat: {
         flexDirection: 'row',
