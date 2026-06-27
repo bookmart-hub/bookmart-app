@@ -12,6 +12,7 @@ import Header from '@/components/ui/Header';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import * as ImagePicker from 'expo-image-picker';
+import { StatusBar } from 'expo-status-bar';
 
 const DUMMY_USER = {
     fullName: 'Amit Roy',
@@ -127,6 +128,7 @@ const EditProfileScreen = () => {
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
+            <StatusBar style='dark' />
             <Header title="Edit Profile" backButton />
 
             <KeyboardAvoidingView

@@ -367,9 +367,8 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.03,
         shadowRadius: 8,
-        elevation: 2,
         borderWidth: 1,
-        borderColor: 'transparent',
+        borderColor: COLORS.grayLight,
     },
     unreadChatCard: {
         borderColor: 'rgba(0, 128, 128, 0.08)',
@@ -433,7 +432,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         paddingVertical: 2,
         borderRadius: 8,
-        maxWidth: '90%',
+        maxWidth: '100%',
     },
     bookBadgeText: {
         fontSize: rf(9.5),

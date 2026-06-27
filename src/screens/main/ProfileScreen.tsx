@@ -61,7 +61,7 @@ const ProfileScreen = () => {
         } else if (id === 'interests') {
             navigation.navigate('AppStack', { screen: 'Favourites' });
         } else if (id === 'listings') {
-            navigation.navigate('AppStack', { screen: 'MyListings' });
+            navigation.navigate('AppStack', { screen: 'ManageListings' });
         } else if (id === 'sold') {
             navigation.navigate('AppStack', { screen: 'SoldBooks' });
         } else if (id === 'waContacts') {
@@ -222,7 +222,7 @@ const ProfileScreen = () => {
                     <TouchableOpacity
                         style={styles.toolCard}
                         activeOpacity={0.8}
-                        onPress={() => navigation.navigate('AppStack', { screen: 'MyListings' })}
+                        onPress={() => navigation.navigate('AppStack', { screen: 'ManageListings' })}
                     >
                         <View style={[styles.toolIconWrap, { backgroundColor: 'rgba(0, 128, 128, 0.1)' }]}>
                             <Ionicons name="list" size={24} color={COLORS.primary} />

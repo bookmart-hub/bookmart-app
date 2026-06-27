@@ -23,6 +23,7 @@ import ReportScreen from '@/screens/others/ReportScreen';
 import MyListingsScreen from '@/screens/others/MyListingsScreen';
 import SoldBooksScreen from '@/screens/others/SoldBooksScreen';
 import MyActiveListingsScreen from '@/screens/others/MyActiveListingsScreen';
+import ManageListingsScreen from '@/screens/others/ManageListingsScreen';
 import BoostListingScreen from '@/screens/others/BoostListingScreen';
 import PublicProfileScreen from '@/screens/others/PublicProfileScreen';
 import CollegeInsightsScreen from '@/screens/others/CollegeInsightsScreen';
@@ -52,6 +53,7 @@ export type AppStackParamList = {
     MyListings: undefined;
     SoldBooks: undefined;
     MyActiveListings: undefined;
+    ManageListings: undefined;
     BoostListing: undefined;
     PublicProfile: undefined;
     CollegeInsights: undefined;
@@ -92,6 +94,7 @@ export default function AppStackNavigator() {
             <Stack.Screen name="MyListings" component={MyListingsScreen} />
             <Stack.Screen name="SoldBooks" component={SoldBooksScreen} />
             <Stack.Screen name="MyActiveListings" component={MyActiveListingsScreen} />
+            <Stack.Screen name="ManageListings" component={ManageListingsScreen} />
             <Stack.Screen name="BoostListing" component={BoostListingScreen} />
             <Stack.Screen name="PublicProfile" component={PublicProfileScreen} />
             <Stack.Screen name="CollegeInsights" component={CollegeInsightsScreen} />
