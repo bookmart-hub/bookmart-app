@@ -5,15 +5,9 @@ import {
     Text,
     Pressable,
     View,
+    FlatList
 } from 'react-native';
 import { Image } from 'expo-image';
-import Animated, {
-    Extrapolation,
-    interpolate,
-    useAnimatedScrollHandler,
-    useAnimatedStyle,
-    useSharedValue,
-} from 'react-native-reanimated';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
@@ -23,13 +17,13 @@ import { NearestBookItem } from '../ui/NearestBooks';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HORIZONTAL_PADDING = SPACING.lg;
 
-const CARD_WIDTH = SCREEN_WIDTH * 0.36;
-const CARD_HEIGHT = 200;
+const CARD_WIDTH = SCREEN_WIDTH * 0.72;
+const CARD_HEIGHT = 110;
 const ITEM_GAP = 10;
 const SNAP_INTERVAL = CARD_WIDTH + ITEM_GAP;
 const LOOP_COPIES = 15;
 
-interface ExcellentConditionProps {
+interface EndingSoonProps {
     title?: string;
     books: NearestBookItem[];
     onBookPress?: (book: NearestBookItem) => void;
@@ -37,47 +31,40 @@ interface ExcellentConditionProps {
     loop?: boolean;
 }
 
-const BookCard = memo(({ item, index, scrollX, onPress }: any) => {
-    const center = index * SNAP_INTERVAL;
-    const inputRange = [center - SNAP_INTERVAL, center, center + SNAP_INTERVAL] as const;
-
+const BookCard = memo(({ item, onPress }: any) => {
     const handlePress = useCallback(() => {
         onPress?.(item);
     }, [item, onPress]);
 
-    const animatedStyle = useAnimatedStyle(() => {
-        'worklet';
-        const progress = interpolate(scrollX.value, inputRange, [-1, 0, 1], Extrapolation.CLAMP);
-        return {
-            opacity: interpolate(progress, [-1, 0, 1], [0.65, 1, 0.65]),
-        };
-    });
-
     return (
-        <Pressable onPress={handlePress} style={styles.cardStandard}>
-            <Animated.View style={[styles.cardRootStandard, animatedStyle]}>
-                <View style={styles.standardCoverWrap}>
+        <Pressable onPress={handlePress} style={styles.cardHorizontal}>
+            <View style={styles.cardRootHorizontal}>
+                <View style={styles.horizontalCoverWrap}>
                     <Image recyclingKey={item.id} cachePolicy="memory-disk" source={{ uri: item.coverUri }} style={styles.coverImg} contentFit="cover" transition={0} />
                 </View>
-                <View style={styles.standardInfoWrap}>
+                <View style={styles.horizontalInfoWrap}>
                     <Text style={styles.titleText} numberOfLines={2}>{item.title}</Text>
                     <Text style={styles.authorText} numberOfLines={1}>{item.author}</Text>
-                    <Text style={styles.priceText}>₹{item.price}</Text>
+                    <View style={styles.horizontalMeta}>
+                        <Text style={styles.priceText}>₹{item.price}</Text>
+                        <View style={styles.horizontalBadge}>
+                            <Text style={styles.horizontalBadgeText}>{item.condition}</Text>
+                        </View>
+                    </View>
                 </View>
-            </Animated.View>
+            </View>
         </Pressable>
     );
-}, (prev: any, next: any) => prev.item.id === next.item.id && prev.index === next.index);
+}, (prev: any, next: any) => prev.item.id === next.item.id);
 
-const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(({
-    title = "Excellent Condition",
+const EndingSoon: React.FC<EndingSoonProps> = memo(({
+    title = "Ending Soon",
     books,
     onBookPress,
     onSeeAllPress,
     loop = true
 }) => {
-    const listRef = useRef<Animated.FlatList<any>>(null);
-    const scrollX = useSharedValue(0);
+    const listRef = useRef<FlatList<any>>(null);
 
     const loopedData = React.useMemo(() => {
         if (!loop) return books.map((b, i) => ({ ...b, uniqueId: `${b.id}-${i}` }));
@@ -91,19 +78,14 @@ const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(({
         if (loop && books.length > 0 && listRef.current) {
             const timer = setTimeout(() => {
                 const middleIndex = Math.floor(LOOP_COPIES / 2) * books.length;
-                listRef.current?.scrollToIndex({ index: middleIndex, animated: false });
-                scrollX.value = middleIndex * SNAP_INTERVAL;
+                listRef.current?.scrollToIndex({
+                    index: middleIndex,
+                    animated: false,
+                });
             }, 60);
             return () => clearTimeout(timer);
         }
     }, [books.length, loop]);
-
-    const onScroll = useAnimatedScrollHandler({
-        onScroll: (event) => {
-            'worklet';
-            scrollX.value = event.contentOffset.x;
-        },
-    });
 
     const handleMomentumScrollEnd = useCallback((e: any) => {
         if (!loop) return;
@@ -116,13 +98,12 @@ const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(({
 
         if (index < bLen * 2 || index > loopedLen - bLen * 2) {
             listRef.current?.scrollToIndex({ index: newIndex, animated: false });
-            scrollX.value = newIndex * SNAP_INTERVAL;
         }
-    }, [books.length, loop, scrollX, loopedData.length]);
+    }, [books.length, loop, loopedData.length]);
 
-    const renderItem = useCallback(({ item, index }: any) => (
-        <BookCard item={item} index={index} scrollX={scrollX} onPress={onBookPress} />
-    ), [scrollX, onBookPress]);
+    const renderItem = useCallback(({ item }: any) => (
+        <BookCard item={item} onPress={onBookPress} />
+    ), [onBookPress]);
 
     const keyExtractor = useCallback((b: any) => b.uniqueId, []);
 
@@ -143,7 +124,7 @@ const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(({
                 )}
             </View>
 
-            <Animated.FlatList
+            <FlatList
                 ref={listRef}
                 style={{ height: CARD_HEIGHT + 20 }}
                 horizontal
@@ -155,7 +136,6 @@ const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(({
                 decelerationRate="fast"
                 bounces={false}
                 scrollEventThrottle={16}
-                onScroll={onScroll}
                 onMomentumScrollEnd={loop ? handleMomentumScrollEnd : undefined}
                 contentContainerStyle={styles.listContent}
                 getItemLayout={getItemLayout}
@@ -169,7 +149,7 @@ const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(({
     );
 }, (prev, next) => prev.books === next.books && prev.loop === next.loop);
 
-export default ExcellentCondition;
+export default EndingSoon;
 
 const styles = StyleSheet.create({
     section: { marginTop: SPACING.md },
@@ -177,10 +157,48 @@ const styles = StyleSheet.create({
     headerTitle: { fontSize: rf(16), fontFamily: FONTS.montserrat.bold, color: COLORS.text },
     headerLink: { fontSize: rf(12), fontFamily: FONTS.montserrat.semibold, color: COLORS.primary },
     listContent: { paddingHorizontal: HORIZONTAL_PADDING, paddingTop: 8, paddingBottom: 8 },
-    cardStandard: { width: CARD_WIDTH, height: CARD_HEIGHT, marginRight: ITEM_GAP },
-    cardRootStandard: { width: '100%', height: '100%', backgroundColor: COLORS.white, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.grayHeavvy || 'rgba(0,0,0,0.05)', shadowColor: COLORS.black, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 2 },
-    standardCoverWrap: { width: '100%', height: 125, overflow: 'hidden', backgroundColor: COLORS.background },
-    standardInfoWrap: { padding: 8, justifyContent: 'center' },
+    cardHorizontal: { width: CARD_WIDTH, height: CARD_HEIGHT, marginRight: ITEM_GAP },
+    cardRootHorizontal: {
+        width: '100%',
+        height: '100%',
+        backgroundColor: COLORS.white,
+        borderRadius: 12,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy || 'rgba(0,0,0,0.05)',
+        flexDirection: 'row',
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+        elevation: 2,
+    },
+    horizontalCoverWrap: {
+        width: 72,
+        height: '100%',
+        backgroundColor: COLORS.background
+    },
+    horizontalInfoWrap: {
+        flex: 1,
+        padding: 10,
+        justifyContent: 'space-between'
+    },
+    horizontalMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+    },
+    horizontalBadge: {
+        backgroundColor: COLORS.blueLight,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4
+    },
+    horizontalBadgeText: {
+        fontSize: rf(8.5),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.blue
+    },
     coverImg: { width: '100%', height: '100%' },
     titleText: { fontSize: rf(11), fontFamily: FONTS.manrope.bold, color: COLORS.text, marginBottom: 2 },
     authorText: { fontSize: rf(9.5), fontFamily: FONTS.manrope.medium, color: COLORS.textMuted, marginBottom: 4 },

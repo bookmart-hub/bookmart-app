@@ -163,7 +163,7 @@ export default function BoostListingScreen() {
                 <View style={styles.crownIconWrap}>
                     <MaterialCommunityIcons name="crown" size={20} color={COLORS.primary} />
                 </View>
-                <View style={styles.currentPlanInfo}>
+                <View>
                     <Text style={styles.currentPlanTitle}>Your Current Plan: Pro Plus</Text>
                     <Text style={styles.currentPlanSubtitle}>You can boost up to 3 books per day</Text>
                 </View>
@@ -295,10 +295,6 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         paddingBottom: 120, // space for sticky footer
-    },
-    currentPlanInfo: {
-        flexDirection: 'column',
-        gap: rf(10)
     },
     heroSection: {
         flexDirection: 'row',

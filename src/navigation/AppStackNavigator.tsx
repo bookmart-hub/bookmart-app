@@ -26,7 +26,7 @@ import MyActiveListingsScreen from '@/screens/others/MyActiveListingsScreen';
 import BoostListingScreen from '@/screens/others/BoostListingScreen';
 import PublicProfileScreen from '@/screens/others/PublicProfileScreen';
 import CollegeInsightsScreen from '@/screens/others/CollegeInsightsScreen';
-import ContactScreen from '@/screens/others/contactScreen';
+import ContactScreen from '@/screens/others/ContactScreen';
 
 export type AppStackParamList = {
     Business: undefined;

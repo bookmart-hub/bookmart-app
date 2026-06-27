@@ -11,9 +11,11 @@ import CategorySection from '@/components/ui/CategorySection';
 import NearestBooks, { NearestBookItem } from '@/components/ui/NearestBooks';
 import AuthorsSection, { AuthorItem } from '@/components/ui/AuthorsSection';
 import InstituteBooks, { InstituteBookItem } from '@/components/ui/InstituteBooks';
-import HorizontalBookList from '@/components/ui/HorizontalBookList';
 import EditorsChoiceComp from '@/components/smallComp/EditorsChoiceComp';
 import ExcellentCondition from '@/components/smallComp/ExcellentCondition';
+import RecentlyAdded from '@/components/smallComp/RecentlyAdded';
+import PeopleViewing from '@/components/smallComp/PeopleViewing';
+import EndingSoon from '@/components/smallComp/EndingSoon';
 
 const RECENTLY_ADDED = [
   { id: 'ra1', title: 'The Silent Patient', author: 'Alex Michaelides', price: 250, coverUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop', condition: 'Like New', distance: '1km' },
@@ -136,46 +138,37 @@ const HomeScreen = () => {
           onSeeAllPress={handleAuthorSeeAllPress}
         />
 
-        <HorizontalBookList
+        <RecentlyAdded
           title="Recently Added"
           books={RECENTLY_ADDED}
-          animationType="fade"
-          cardLayout="standard"
           onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Recently Added' } })}
           onSeeAllPress={() => { }}
           loop={true}
         />
 
-        <HorizontalBookList
+        <PeopleViewing
           title="People Are Viewing"
           books={PEOPLE_ARE_VIEWING}
-          animationType="scale"
-          cardLayout="standard"
           loop={true}
           onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Trending' } })}
           onSeeAllPress={() => { }}
         />
 
-        <HorizontalBookList
+        <EndingSoon
           title="Ending Soon"
           books={ENDING_SOON}
-          animationType="standard"
-          cardLayout="horizontal"
           onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Ending Soon' } })}
           onSeeAllPress={() => { }}
           loop={true}
         />
 
-        <HorizontalBookList
+        <ExcellentCondition
           title="Excellent Condition"
           books={EXCELLENT_CONDITION}
-          animationType="fade"
-          cardLayout="standard"
           onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Premium' } })}
           onSeeAllPress={() => { }}
           loop={true}
         />
-        {/* <ExcellentCondition item={EXCELLENT_CONDITION} /> */}
 
         <EditorsChoiceComp item={EDITORS_CHOICE} />
 

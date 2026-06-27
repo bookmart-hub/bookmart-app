@@ -118,7 +118,7 @@ const BookDetailsScreen = () => {
     }
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
             <Header backButton />
             <ScrollView
                 showsVerticalScrollIndicator={false}

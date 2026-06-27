@@ -100,7 +100,7 @@ const CARD_HEIGHT = 195;
 const LIST_HEIGHT = CARD_HEIGHT + 20;
 const COVER_FLOAT = 10;
 
-const LOOP_COUNT = 3;
+const LOOP_COUNT = 30;
 
 // ── Shared animation configs (defined once at module scope) ──────────────────
 

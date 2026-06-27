@@ -4,16 +4,10 @@ import {
     StyleSheet,
     Text,
     Pressable,
+    FlatList,
     View,
 } from 'react-native';
 import { Image } from 'expo-image';
-import Animated, {
-    Extrapolation,
-    interpolate,
-    useAnimatedScrollHandler,
-    useAnimatedStyle,
-    useSharedValue,
-} from 'react-native-reanimated';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
@@ -27,9 +21,9 @@ const CARD_WIDTH = SCREEN_WIDTH * 0.36;
 const CARD_HEIGHT = 200;
 const ITEM_GAP = 10;
 const SNAP_INTERVAL = CARD_WIDTH + ITEM_GAP;
-const LOOP_COPIES = 15;
+const LOOP_COPIES = 50;
 
-interface ExcellentConditionProps {
+interface PeopleViewingProps {
     title?: string;
     books: NearestBookItem[];
     onBookPress?: (book: NearestBookItem) => void;
@@ -37,47 +31,54 @@ interface ExcellentConditionProps {
     loop?: boolean;
 }
 
-const BookCard = memo(({ item, index, scrollX, onPress }: any) => {
-    const center = index * SNAP_INTERVAL;
-    const inputRange = [center - SNAP_INTERVAL, center, center + SNAP_INTERVAL] as const;
+const BookCard = memo(
+    ({ item, onPress }: any) => {
+        const handlePress = useCallback(() => {
+            onPress?.(item);
+        }, [item, onPress]);
 
-    const handlePress = useCallback(() => {
-        onPress?.(item);
-    }, [item, onPress]);
+        return (
+            <Pressable onPress={handlePress} style={styles.cardStandard}>
+                <View style={styles.cardRootStandard}>
+                    <View style={styles.standardCoverWrap}>
+                        <Image
+                            recyclingKey={item.id}
+                            cachePolicy="memory-disk"
+                            source={{ uri: item.coverUri }}
+                            style={styles.coverImg}
+                            contentFit="cover"
+                            transition={0}
+                        />
+                    </View>
 
-    const animatedStyle = useAnimatedStyle(() => {
-        'worklet';
-        const progress = interpolate(scrollX.value, inputRange, [-1, 0, 1], Extrapolation.CLAMP);
-        return {
-            opacity: interpolate(progress, [-1, 0, 1], [0.65, 1, 0.65]),
-        };
-    });
+                    <View style={styles.standardInfoWrap}>
+                        <Text numberOfLines={2} style={styles.titleText}>
+                            {item.title}
+                        </Text>
 
-    return (
-        <Pressable onPress={handlePress} style={styles.cardStandard}>
-            <Animated.View style={[styles.cardRootStandard, animatedStyle]}>
-                <View style={styles.standardCoverWrap}>
-                    <Image recyclingKey={item.id} cachePolicy="memory-disk" source={{ uri: item.coverUri }} style={styles.coverImg} contentFit="cover" transition={0} />
+                        <Text numberOfLines={1} style={styles.authorText}>
+                            {item.author}
+                        </Text>
+
+                        <Text style={styles.priceText}>
+                            ₹{item.price}
+                        </Text>
+                    </View>
                 </View>
-                <View style={styles.standardInfoWrap}>
-                    <Text style={styles.titleText} numberOfLines={2}>{item.title}</Text>
-                    <Text style={styles.authorText} numberOfLines={1}>{item.author}</Text>
-                    <Text style={styles.priceText}>₹{item.price}</Text>
-                </View>
-            </Animated.View>
-        </Pressable>
-    );
-}, (prev: any, next: any) => prev.item.id === next.item.id && prev.index === next.index);
+            </Pressable>
+        );
+    },
+    (prev, next) => prev.item.id === next.item.id
+);
 
-const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(({
-    title = "Excellent Condition",
+const PeopleViewing: React.FC<PeopleViewingProps> = memo(({
+    title = "People Are Viewing",
     books,
     onBookPress,
     onSeeAllPress,
     loop = true
 }) => {
-    const listRef = useRef<Animated.FlatList<any>>(null);
-    const scrollX = useSharedValue(0);
+    const listRef = useRef<FlatList<any>>(null);
 
     const loopedData = React.useMemo(() => {
         if (!loop) return books.map((b, i) => ({ ...b, uniqueId: `${b.id}-${i}` }));
@@ -88,41 +89,54 @@ const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(({
     }, [books, loop]);
 
     useEffect(() => {
-        if (loop && books.length > 0 && listRef.current) {
+        if (loop && books.length > 0) {
             const timer = setTimeout(() => {
-                const middleIndex = Math.floor(LOOP_COPIES / 2) * books.length;
-                listRef.current?.scrollToIndex({ index: middleIndex, animated: false });
-                scrollX.value = middleIndex * SNAP_INTERVAL;
+                const middleIndex =
+                    Math.floor(LOOP_COPIES / 2) * books.length;
+
+                listRef.current?.scrollToIndex({
+                    index: middleIndex,
+                    animated: false,
+                });
             }, 60);
+
             return () => clearTimeout(timer);
         }
     }, [books.length, loop]);
 
-    const onScroll = useAnimatedScrollHandler({
-        onScroll: (event) => {
-            'worklet';
-            scrollX.value = event.contentOffset.x;
+    const handleMomentumScrollEnd = useCallback(
+        (e: any) => {
+            if (!loop) return;
+
+            const x = e.nativeEvent.contentOffset.x;
+            const index = Math.round(x / SNAP_INTERVAL);
+
+            const bLen = books.length;
+            const loopedLen = loopedData.length;
+
+            const originalIdx = ((index % bLen) + bLen) % bLen;
+            const newIndex =
+                Math.floor(LOOP_COPIES / 2) * bLen + originalIdx;
+
+            if (
+                index < bLen * 2 ||
+                index > loopedLen - bLen * 2
+            ) {
+                listRef.current?.scrollToIndex({
+                    index: newIndex,
+                    animated: false,
+                });
+            }
         },
-    });
+        [books.length, loop, loopedData.length]
+    );
 
-    const handleMomentumScrollEnd = useCallback((e: any) => {
-        if (!loop) return;
-        const x = e.nativeEvent.contentOffset.x;
-        const index = Math.round(x / SNAP_INTERVAL);
-        const bLen = books.length;
-        const loopedLen = loopedData.length;
-        const originalIdx = ((index % bLen) + bLen) % bLen;
-        const newIndex = Math.floor(LOOP_COPIES / 2) * bLen + originalIdx;
-
-        if (index < bLen * 2 || index > loopedLen - bLen * 2) {
-            listRef.current?.scrollToIndex({ index: newIndex, animated: false });
-            scrollX.value = newIndex * SNAP_INTERVAL;
-        }
-    }, [books.length, loop, scrollX, loopedData.length]);
-
-    const renderItem = useCallback(({ item, index }: any) => (
-        <BookCard item={item} index={index} scrollX={scrollX} onPress={onBookPress} />
-    ), [scrollX, onBookPress]);
+    const renderItem = useCallback(
+        ({ item }: any) => (
+            <BookCard item={item} onPress={onBookPress} />
+        ),
+        [onBookPress]
+    );
 
     const keyExtractor = useCallback((b: any) => b.uniqueId, []);
 
@@ -143,7 +157,7 @@ const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(({
                 )}
             </View>
 
-            <Animated.FlatList
+            <FlatList
                 ref={listRef}
                 style={{ height: CARD_HEIGHT + 20 }}
                 horizontal
@@ -154,8 +168,6 @@ const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(({
                 snapToInterval={SNAP_INTERVAL}
                 decelerationRate="fast"
                 bounces={false}
-                scrollEventThrottle={16}
-                onScroll={onScroll}
                 onMomentumScrollEnd={loop ? handleMomentumScrollEnd : undefined}
                 contentContainerStyle={styles.listContent}
                 getItemLayout={getItemLayout}
@@ -169,7 +181,7 @@ const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(({
     );
 }, (prev, next) => prev.books === next.books && prev.loop === next.loop);
 
-export default ExcellentCondition;
+export default PeopleViewing;
 
 const styles = StyleSheet.create({
     section: { marginTop: SPACING.md },
