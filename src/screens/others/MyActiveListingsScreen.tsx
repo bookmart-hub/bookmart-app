@@ -64,8 +64,6 @@ const MY_LISTINGS = [
     }
 ];
 
-const FILTER_CHIPS = ['All', 'Active', 'Sold', 'Draft'];
-
 export default function MyActiveListingsScreen() {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<NavigationProp>();
@@ -102,35 +100,6 @@ export default function MyActiveListingsScreen() {
                     <Text style={styles.statValue}>242</Text>
                 </View>
             </View>
-        </View>
-    );
-
-    const renderFilters = () => (
-        <View style={styles.filtersWrapper}>
-            <FlatList
-                data={FILTER_CHIPS}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.filtersContainer}
-                keyExtractor={(item) => item}
-                renderItem={({ item }) => (
-                    <TouchableOpacity
-                        style={[
-                            styles.filterChip,
-                            activeFilter === item && styles.filterChipActive
-                        ]}
-                        onPress={() => setActiveFilter(item)}
-                        activeOpacity={0.8}
-                    >
-                        <Text style={[
-                            styles.filterChipText,
-                            activeFilter === item && styles.filterChipTextActive
-                        ]}>
-                            {item}
-                        </Text>
-                    </TouchableOpacity>
-                )}
-            />
         </View>
     );
 
@@ -191,8 +160,8 @@ export default function MyActiveListingsScreen() {
                 </View>
                 <Text style={styles.promoDesc}>Get 3x more visibility and reach more buyers.</Text>
             </View>
-            <TouchableOpacity 
-                style={styles.boostBtn} 
+            <TouchableOpacity
+                style={styles.boostBtn}
                 activeOpacity={0.8}
                 onPress={() => navigation.navigate('BoostListing')}
             >
@@ -215,7 +184,6 @@ export default function MyActiveListingsScreen() {
                 ListHeaderComponent={
                     <>
                         {renderSummarySection()}
-                        {renderFilters()}
                     </>
                 }
                 ListFooterComponent={
