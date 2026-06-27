@@ -64,6 +64,8 @@ const ProfileScreen = () => {
             navigation.navigate('AppStack', { screen: 'MyListings' });
         } else if (id === 'sold') {
             navigation.navigate('AppStack', { screen: 'SoldBooks' });
+        } else if (id === 'waContacts') {
+            navigation.navigate('AppStack', { screen: 'Contacts' });
         }
     };
     const openMenu = () => setMenuVisible(true);

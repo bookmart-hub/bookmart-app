@@ -7,7 +7,8 @@ import {
     TouchableOpacity,
     Image,
     Platform,
-    ToastAndroid
+    ToastAndroid,
+    Alert
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -20,6 +21,15 @@ import Header from '@/components/ui/Header';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { StatusBar } from 'expo-status-bar';
+import * as ImagePicker from 'expo-image-picker';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    withSpring,
+    runOnJS,
+    withTiming
+} from 'react-native-reanimated';
 
 const SectionCard = ({ children, style }: any) => (
     <View style={[styles.sectionCard, style]}>{children}</View>
@@ -46,6 +56,119 @@ const RadioOption = ({ label, selected, onPress }: any) => (
     </TouchableOpacity>
 );
 
+const COLUMNS = 3;
+const ITEM_WIDTH = 80;
+const ITEM_HEIGHT = 100;
+const GAP = 10;
+const PADDING = 18;
+
+const getPosition = (index: number) => {
+    'worklet';
+    const col = index % COLUMNS;
+    const row = Math.floor(index / COLUMNS);
+    return {
+        x: PADDING + col * (ITEM_WIDTH + GAP),
+        y: PADDING + row * (ITEM_HEIGHT + GAP),
+    };
+};
+
+const DraggablePhoto = ({ uri, index, onRemove, onReorder, onDragStateChange, totalActive }: any) => {
+    const dragX = useSharedValue(0);
+    const dragY = useSharedValue(0);
+    const isDragging = useSharedValue(false);
+    const startX = useSharedValue(0);
+    const startY = useSharedValue(0);
+
+    const pos = getPosition(index);
+
+    const gesture = Gesture.Pan()
+        .onStart(() => {
+            startX.value = dragX.value;
+            startY.value = dragY.value;
+            isDragging.value = true;
+            runOnJS(onDragStateChange)(true);
+        })
+        .onUpdate((event) => {
+            dragX.value = startX.value + event.translationX;
+            dragY.value = startY.value + event.translationY;
+        })
+        .onEnd((event) => {
+            isDragging.value = false;
+            runOnJS(onDragStateChange)(false);
+
+            const currentX = pos.x + dragX.value;
+            const currentY = pos.y + dragY.value;
+
+            // Calculate which slot it was dropped in
+            const col = Math.round((currentX - PADDING) / (ITEM_WIDTH + GAP));
+            const row = Math.round((currentY - PADDING) / (ITEM_HEIGHT + GAP));
+
+            const targetCol = Math.max(0, Math.min(COLUMNS - 1, col));
+            const targetRow = Math.max(0, Math.min(1, row));
+            const targetIndex = Math.min(totalActive - 1, Math.max(0, targetRow * COLUMNS + targetCol));
+
+            dragX.value = withTiming(0);
+            dragY.value = withTiming(0);
+
+            if (targetIndex !== index) {
+                runOnJS(onReorder)(index, targetIndex);
+            }
+        });
+
+    const animatedStyle = useAnimatedStyle(() => {
+        const currentPos = getPosition(index);
+
+        if (isDragging.value) {
+            return {
+                zIndex: 100,
+                transform: [
+                    { translateX: currentPos.x + dragX.value },
+                    { translateY: currentPos.y + dragY.value },
+                    { scale: 1.15 },
+                ],
+                shadowColor: COLORS.black,
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.25,
+                shadowRadius: 10,
+                elevation: 10,
+            };
+        } else {
+            return {
+                zIndex: 1,
+                transform: [
+                    { translateX: withTiming(currentPos.x) },
+                    { translateY: withTiming(currentPos.y) },
+                    { scale: withTiming(1) },
+                ],
+                shadowColor: 'transparent',
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0,
+                shadowRadius: 0,
+                elevation: 0,
+            };
+        }
+    });
+
+    return (
+        <GestureDetector gesture={gesture}>
+            <Animated.View style={[styles.photoBlock, animatedStyle]}>
+                <Image
+                    source={{ uri }}
+                    style={styles.bookPhoto}
+                    resizeMode='cover'
+                />
+                <TouchableOpacity
+                    style={styles.removePhotoBtn}
+                    onPress={onRemove}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                    <Ionicons name="close" size={14} color={COLORS.white} />
+                </TouchableOpacity>
+            </Animated.View>
+        </GestureDetector>
+    );
+};
+
 const MyListingsScreen = () => {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
@@ -55,29 +178,124 @@ const MyListingsScreen = () => {
     const [status, setStatus] = useState('Active');
     const [description, setDescription] = useState('This book is in good condition.\nNo pages missing.\nMinimal highlighting.');
 
+    const [images, setImages] = useState<string[]>([
+        'https://m.media-amazon.com/images/I/91bYsX41DVL.jpg'
+    ]);
+    const [scrollEnabled, setScrollEnabled] = useState(true);
+
+    const reorderImages = (fromIndex: number, toIndex: number) => {
+        setImages((prev) => {
+            const result = [...prev];
+            const temp = result[fromIndex];
+            result[fromIndex] = result[toIndex];
+            result[toIndex] = temp;
+            return result;
+        });
+    };
+
+    const removeImage = (index: number) => {
+        setImages((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const takePhoto = async () => {
+        const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+        if (!permissionResult.granted) {
+            Alert.alert("Permission Required", "Camera access is needed to take a photo.");
+            return;
+        }
+        const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 5],
+            quality: 0.7,
+        });
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+            setImages((prev) => [...prev, result.assets[0].uri].slice(0, 6));
+        }
+    };
+
+    const pickImage = async () => {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permissionResult.granted) {
+            Alert.alert("Permission Required", "Gallery access is needed to choose a photo.");
+            return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsMultipleSelection: true,
+            selectionLimit: 6 - images.length,
+            quality: 0.7,
+        });
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+            const pickedUris = result.assets.map(asset => asset.uri);
+            setImages((prev) => [...prev, ...pickedUris].slice(0, 6));
+        }
+    };
+
+    const handleImageOption = () => {
+        Alert.alert(
+            "Select Photo Source",
+            "Choose where you want to select the book photo from.",
+            [
+                { text: "Camera", onPress: takePhoto },
+                { text: "Gallery", onPress: pickImage },
+                { text: "Cancel", style: "cancel" }
+            ]
+        );
+    };
+
     const renderPhotosSection = () => {
+        const totalSlots = 6;
+        const activeCount = images.length;
+
         return (
             <View style={styles.photosSection}>
                 <View style={styles.photoGrid}>
-                    <View style={styles.photoBlock}>
-                        <Image
-                            source={{ uri: 'https://m.media-amazon.com/images/I/91bYsX41DVL.jpg' }}
-                            style={styles.bookPhoto}
-                            resizeMode='contain'
+                    {/* Render active images as draggable */}
+                    {images.map((uri, index) => (
+                        <DraggablePhoto
+                            key={uri}
+                            uri={uri}
+                            index={index}
+                            onRemove={() => removeImage(index)}
+                            onReorder={reorderImages}
+                            onDragStateChange={(isDragging: boolean) => setScrollEnabled(!isDragging)}
+                            totalActive={activeCount}
                         />
-                        <TouchableOpacity style={styles.removePhotoBtn}>
-                            <Ionicons name="close" size={14} color={COLORS.white} />
-                        </TouchableOpacity>
-                    </View>
-                    {[1, 2, 3, 4, 5].map((item) => (
-                        <TouchableOpacity key={item} style={styles.emptyPhotoBlock}>
-                            <Feather name="plus" size={24} color={COLORS.textMuted} />
-                        </TouchableOpacity>
                     ))}
+
+                    {/* Render empty placeholders */}
+                    {Array.from({ length: totalSlots - activeCount }).map((_, index) => {
+                        const slotIndex = activeCount + index;
+                        const isAddButton = slotIndex === activeCount && activeCount < 6;
+                        const pos = getPosition(slotIndex);
+
+                        return (
+                            <TouchableOpacity
+                                key={`empty-${slotIndex}`}
+                                style={[
+                                    styles.emptyPhotoBlock,
+                                    {
+                                        left: pos.x,
+                                        top: pos.y,
+                                    }
+                                ]}
+                                activeOpacity={isAddButton ? 0.7 : 1}
+                                onPress={isAddButton ? handleImageOption : undefined}
+                                disabled={!isAddButton}
+                            >
+                                {isAddButton ? (
+                                    <Feather name="plus" size={24} color={COLORS.primary} />
+                                ) : (
+                                    <Feather name="image" size={20} color={COLORS.grayHeavvy} />
+                                )}
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
                 <View style={styles.dragReorder}>
                     <Ionicons name="swap-vertical" size={16} color={COLORS.textMuted} />
-                    <Text style={styles.dragText}>Drag to reorder photos</Text>
+                    <Text style={styles.dragText}>Drag active photos to reorder</Text>
                 </View>
             </View>
         );
@@ -98,6 +316,7 @@ const MyListingsScreen = () => {
             />
 
             <ScrollView
+                scrollEnabled={scrollEnabled}
                 contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]}
                 showsVerticalScrollIndicator={false}
             >
@@ -304,23 +523,20 @@ const styles = StyleSheet.create({
         paddingRight: SPACING.lg,
     },
     photoGrid: {
-        display: 'flex',
-        gap: 10,
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        alignItems: 'stretch',
-        justifyContent: 'center',
+        position: 'relative',
+        width: 296,
+        height: 246,
+        alignSelf: 'center',
         borderWidth: 1,
         borderColor: COLORS.grayHeavvy,
         borderRadius: rf(18),
-        padding: rf(18)
     },
     photoBlock: {
         width: 80,
         height: 100,
         borderRadius: 8,
         overflow: 'hidden',
-        position: 'relative',
+        position: 'absolute',
     },
     bookPhoto: {
         width: '100%',
@@ -348,6 +564,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: COLORS.white,
+        position: 'absolute',
     },
     dragReorder: {
         flexDirection: 'row',

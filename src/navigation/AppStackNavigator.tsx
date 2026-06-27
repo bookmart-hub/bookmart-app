@@ -27,6 +27,7 @@ import MyActiveListingsScreen from '@/screens/others/MyActiveListingsScreen';
 import BoostListingScreen from '@/screens/others/BoostListingScreen';
 import PublicProfileScreen from '@/screens/others/PublicProfileScreen';
 import CollegeInsightsScreen from '@/screens/others/CollegeInsightsScreen';
+import ContactScreen from '@/screens/others/contactScreen';
 
 export type AppStackParamList = {
     Business: undefined;
@@ -55,6 +56,7 @@ export type AppStackParamList = {
     BoostListing: undefined;
     PublicProfile: undefined;
     CollegeInsights: undefined;
+    Contacts: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -94,6 +96,7 @@ export default function AppStackNavigator() {
             <Stack.Screen name="BoostListing" component={BoostListingScreen} />
             <Stack.Screen name="PublicProfile" component={PublicProfileScreen} />
             <Stack.Screen name="CollegeInsights" component={CollegeInsightsScreen} />
+            <Stack.Screen name="Contacts" component={ContactScreen} />
         </Stack.Navigator>
     );
 }
