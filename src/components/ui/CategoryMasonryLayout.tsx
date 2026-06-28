@@ -200,6 +200,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
     marginBottom: 8,
+    flexShrink: 1
   },
   headerSubtitle: {
     fontSize: rf(14),

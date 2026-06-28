@@ -38,7 +38,7 @@ const CreateScreen = () => {
 
         const result = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
-            aspect: [1, 1],
+            // aspect: [16, 9],
             quality: 1,
         });
 
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     pageTitleRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: SPACING.lg,
+        marginBottom: SPACING.sm,
     },
     pageTitleText: {
         fontSize: rf(18),
@@ -370,7 +370,6 @@ const styles = StyleSheet.create({
         fontSize: rf(13),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.textMuted,
-        marginBottom: SPACING.sm,
     },
     asterisk: {
         color: COLORS.textMuted,
@@ -416,7 +415,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     conditionIconWrapperActive: {
-        backgroundColor: '#3B82F6', // Blue background for active icon wrapper
+        backgroundColor: COLORS.blue, // Blue background for active icon wrapper
     },
     conditionText: {
         fontSize: rf(12),
@@ -424,7 +423,7 @@ const styles = StyleSheet.create({
         color: COLORS.textMuted,
     },
     conditionTextActive: {
-        color: '#3B82F6',
+        color: COLORS.blue,
     },
     notesLabelRow: {
         flexDirection: 'row',
@@ -447,7 +446,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: COLORS.grayLight,
         borderWidth: 1,
-        borderColor: '#E8E8E8',
+        borderColor: COLORS.grayLight,
         borderRadius: 12,
         height: 48,
         paddingHorizontal: 4,
@@ -471,6 +470,7 @@ const styles = StyleSheet.create({
         fontSize: rf(14),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.black,
+        borderColor: COLORS.grayHeavvy,
     },
     bottomBar: {
         position: 'absolute',
