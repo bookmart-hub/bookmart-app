@@ -1,10 +1,9 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { memo, useCallback } from 'react';
 import {
     Dimensions,
-    FlatList,
-    Pressable,
     StyleSheet,
     Text,
+    Pressable,
     View,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -14,58 +13,82 @@ import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import { NearestBookItem } from '../ui/NearestBooks';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const HORIZONTAL_PADDING = SPACING.lg;
-
-const CARD_WIDTH = SCREEN_WIDTH * 0.36;
-const CARD_HEIGHT = 200;
-const ITEM_GAP = 10;
-const SNAP_INTERVAL = CARD_WIDTH + ITEM_GAP;
-const LOOP_COPIES = 50;
-
 interface RecentlyAddedProps {
     title?: string;
     books: NearestBookItem[];
     onBookPress?: (book: NearestBookItem) => void;
     onSeeAllPress?: () => void;
-    loop?: boolean;
 }
 
-const BookCard = memo(
-    ({ item, onPress }: any) => {
+const FeaturedCard = memo(
+    ({ item, onPress }: { item: NearestBookItem; onPress?: (item: NearestBookItem) => void }) => {
         const handlePress = useCallback(() => {
             onPress?.(item);
         }, [item, onPress]);
 
         return (
-            <Pressable onPress={handlePress} style={styles.cardStandard}>
-                <View style={styles.cardRootStandard}>
-                    <View style={styles.standardCoverWrap}>
-                        <Image
-                            source={{ uri: item.coverUri }}
-                            style={styles.coverImg}
-                            contentFit="cover"
-                        />
+            <Pressable onPress={handlePress} style={styles.featuredCard}>
+                <View style={styles.featuredCoverWrap}>
+                    <Image
+                        source={{ uri: item.coverUri }}
+                        style={styles.coverImg}
+                        contentFit="fill"
+                        recyclingKey={item.coverUri}
+                        cachePolicy="memory-disk"
+                    />
+                    <View style={styles.featuredBadge}>
+                        <Text style={styles.featuredBadgeText}>FEATURED NEW</Text>
                     </View>
+                </View>
 
-                    <View style={styles.standardInfoWrap}>
-                        <Text numberOfLines={2} style={styles.titleText}>
-                            {item.title}
-                        </Text>
-
-                        <Text numberOfLines={1} style={styles.authorText}>
-                            {item.author}
-                        </Text>
-
-                        <Text style={styles.priceText}>
-                            ₹{item.price}
-                        </Text>
+                <View style={styles.featuredInfo}>
+                    <Text numberOfLines={1} style={styles.titleText}>
+                        {item.title}
+                    </Text>
+                    <Text numberOfLines={1} style={styles.authorText}>
+                        {item.author}
+                    </Text>
+                    <View style={styles.footerRow}>
+                        <Text style={styles.priceText}>₹{item.price}</Text>
+                        <View style={styles.conditionBadge}>
+                            <Text style={styles.conditionText}>{item.condition}</Text>
+                        </View>
                     </View>
                 </View>
             </Pressable>
         );
     },
-    (prev: any, next: any) => prev.item.id === next.item.id
+    (prev, next) => prev.item.id === next.item.id
+);
+
+const SideRowCard = memo(
+    ({ item, onPress }: { item: NearestBookItem; onPress?: (item: NearestBookItem) => void }) => {
+        const handlePress = useCallback(() => {
+            onPress?.(item);
+        }, [item, onPress]);
+
+        return (
+            <Pressable onPress={handlePress} style={styles.sideRowCard}>
+                <Image
+                    source={{ uri: item.coverUri }}
+                    style={styles.sideRowCover}
+                    contentFit="fill"
+                    recyclingKey={item.coverUri}
+                    cachePolicy="memory-disk"
+                />
+                <View style={styles.sideRowInfo}>
+                    <Text numberOfLines={1} style={styles.sideTitle}>
+                        {item.title}
+                    </Text>
+                    <Text numberOfLines={1} style={styles.sideAuthor}>
+                        {item.author}
+                    </Text>
+                    <Text style={styles.sidePrice}>₹{item.price}</Text>
+                </View>
+            </Pressable>
+        );
+    },
+    (prev, next) => prev.item.id === next.item.id
 );
 
 const RecentlyAdded: React.FC<RecentlyAddedProps> = memo(({
@@ -73,73 +96,11 @@ const RecentlyAdded: React.FC<RecentlyAddedProps> = memo(({
     books,
     onBookPress,
     onSeeAllPress,
-    loop = true
 }) => {
-    const loopedData = useMemo(() => {
-        if (!loop) return books;
+    if (books.length === 0) return null;
 
-        return Array.from({ length: LOOP_COPIES }, (_, copy) =>
-            books.map(book => ({
-                ...book,
-                uniqueId: `${copy}-${book.id}`,
-            }))
-        ).flat();
-    }, [books, loop]);
-
-    const handleMomentumEnd = useCallback(
-        (e: any) => {
-            if (!loop) return;
-
-            const offset = e.nativeEvent.contentOffset.x;
-            const index = Math.round(offset / (CARD_WIDTH + ITEM_GAP));
-
-            const bookCount = books.length;
-            const middle = Math.floor(LOOP_COPIES / 2) * bookCount;
-
-            if (
-                index < bookCount * 2 ||
-                index > loopedData.length - bookCount * 2
-            ) {
-                const newIndex = middle + (index % bookCount);
-
-                listRef.current?.scrollToIndex({
-                    index: newIndex,
-                    animated: false,
-                });
-            }
-        },
-        [books, loop, loopedData]
-    );
-
-    useEffect(() => {
-        if (!loop || books.length === 0) return;
-
-        requestAnimationFrame(() => {
-            const middle = Math.floor(LOOP_COPIES / 2) * books.length;
-
-            listRef.current?.scrollToIndex({
-                index: middle,
-                animated: false,
-            });
-        });
-    }, [books, loop]);
-
-    const listRef = useRef<FlatList>(null);
-
-    const renderItem = useCallback(
-        ({ item }: any) => (
-            <BookCard item={item} onPress={onBookPress} />
-        ),
-        [onBookPress]
-    );
-
-    const keyExtractor = useCallback((b: any) => b.uniqueId, []);
-
-    const getItemLayout = useCallback((_: any, i: number) => ({
-        length: SNAP_INTERVAL,
-        offset: SNAP_INTERVAL * i,
-        index: i,
-    }), []);
+    const featuredBook = books[0];
+    const sideBooks = books.slice(1, 3); // next 2 books for side column
 
     return (
         <View style={styles.section}>
@@ -152,101 +113,181 @@ const RecentlyAdded: React.FC<RecentlyAddedProps> = memo(({
                 )}
             </View>
 
-            <FlatList
-                ref={listRef}
-                horizontal
-                data={loopedData}
-                keyExtractor={(item) => item.uniqueId}
-                renderItem={renderItem}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.listContent}
-                onMomentumScrollEnd={handleMomentumEnd}
-                getItemLayout={(_, index) => ({
-                    length: CARD_WIDTH + ITEM_GAP,
-                    offset: (CARD_WIDTH + ITEM_GAP) * index,
-                    index,
-                })}
-            />
+            <View style={styles.splitBlock}>
+                {/* Left Side: 1 Featured Card */}
+                {featuredBook && (
+                    <View style={styles.leftCol}>
+                        <FeaturedCard
+                            item={featuredBook}
+                            onPress={onBookPress}
+                        />
+                    </View>
+                )}
+
+                {/* Right Side: Stack of 2 side row items */}
+                <View style={styles.rightCol}>
+                    {sideBooks.map((book) => (
+                        <SideRowCard
+                            key={book.id}
+                            item={book}
+                            onPress={onBookPress}
+                        />
+                    ))}
+                </View>
+            </View>
         </View>
     );
-}, (prev, next) => prev.books === next.books && prev.loop === next.loop);
+});
 
 export default RecentlyAdded;
 
 const styles = StyleSheet.create({
     section: {
-        marginTop: SPACING.md
+        marginTop: SPACING.md,
+        paddingHorizontal: SPACING.md,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: HORIZONTAL_PADDING,
-        marginBottom: SPACING.sm
+        marginBottom: SPACING.sm,
     },
     headerTitle: {
         fontSize: rf(16),
         fontFamily: FONTS.montserrat.bold,
-        color: COLORS.text
+        color: COLORS.text,
     },
     headerLink: {
         fontSize: rf(12),
         fontFamily: FONTS.montserrat.semibold,
-        color: COLORS.primary
+        color: COLORS.primary,
     },
-    listContent: {
-        paddingHorizontal: HORIZONTAL_PADDING,
-        paddingTop: 8,
-        paddingBottom: 8
+    splitBlock: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 10,
     },
-    cardStandard: {
-        width: CARD_WIDTH,
-        height: CARD_HEIGHT,
-        marginRight: ITEM_GAP
+    leftCol: {
+        flex: 1,
     },
-    cardRootStandard: {
-        width: '100%',
-        height: '100%',
+    rightCol: {
+        flex: 1,
+        justifyContent: 'space-between',
+        gap: 8,
+    },
+    featuredCard: {
         backgroundColor: COLORS.white,
-        borderRadius: 12,
-        overflow: 'hidden',
+        borderRadius: 10,
         borderWidth: 1,
-        borderColor: COLORS.grayHeavvy || 'rgba(0,0,0,0.05)',
-        shadowColor: COLORS.black,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 6,
-        elevation: 2
-    },
-    standardCoverWrap: {
-        width: '100%',
-        height: 125,
+        borderColor: 'rgba(0,0,0,0.05)',
         overflow: 'hidden',
-        backgroundColor: COLORS.background
+        height: 206, // matches total height of right column stacked cards
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.03,
+        shadowRadius: 3,
+        elevation: 1,
     },
-    standardInfoWrap: {
-        padding: 8,
-        justifyContent: 'center'
+    featuredCoverWrap: {
+        width: '100%',
+        height: 130,
+        position: 'relative',
     },
     coverImg: {
         width: '100%',
-        height: '100%'
+        height: '100%',
+    },
+    featuredBadge: {
+        position: 'absolute',
+        top: 6,
+        left: 6,
+        backgroundColor: COLORS.primary,
+        paddingHorizontal: 6,
+        paddingVertical: 1.5,
+        borderRadius: 4,
+    },
+    featuredBadgeText: {
+        fontSize: rf(7.5),
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.white,
+    },
+    featuredInfo: {
+        padding: 6,
+        gap: 1,
     },
     titleText: {
-        fontSize: rf(11),
+        fontSize: rf(10.5),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
-        marginBottom: 2
     },
     authorText: {
-        fontSize: rf(9.5),
+        fontSize: rf(9),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
-        marginBottom: 4
+    },
+    footerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 3,
     },
     priceText: {
-        fontSize: rf(12),
+        fontSize: rf(11.5),
         fontFamily: FONTS.montserrat.bold,
-        color: COLORS.primary
+        color: COLORS.primary,
+    },
+    conditionBadge: {
+        backgroundColor: COLORS.secondary,
+        paddingHorizontal: 4,
+        paddingVertical: 1,
+        borderRadius: 3,
+    },
+    conditionText: {
+        fontSize: rf(7.5),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.primary,
+    },
+    sideRowCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: COLORS.white,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.05)',
+        padding: 6,
+        height: 99, // 2 cards = 198 + 8 gap = 206 total height
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.02,
+        shadowRadius: 2,
+        elevation: 1,
+    },
+    sideRowCover: {
+        width: 48,
+        height: 66,
+        borderRadius: 6,
+        backgroundColor: COLORS.background,
+    },
+    sideRowInfo: {
+        flex: 1,
+        marginLeft: 8,
+        justifyContent: 'center',
+        gap: 1,
+    },
+    sideTitle: {
+        fontSize: rf(10.5),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.text,
+    },
+    sideAuthor: {
+        fontSize: rf(8.5),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
+    },
+    sidePrice: {
+        fontSize: rf(11),
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.primary,
+        marginTop: 4,
     },
 });

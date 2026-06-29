@@ -31,6 +31,9 @@ export interface Book {
   reviews?: Review[];
   empty?: boolean;
   categoryId?: string;
+  distance?: string;
+  sellerName?: string;
+  timeLeft?: string;
 }
 
 export interface Category {

@@ -148,7 +148,7 @@ const RegisterScreen: React.FC = () => {
     // Simulate account registration
     setTimeout(() => {
       setIsLoading(false);
-      navigation.navigate('Tab' as any);
+      navigation.navigate('Personalization');
     }, 1500);
   };
 

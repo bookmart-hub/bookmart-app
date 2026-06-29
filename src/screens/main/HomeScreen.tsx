@@ -16,30 +16,59 @@ import ExcellentCondition from '@/components/smallComp/ExcellentCondition';
 import RecentlyAdded from '@/components/smallComp/RecentlyAdded';
 import PeopleViewing from '@/components/smallComp/PeopleViewing';
 import EndingSoon from '@/components/smallComp/EndingSoon';
+import { rf } from '@/utils/responsive';
+
+// ── Expanded Mock Datasets ──────────────────────────────────────────────────
+
+const NEAREST_BOOKS = [
+  { id: 'n1', title: 'Ikigai', author: 'Hector Garcia', price: 160, coverUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=440&fit=crop', condition: 'Good Condition', distance: '0.8km', description: 'Find your reason for being. A beautiful guide to a long and happy life.' },
+  { id: 'n2', title: 'Rich Dad Poor Dad', author: 'Robert T. Kiyosaki', price: 199, coverUri: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=440&fit=crop', condition: 'Like New', distance: '1.2km', description: 'What the rich teach their kids about money.' },
+  { id: 'n3', title: 'Atomic Habits', author: 'James Clear', price: 220, coverUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop', condition: 'Good Condition', distance: '1.5km', description: 'Build good habits and break bad ones.' },
+  { id: 'n4', title: 'The Psychology of Money', author: 'Morgan Housel', price: 180, coverUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=300&h=440&fit=crop', condition: 'Acceptable', distance: '2.0km', description: 'Timeless lessons on wealth and happiness.' },
+  { id: 'n5', title: 'Deep Work', author: 'Cal Newport', price: 195, coverUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=200&h=280&fit=crop', condition: 'Like New', distance: '2.3km', description: 'Rules for focused success.' },
+  { id: 'n6', title: 'Sapiens', author: 'Yuval Noah Harari', price: 400, coverUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=440&fit=crop', condition: 'Good Condition', distance: '3.1km', description: 'A brief history of humankind.' }
+];
+
+const COLLEGE_BOOKS = [
+  { id: 'cb1', title: 'Fingersmith', author: 'Sarah Waters', price: 140, coverUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=280&fit=crop', description: 'Intricate Dickensian plot novel.', sellerName: 'Amit Roy', sellerAvatarUri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face' },
+  { id: 'cb2', title: 'The Skin and its Girl', author: 'Sarah Cypher', price: 175, coverUri: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=200&h=280&fit=crop', description: 'Multigenerational novel about family lore.', sellerName: 'Sumit Das', sellerAvatarUri: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face' },
+  { id: 'cb3', title: 'Calculus: Early Transcendentals', author: 'James Stewart', price: 550, coverUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=200&h=280&fit=crop', description: 'Top-selling calculus textbook.', sellerName: 'Rahul Mehta' },
+  { id: 'cb4', title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', price: 680, coverUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=200&h=280&fit=crop', description: 'Standard algorithms reference guide.', sellerName: 'Priya Sen', sellerAvatarUri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop&crop=face' },
+  { id: 'cb5', title: 'Organic Chemistry', author: 'Jonathan Clayden', price: 490, coverUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=300&h=440&fit=crop', description: 'Modern guide to organic chemistry.', sellerName: 'Ananya Roy' }
+];
 
 const RECENTLY_ADDED = [
   { id: 'ra1', title: 'The Silent Patient', author: 'Alex Michaelides', price: 250, coverUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop', condition: 'Like New', distance: '1km' },
   { id: 'ra2', title: 'Educated', author: 'Tara Westover', price: 300, coverUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=300&h=440&fit=crop', condition: 'Good', distance: '2km' },
   { id: 'ra3', title: 'Sapiens', author: 'Yuval Noah Harari', price: 400, coverUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=440&fit=crop', condition: 'Like New', distance: '3km' },
   { id: 'ra4', title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman', price: 350, coverUri: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=440&fit=crop', condition: 'Acceptable', distance: '1.5km' },
-];
-
-const ENDING_SOON = [
-  { id: 'es1', title: 'The Alchemist', author: 'Paulo Coelho', price: 150, coverUri: 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=300&h=440&fit=crop', condition: 'Good', distance: '5km' },
-  { id: 'es2', title: '1984', author: 'George Orwell', price: 200, coverUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=300&h=440&fit=crop', condition: 'Like New', distance: '4km' },
-  { id: 'es3', title: 'Brave New World', author: 'Aldous Huxley', price: 180, coverUri: 'https://images.unsplash.com/photo-1629196914225-eb488db9f0eb?w=300&h=440&fit=crop', condition: 'Acceptable', distance: '8km' },
+  { id: 'ra5', title: 'Midnight Library', author: 'Matt Haig', price: 210, coverUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=300&h=440&fit=crop', condition: 'Good', distance: '0.5km' },
+  { id: 'ra6', title: 'Normal People', author: 'Sally Rooney', price: 180, coverUri: 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=300&h=440&fit=crop', condition: 'Like New', distance: '2.5km' }
 ];
 
 const PEOPLE_ARE_VIEWING = [
   { id: 'pv1', title: 'Dune', author: 'Frank Herbert', price: 450, coverUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop', condition: 'Like New', distance: '2km' },
   { id: 'pv2', title: 'Foundation', author: 'Isaac Asimov', price: 380, coverUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=440&fit=crop', condition: 'Good', distance: '1km' },
   { id: 'pv3', title: 'Neuromancer', author: 'William Gibson', price: 300, coverUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=300&h=440&fit=crop', condition: 'Acceptable', distance: '6km' },
+  { id: 'pv4', title: 'Project Hail Mary', author: 'Andy Weir', price: 420, coverUri: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=440&fit=crop', condition: 'Like New', distance: '1.8km' },
+  { id: 'pv5', title: 'The Hobbit', author: 'J.R.R. Tolkien', price: 290, coverUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=300&h=440&fit=crop', condition: 'Good', distance: '4.2km' }
+];
+
+const ENDING_SOON = [
+  { id: 'es1', title: 'The Alchemist', author: 'Paulo Coelho', price: 150, coverUri: 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=300&h=440&fit=crop', condition: 'Good', distance: '5km', timeLeft: '2h left' },
+  { id: 'es2', title: '1984', author: 'George Orwell', price: 200, coverUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=300&h=440&fit=crop', condition: 'Like New', distance: '4km', timeLeft: '5h left' },
+  { id: 'es3', title: 'Brave New World', author: 'Aldous Huxley', price: 180, coverUri: 'https://images.unsplash.com/photo-1629196914225-eb488db9f0eb?w=300&h=440&fit=crop', condition: 'Acceptable', distance: '8km', timeLeft: '10h left' },
+  { id: 'es4', title: 'Fahrenheit 451', author: 'Ray Bradbury', price: 170, coverUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop', condition: 'Good', distance: '3.5km', timeLeft: '12h left' },
+  { id: 'es5', title: 'Lord of the Flies', author: 'William Golding', price: 130, coverUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=300&h=440&fit=crop', condition: 'Good', distance: '1.2km', timeLeft: '18h left' }
 ];
 
 const EXCELLENT_CONDITION = [
-  { id: 'ec1', title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', price: 220, coverUri: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=440&fit=crop', condition: 'Like New', distance: '2km' },
+  { id: 'ec1', title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', price: 220, coverUri: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=440&fit=crop', condition: 'Mint Condition', distance: '2km' },
   { id: 'ec2', title: 'To Kill a Mockingbird', author: 'Harper Lee', price: 280, coverUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=300&h=440&fit=crop', condition: 'Like New', distance: '5km' },
-  { id: 'ec3', title: 'Pride and Prejudice', author: 'Jane Austen', price: 190, coverUri: 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=300&h=440&fit=crop', condition: 'Like New', distance: '3km' },
+  { id: 'ec3', title: 'Pride and Prejudice', author: 'Jane Austen', price: 190, coverUri: 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=300&h=440&fit=crop', condition: 'Mint Condition', distance: '3km' },
+  { id: 'ec4', title: 'Crime and Punishment', author: 'Fyodor Dostoevsky', price: 340, coverUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=440&fit=crop', condition: 'Mint Condition', distance: '4.8km' },
+  { id: 'ec5', title: 'Wuthering Heights', author: 'Emily Brontë', price: 210, coverUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop', condition: 'Like New', distance: '1.9km' },
+  { id: 'ec6', title: 'Frankenstein', author: 'Mary Shelley', price: 250, coverUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=300&h=440&fit=crop', condition: 'Mint Condition', distance: '2.7km' }
 ];
 
 const EDITORS_CHOICE = [
@@ -121,13 +150,15 @@ const HomeScreen = () => {
 
         {/* ── Nearest Books ── */}
         <NearestBooks
+          books={NEAREST_BOOKS}
           onBookPress={handleBookPress}
           onSeeAllPress={handleSeeAllPress}
         />
 
-        {/* ── From Your Institute ── */}
+        {/* ── From Your College ── */}
         <InstituteBooks
           instituteName="College"
+          books={COLLEGE_BOOKS}
           onBookPress={handleInstituteBookPress}
           onSeeAllPress={handleInstituteSeeAllPress}
         />
@@ -138,39 +169,36 @@ const HomeScreen = () => {
           onSeeAllPress={handleAuthorSeeAllPress}
         />
 
+        {/* ── Recently Added ── */}
         <RecentlyAdded
           title="Recently Added"
           books={RECENTLY_ADDED}
           onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Recently Added' } })}
-          onSeeAllPress={() => { }}
-          loop={true}
         />
 
+        {/* ── People Are Viewing ── */}
         <PeopleViewing
           title="People Are Viewing"
           books={PEOPLE_ARE_VIEWING}
-          loop={true}
           onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Trending' } })}
-          onSeeAllPress={() => { }}
         />
 
+        {/* ── Ending Soon ── */}
         <EndingSoon
           title="Ending Soon"
           books={ENDING_SOON}
           onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Ending Soon' } })}
-          onSeeAllPress={() => { }}
-          loop={true}
         />
 
+        {/* ── Excellent Condition ── */}
         <ExcellentCondition
           title="Excellent Condition"
           books={EXCELLENT_CONDITION}
           onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Premium' } })}
-          onSeeAllPress={() => { }}
-          loop={true}
         />
 
-        <EditorsChoiceComp item={EDITORS_CHOICE} />
+        {/* ── Editor's Choice ── */}
+        <EditorsChoiceComp item={EDITORS_CHOICE} onBookPress={handleBookPress} />
 
       </ScrollView>
     </View>
@@ -188,6 +216,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 120, // room for floating tab bar
+    paddingBottom: rf(120), // room for floating tab bar
   },
 });

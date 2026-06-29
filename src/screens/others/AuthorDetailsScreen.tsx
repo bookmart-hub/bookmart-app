@@ -80,7 +80,7 @@ const AuthorDetailsScreen = () => {
 
                 {/* Profile Section */}
                 <View style={styles.profileSection}>
-                    <Image source={{ uri: imageSource }} style={styles.image} contentFit="cover" />
+                    <Image source={{ uri: imageSource }} style={styles.image} contentFit="fill" />
                     <Text style={styles.category}>{category}</Text>
                     <Text style={styles.name}>{author.name}</Text>
 
@@ -111,7 +111,7 @@ const AuthorDetailsScreen = () => {
                     <View style={styles.booksGrid}>
                         {MOCK_AUTHOR_BOOKS.map((book) => (
                             <View key={book.id} style={styles.bookCard}>
-                                <Image source={{ uri: book.imageUri }} style={styles.bookCover} contentFit="cover" />
+                                <Image source={{ uri: book.imageUri }} style={styles.bookCover} contentFit="fill" />
                                 <Text style={styles.bookTitle} numberOfLines={1}>{book.title}</Text>
                                 <View style={styles.priceContainer}>
                                     <View style={styles.currencyBadge}>

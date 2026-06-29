@@ -1,13 +1,13 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { memo, useCallback } from 'react';
 import {
     Dimensions,
-    FlatList,
     StyleSheet,
     Text,
     Pressable,
     View,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
@@ -15,61 +15,49 @@ import { rf } from '@/utils/responsive';
 import { NearestBookItem } from '../ui/NearestBooks';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-const HORIZONTAL_PADDING = SPACING.lg;
-
-const CARD_WIDTH = SCREEN_WIDTH * 0.36;
-const CARD_HEIGHT = 200;
-const ITEM_GAP = 10;
-const SNAP_INTERVAL = CARD_WIDTH + ITEM_GAP;
-const LOOP_COPIES = 15;
+const HORIZONTAL_PADDING = SPACING.md;
+const COLUMN_GAP = 8;
+const CARD_WIDTH = (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - COLUMN_GAP * 2) / 3;
 
 interface ExcellentConditionProps {
     title?: string;
     books: NearestBookItem[];
     onBookPress?: (book: NearestBookItem) => void;
     onSeeAllPress?: () => void;
-    loop?: boolean;
 }
 
 const BookCard = memo(
-    ({ item, onPress }: any) => {
+    ({ item, onPress }: { item: NearestBookItem; onPress?: (item: NearestBookItem) => void }) => {
         const handlePress = useCallback(() => {
             onPress?.(item);
         }, [item, onPress]);
 
         return (
-            <Pressable onPress={handlePress} style={styles.cardStandard}>
-                <View style={styles.cardRootStandard}>
-                    <View style={styles.standardCoverWrap}>
-                        <Image
-                            recyclingKey={item.id}
-                            cachePolicy="memory-disk"
-                            source={{ uri: item.coverUri }}
-                            style={styles.coverImg}
-                            contentFit="cover"
-                            transition={0}
-                        />
+            <Pressable onPress={handlePress} style={styles.card}>
+                <View style={styles.coverWrap}>
+                    <Image
+                        source={{ uri: item.coverUri }}
+                        style={styles.coverImg}
+                        contentFit="fill"
+                        recyclingKey={item.coverUri}
+                        cachePolicy="memory-disk"
+                    />
+                    <View style={styles.mintBadge}>
+                        <Ionicons name="sparkles" size={8} color={COLORS.white} />
+                        <Text style={styles.mintBadgeText}>MINT</Text>
                     </View>
+                </View>
 
-                    <View style={styles.standardInfoWrap}>
-                        <Text
-                            style={styles.titleText}
-                            numberOfLines={2}
-                        >
-                            {item.title}
-                        </Text>
-
-                        <Text
-                            style={styles.authorText}
-                            numberOfLines={1}
-                        >
-                            {item.author}
-                        </Text>
-
-                        <Text style={styles.priceText}>
-                            ₹{item.price}
-                        </Text>
+                <View style={styles.infoWrap}>
+                    <Text numberOfLines={1} style={styles.titleText}>
+                        {item.title}
+                    </Text>
+                    <Text numberOfLines={1} style={styles.authorText}>
+                        {item.author}
+                    </Text>
+                    <View style={styles.footerRow}>
+                        <Text style={styles.priceText}>₹{item.price}</Text>
+                        <Text style={styles.distanceText}>{item.distance}</Text>
                     </View>
                 </View>
             </Pressable>
@@ -78,159 +66,50 @@ const BookCard = memo(
     (prev, next) => prev.item.id === next.item.id
 );
 
-const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(
-    ({
-        title = 'Excellent Condition',
-        books,
-        onBookPress,
-        onSeeAllPress,
-        loop = true,
-    }) => {
-        const listRef = useRef<FlatList<any>>(null);
+const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(({
+    title = "Excellent Condition",
+    books,
+    onBookPress,
+    onSeeAllPress,
+}) => {
+    // Render up to 6 items in a clean 3-column grid
+    const displayBooks = books.slice(0, 6);
 
-        const loopedData = useMemo(() => {
-            if (!loop) {
-                return books.map((book, index) => ({
-                    ...book,
-                    uniqueId: `${book.id}-${index}`,
-                }));
-            }
-
-            return Array.from({ length: LOOP_COPIES }, (_, copy) =>
-                books.map((book) => ({
-                    ...book,
-                    uniqueId: `${copy}-${book.id}`,
-                }))
-            ).flat();
-        }, [books, loop]);
-
-        useEffect(() => {
-            if (!loop || books.length === 0) return;
-
-            const timer = setTimeout(() => {
-                const middleIndex =
-                    Math.floor(LOOP_COPIES / 2) * books.length;
-
-                listRef.current?.scrollToIndex({
-                    index: middleIndex,
-                    animated: false,
-                });
-            }, 60);
-
-            return () => clearTimeout(timer);
-        }, [books.length, loop]);
-
-        const handleMomentumScrollEnd = useCallback(
-            (e: any) => {
-                if (!loop) return;
-
-                const x = e.nativeEvent.contentOffset.x;
-                const index = Math.round(x / SNAP_INTERVAL);
-
-                const bookCount = books.length;
-                const loopedLength = loopedData.length;
-
-                const originalIndex =
-                    ((index % bookCount) + bookCount) % bookCount;
-
-                const middleIndex =
-                    Math.floor(LOOP_COPIES / 2) * bookCount +
-                    originalIndex;
-
-                if (
-                    index < bookCount * 2 ||
-                    index > loopedLength - bookCount * 2
-                ) {
-                    listRef.current?.scrollToIndex({
-                        index: middleIndex,
-                        animated: false,
-                    });
-                }
-            },
-            [books.length, loop, loopedData.length]
-        );
-
-        const renderItem = useCallback(
-            ({ item }: any) => (
-                <BookCard
-                    item={item}
-                    onPress={onBookPress}
-                />
-            ),
-            [onBookPress]
-        );
-
-        const keyExtractor = useCallback(
-            (item: any) => item.uniqueId,
-            []
-        );
-
-        const getItemLayout = useCallback(
-            (_: any, index: number) => ({
-                length: SNAP_INTERVAL,
-                offset: SNAP_INTERVAL * index,
-                index,
-            }),
-            []
-        );
-
-        return (
-            <View style={styles.section}>
-                <View style={styles.header}>
-                    <Text style={styles.headerTitle}>
-                        {title}
-                    </Text>
-
-                    {onSeeAllPress && (
-                        <Pressable onPress={onSeeAllPress}>
-                            <Text style={styles.headerLink}>
-                                see all
-                            </Text>
-                        </Pressable>
-                    )}
-                </View>
-
-                <FlatList
-                    ref={listRef}
-                    style={{ height: CARD_HEIGHT + 20 }}
-                    horizontal
-                    data={loopedData}
-                    keyExtractor={keyExtractor}
-                    renderItem={renderItem}
-                    showsHorizontalScrollIndicator={false}
-                    snapToInterval={SNAP_INTERVAL}
-                    decelerationRate="fast"
-                    bounces={false}
-                    onMomentumScrollEnd={
-                        loop ? handleMomentumScrollEnd : undefined
-                    }
-                    contentContainerStyle={styles.listContent}
-                    getItemLayout={getItemLayout}
-                    windowSize={3}
-                    maxToRenderPerBatch={3}
-                    initialNumToRender={4}
-                    updateCellsBatchingPeriod={40}
-                    removeClippedSubviews={false}
-                />
+    return (
+        <View style={styles.section}>
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>{title}</Text>
+                {onSeeAllPress && (
+                    <Pressable onPress={onSeeAllPress}>
+                        <Text style={styles.headerLink}>see all</Text>
+                    </Pressable>
+                )}
             </View>
-        );
-    },
-    (prev, next) =>
-        prev.books === next.books &&
-        prev.loop === next.loop
-);
+
+            <View style={styles.grid}>
+                {displayBooks.map((book) => (
+                    <BookCard
+                        key={book.id}
+                        item={book}
+                        onPress={onBookPress}
+                    />
+                ))}
+            </View>
+        </View>
+    );
+});
 
 export default ExcellentCondition;
 
 const styles = StyleSheet.create({
     section: {
         marginTop: SPACING.md,
+        paddingHorizontal: HORIZONTAL_PADDING,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: HORIZONTAL_PADDING,
         marginBottom: SPACING.sm,
     },
     headerTitle: {
@@ -243,64 +122,80 @@ const styles = StyleSheet.create({
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
-    listContent: {
-        paddingHorizontal: HORIZONTAL_PADDING,
-        paddingTop: 8,
-        paddingBottom: 8,
+    grid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: COLUMN_GAP,
     },
-    cardStandard: {
+    card: {
         width: CARD_WIDTH,
-        height: CARD_HEIGHT,
-        marginRight: ITEM_GAP,
-    },
-    cardRootStandard: {
-        width: '100%',
-        height: '100%',
         backgroundColor: COLORS.white,
-        borderRadius: 12,
-        overflow: 'hidden',
+        borderRadius: 10,
         borderWidth: 1,
-        borderColor:
-            COLORS.grayHeavvy || 'rgba(0,0,0,0.05)',
-        shadowColor: COLORS.black,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.05,
-        shadowRadius: 6,
-        elevation: 2,
-    },
-    standardCoverWrap: {
-        width: '100%',
-        height: 125,
+        borderColor: 'rgba(0,0,0,0.05)',
         overflow: 'hidden',
-        backgroundColor: COLORS.background,
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.03,
+        shadowRadius: 3,
+        elevation: 1,
+        marginBottom: 4,
     },
-    standardInfoWrap: {
-        padding: 8,
-        justifyContent: 'center',
+    coverWrap: {
+        width: '100%',
+        height: 100,
+        backgroundColor: COLORS.background,
+        position: 'relative',
     },
     coverImg: {
         width: '100%',
         height: '100%',
     },
+    mintBadge: {
+        position: 'absolute',
+        top: 6,
+        left: 6,
+        backgroundColor: COLORS.green, // Mint green color
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 5,
+        paddingVertical: 1.5,
+        borderRadius: 4,
+        gap: 2,
+    },
+    mintBadgeText: {
+        fontSize: rf(7.5),
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.white,
+    },
+    infoWrap: {
+        padding: 6,
+        gap: 1,
+    },
     titleText: {
-        fontSize: rf(11),
+        fontSize: rf(10.5),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
-        marginBottom: 2,
     },
     authorText: {
-        fontSize: rf(9.5),
+        fontSize: rf(9),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
-        marginBottom: 4,
     },
-
+    footerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 4,
+    },
     priceText: {
-        fontSize: rf(12),
+        fontSize: rf(11.5),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
+    },
+    distanceText: {
+        fontSize: rf(8.5),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
     },
 });

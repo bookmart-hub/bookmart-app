@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
@@ -89,7 +89,7 @@ const CollegeBookCard = ({ book }: { book: any }) => {
                     <Image
                         source={{ uri: book.coverUri }}
                         style={styles.bookCover}
-                        contentFit="contain"
+                        contentFit="fill"
                     />
                     <TouchableOpacity activeOpacity={0.6} style={styles.favBtn} onPress={handleFavorite}>
                         {showBurst && (
@@ -200,7 +200,7 @@ const CollegeInsightsScreen = () => {
                             <Image
                                 source={{ uri: college.logo }}
                                 style={styles.collegeLogo}
-                                contentFit="contain"
+                                contentFit="fill"
                             />
                         </View>
                         <View style={styles.leaderboardInfo}>

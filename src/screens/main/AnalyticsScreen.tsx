@@ -240,7 +240,7 @@ const AnalyticsScreen = () => {
                                 activeOpacity={0.7}
                             >
                                 <Text style={styles.bookRank}>{book.rank}</Text>
-                                <Image source={{ uri: book.cover }} style={styles.bookCover} contentFit="cover" />
+                                <Image source={{ uri: book.cover }} style={styles.bookCover} contentFit="fill" />
 
                                 <View style={styles.bookInfo}>
                                     <Text style={styles.bookTitle} numberOfLines={1}>{book.title}</Text>

@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { rf } from '@/utils/responsive';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -36,7 +36,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
   // Otherwise, we use a fallback margin of 20dp to float above the physical edge of the screen.
   const bottomMargin = insets.bottom > 0
     ? insets.bottom + 0
-    : 10;
+    : rf(3);
 
   return (
     <View style={[styles.wrapper, { bottom: bottomMargin }]}>
@@ -96,7 +96,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
               ]}
             >
               <View style={iconStyle}>
-                {renderIcon && renderIcon({ focused: isFocused, color, size: 24 })}
+                {renderIcon && renderIcon({ focused: isFocused, color, size: rf(22) })}
               </View>
               {showLabel && (
                 typeof label === 'string' ? (
@@ -125,7 +125,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
         ]}
         onPress={handleNewModePress}
       >
-        <MaterialIcons name="stars" size={24} color={isNewMode ? COLORS.white : COLORS.primary} />
+        <Ionicons name="sparkles-outline" size={24} color={isNewMode ? COLORS.white : COLORS.primary} />
       </Pressable>
     </View>
   );
@@ -143,9 +143,9 @@ const styles = StyleSheet.create({
   leftPill: {
     flex: 5,
     flexDirection: 'row',
-    height: 65,
+    height: rf(60),
     backgroundColor: COLORS.white,
-    borderRadius: 32,
+    borderRadius: rf(32),
     alignItems: 'center',
     justifyContent: 'space-around',
     paddingHorizontal: 8,
@@ -159,8 +159,8 @@ const styles = StyleSheet.create({
   },
   rightPill: {
     flex: 1.2,
-    height: 65,
-    borderRadius: 32,
+    height: rf(60),
+    borderRadius: rf(32),
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 12,

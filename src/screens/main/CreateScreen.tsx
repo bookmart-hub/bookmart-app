@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, ToastAndroid, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, ToastAndroid, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +12,8 @@ import Header from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import * as Location from "expo-location";
+import { Image } from 'expo-image';
+import { StatusBar } from 'expo-status-bar';
 
 const CONDITIONS = [
     { id: 'like_new', label: 'Like New', icon: 'decagram-outline' as any },
@@ -163,6 +165,7 @@ const CreateScreen = () => {
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
+            <StatusBar style='dark' />
             {/* Custom Header matching screenshot exactly */}
             <Header title="Listing" />
 
@@ -184,7 +187,7 @@ const CreateScreen = () => {
                             <View style={styles.photoContainer}>
                                 {image ? (
                                     <View style={[styles.dashedBox, styles.previewContainer]}>
-                                        <Image source={{ uri: image }} style={styles.previewImage} resizeMode="stretch" />
+                                        <Image source={{ uri: image }} contentFit='fill' style={styles.previewImage} />
                                         <TouchableOpacity
                                             style={styles.removeImageBtn}
                                             onPress={() => setImage(null)}

@@ -26,8 +26,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { CATEGORIES_LIST, CategoryItem } from '@/data/categoryMockData';
 import { rf } from '@/utils/responsive';
 
-const ITEM_WIDTH = 58;
-const ITEM_HEIGHT = 82;
+const ITEM_WIDTH = 50;
+const ITEM_HEIGHT = 70;
 const ITEM_GAP = 0;
 
 const SNAP_SIZE = ITEM_WIDTH + ITEM_GAP;
@@ -130,7 +130,7 @@ const CategoryCard = memo(
                     <Image
                         source={{ uri: item.imageUri }}
                         style={styles.image}
-                        contentFit="cover"
+                        contentFit="fill"
                         transition={0}
                         cachePolicy="memory-disk"
                     />
@@ -350,7 +350,7 @@ export default CategorySection;
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: rf(5),
+        marginTop: rf(5)
     },
     header: {
         paddingHorizontal: SPACING.lg,

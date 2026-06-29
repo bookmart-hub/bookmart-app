@@ -84,7 +84,7 @@ const BookMapCard: React.FC<BookMapCardProps> = ({ book, userLocation, onPress, 
                     <Image
                         source={{ uri: book.imageUri }}
                         style={styles.image}
-                        contentFit="cover"
+                        contentFit="fill"
                     />
                 </View>
                 <View style={styles.contentContainer}>

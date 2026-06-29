@@ -4,6 +4,7 @@ import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
+import { Ionicons } from '@expo/vector-icons';
 
 type Props = {
     title: string;
@@ -18,6 +19,9 @@ const SearchChip = ({ title, onPress }: Props) => {
             onPress={onPress}
         >
             <Text style={styles.text}>{title}</Text>
+            <TouchableOpacity style={{ marginTop: rf(2) }}>
+                <Ionicons name="close" size={rf(15)} color={COLORS.text} />
+            </TouchableOpacity>
         </TouchableOpacity>
     );
 };
@@ -34,9 +38,12 @@ const styles = StyleSheet.create({
         marginRight: SPACING.sm,
         marginBottom: SPACING.sm,
         backgroundColor: COLORS.white,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: SPACING.xs,
     },
     text: {
-        fontSize: rf(13),
+        fontSize: rf(15),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
     },

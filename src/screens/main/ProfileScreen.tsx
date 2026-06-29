@@ -148,7 +148,7 @@ const ProfileScreen = () => {
                 <View style={styles.profileInfoRow}>
                     <Image
                         source={{ uri: 'https://media.istockphoto.com/id/2220866251/photo/isolated-generic-gray-human-figure-placeholder.webp?a=1&b=1&s=612x612&w=0&k=20&c=vkqNIInBzzIYcuk-wV5KC28xiXfFfYZmAgVOaYebNEA=' }}
-                        contentFit='cover'
+                        contentFit='fill'
                         style={styles.avatarPlaceholder}
                     />
                     <View style={styles.profileDetails}>

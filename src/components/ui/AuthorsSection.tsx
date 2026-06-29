@@ -115,11 +115,11 @@ const DEFAULT_AUTHORS: AuthorItem[] = [
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 
-const HORIZONTAL_PADDING = SPACING.lg; // 24
+const HORIZONTAL_PADDING = SPACING.md; // 16
 const COLLAPSED_WIDTH = 90;
 const ITEM_GAP = 8;
 
-const SNAP_INTERVAL = SCREEN_WIDTH - HORIZONTAL_PADDING - COLLAPSED_WIDTH;
+const SNAP_INTERVAL = SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - COLLAPSED_WIDTH;
 const EXPANDED_WIDTH = SNAP_INTERVAL - ITEM_GAP;
 const PHOTO_SIZE = COLLAPSED_WIDTH;
 const CARD_HEIGHT = 135;
@@ -211,7 +211,7 @@ const AuthorCard: React.FC<AuthorCardProps> = memo(
             const activeProgress = interpolate(progress, [0.3, 0.7], [0, 1], Extrapolation.CLAMP);
 
             const widthVal = interpolate(activeProgress, [0, 1], [COLLAPSED_WIDTH, EXPANDED_WIDTH]);
-            const scaleVal = interpolate(activeProgress, [0, 1], [0.93, 1]);
+            const scaleVal = 1;
 
             return {
                 width: withSpring(widthVal, WIDTH_SPRING),
@@ -446,21 +446,19 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     headerTitle: {
-        fontSize: rf(18),
+        fontSize: rf(16),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
-        fontSize: rf(13),
+        fontSize: rf(12),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
 
-    // ── List ──
     listContent: {
-        paddingLeft: HORIZONTAL_PADDING,
+        paddingHorizontal: HORIZONTAL_PADDING,
         paddingVertical: 4,
-        // paddingRight is applied inline (depends on data length)
     },
 
     // ── Fixed-width slot ── every item occupies exactly SNAP_INTERVAL ──

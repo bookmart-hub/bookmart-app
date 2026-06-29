@@ -6,6 +6,8 @@ import Header from '@/components/ui/Header';
 import SearchBar from '@/components/ui/SearchBar';
 import RecentSearches from '@/components/ui/RecentSearches';
 import { COLORS } from '@/constants/colors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 
 const RECENT_SEARCHES_KEY = '@recent_searches';
 const MAX_RECENT_SEARCHES = 10;
@@ -13,6 +15,7 @@ const MAX_RECENT_SEARCHES = 10;
 const SearchScreen = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [recentSearches, setRecentSearches] = useState<string[]>([]);
+    const insets = useSafeAreaInsets();
 
     useEffect(() => {
         loadRecentSearches();
@@ -70,7 +73,8 @@ const SearchScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
+            <StatusBar style='dark' />
             <Header title="Search" backButton />
 
             <SearchBar

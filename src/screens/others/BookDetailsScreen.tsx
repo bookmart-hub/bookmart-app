@@ -19,6 +19,7 @@ const { width, height } = Dimensions.get('window');
 import { TextInput } from 'react-native';
 import HeartBurst from '@/components/ui/HeartBrust';
 import { rf } from '@/utils/responsive';
+import { StatusBar } from 'expo-status-bar';
 
 const isAcademicCategory = (category: string) => {
     if (!category) return false;
@@ -119,6 +120,7 @@ const BookDetailsScreen = () => {
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
+            <StatusBar style='dark' />
             <Header backButton />
             <ScrollView
                 showsVerticalScrollIndicator={false}
@@ -130,7 +132,7 @@ const BookDetailsScreen = () => {
                     <Image
                         source={{ uri: book.coverUri }}
                         style={styles.bookImage}
-                        contentFit="cover"
+                        contentFit="fill"
                         cachePolicy="memory-disk"
                     />
                 </View>
@@ -160,7 +162,7 @@ const BookDetailsScreen = () => {
                                 <Ionicons
                                     name={isFavorite ? 'heart' : 'heart-outline'}
                                     size={26}
-                                    color={COLORS.primary}
+                                    color={isFavorite ? COLORS.primary : COLORS.textMuted}
                                 />
                             </TouchableOpacity>
 
@@ -173,7 +175,7 @@ const BookDetailsScreen = () => {
                         <Image
                             source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop' }}
                             style={styles.authorAvatar}
-                            contentFit="cover"
+                            contentFit="fill"
                         />
                         <Text style={styles.authorName}>{book.author}</Text>
                     </View>
@@ -188,6 +190,42 @@ const BookDetailsScreen = () => {
                         <View style={styles.priceSection}>
                             <Text style={styles.priceLabel}>Price</Text>
                             <Text style={styles.priceValue}>₹{book.price}</Text>
+                        </View>
+                    </View>
+
+                    {/* Listing & Seller Details Card */}
+                    <View style={styles.sellerDetailsCard}>
+                        <Text style={styles.sellerCardTitle}>Listing & Seller Info</Text>
+                        <View style={styles.sellerDetailsRow}>
+                            <View style={styles.sellerDetailCol}>
+                                <Ionicons name="person-circle-outline" size={20} color={COLORS.primary} />
+                                <View style={styles.sellerDetailTextCol}>
+                                    <Text style={styles.sellerDetailLabel}>Seller</Text>
+                                    <Text style={styles.sellerDetailVal} numberOfLines={1}>
+                                        {book.sellerName || 'Amit Roy'}
+                                    </Text>
+                                </View>
+                            </View>
+
+                            <View style={styles.sellerDetailCol}>
+                                <Ionicons name="location-outline" size={20} color={COLORS.primary} />
+                                <View style={styles.sellerDetailTextCol}>
+                                    <Text style={styles.sellerDetailLabel}>Distance</Text>
+                                    <Text style={styles.sellerDetailVal} numberOfLines={1}>
+                                        {book.distance ? (book.distance.includes('away') ? book.distance : `${book.distance} away`) : '1.2 km away'}
+                                    </Text>
+                                </View>
+                            </View>
+
+                            <View style={styles.sellerDetailCol}>
+                                <Ionicons name="alarm-outline" size={20} color={COLORS.red} />
+                                <View style={styles.sellerDetailTextCol}>
+                                    <Text style={styles.sellerDetailLabel}>Expires In</Text>
+                                    <Text style={[styles.sellerDetailVal, { color: COLORS.red }]} numberOfLines={1}>
+                                        {book.timeLeft || '15h left'}
+                                    </Text>
+                                </View>
+                            </View>
                         </View>
                     </View>
 
@@ -318,8 +356,8 @@ const BookDetailsScreen = () => {
                 />
 
                 <Button
-                    title="View cart"
-                    onPress={() => navigation.navigate('Cart' as never)}
+                    title="Contact Seller"
+                    onPress={() => console.log('Contact Seller')}
                     style={styles.secondaryButton}
                     textStyle={styles.secondaryButtonText}
                 />
@@ -450,7 +488,7 @@ const styles = StyleSheet.create({
     bookMetaCard: {
         backgroundColor: COLORS.white,
         marginTop: -SPACING.lg,
-        borderRadius: 18,
+        borderRadius: rf(12),
         paddingHorizontal: SPACING.md,
         paddingVertical: SPACING.sm,
         marginBottom: SPACING.md,
@@ -474,7 +512,7 @@ const styles = StyleSheet.create({
     },
 
     priceValue: {
-        fontSize: rf(26),
+        fontSize: rf(17),
         color: COLORS.primary,
         fontFamily: FONTS.montserrat.bold,
     },
@@ -676,6 +714,7 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         alignItems: 'center',
         justifyContent: 'center',
+        marginBottom: rf(50)
     },
     submitReviewBtnDisabled: {
         backgroundColor: COLORS.grayHeavvy,
@@ -689,5 +728,49 @@ const styles = StyleSheet.create({
         fontSize: rf(16),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
+    },
+    sellerDetailsCard: {
+        backgroundColor: COLORS.white,
+        borderRadius: rf(12),
+        borderWidth: 1,
+        borderColor: COLORS.grayLight,
+        padding: SPACING.md,
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.02,
+        shadowRadius: 2,
+        marginBottom: rf(16),
+    },
+    sellerCardTitle: {
+        fontSize: rf(13),
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.black,
+        marginBottom: 10,
+    },
+    sellerDetailsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: 8,
+    },
+    sellerDetailCol: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+        gap: 6,
+    },
+    sellerDetailTextCol: {
+        flex: 1,
+    },
+    sellerDetailLabel: {
+        fontSize: rf(8.5),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
+    },
+    sellerDetailVal: {
+        fontSize: rf(11),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.text,
+        marginTop: 1,
     },
 });

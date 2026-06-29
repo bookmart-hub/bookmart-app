@@ -118,7 +118,7 @@ const PromoCard: React.FC<PromoCardProps> = memo(({ item, onCtaPress }) => {
         <Image
           source={{ uri: item.bookImageUri }}
           style={styles.bookImage}
-          contentFit="cover"
+          contentFit="fill"
           cachePolicy="memory-disk"
           recyclingKey={item.bookImageUri}
           transition={0}

@@ -52,7 +52,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = memo(({
           <Image
             source={{ uri: avatarUri }}
             style={styles.avatar}
-            contentFit="cover"
+            contentFit="fill"
             cachePolicy="memory-disk"
             recyclingKey={avatarUri}
             transition={200}

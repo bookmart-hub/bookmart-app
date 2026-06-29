@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +10,8 @@ import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import { FeedItem } from '@/data/models';
+import { StatusBar } from 'expo-status-bar';
+import HeartBurst from './HeartBrust';
 
 const COLUMN_GAP = 16;
 const PADDING_HORIZONTAL = SPACING.lg;
@@ -17,6 +19,73 @@ const PADDING_HORIZONTAL = SPACING.lg;
 interface CategoryMasonryLayoutProps {
   data: FeedItem[];
 }
+
+const MasonryBookCard = memo(
+  ({ book, navigation }: { book: any; navigation: any }) => {
+    const [isLiked, setIsLiked] = useState(false);
+    const [showBurst, setShowBurst] = useState(false);
+
+    const toggleLike = useCallback(() => {
+      setIsLiked((prev) => {
+        const next = !prev;
+        if (next) {
+          setShowBurst(true);
+          setTimeout(() => setShowBurst(false), 600);
+        }
+        return next;
+      });
+    }, []);
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.9}
+        onPress={() => {
+          navigation.navigate('BookDetails', {
+            book: book,
+          });
+        }}
+      >
+        <Image
+          source={{ uri: book.imageUri || book.coverUri }}
+          style={styles.bookImage}
+          contentFit="fill"
+        />
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle} numberOfLines={2}>
+            {book.title}
+          </Text>
+          <Text style={styles.author} numberOfLines={1}>
+            {book.author || 'Unknown'}
+          </Text>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceText}>₹{book.price}</Text>
+            <View style={styles.heartContainer}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={toggleLike}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons
+                  name={isLiked ? 'heart' : 'heart-outline'}
+                  size={rf(15)}
+                  color={isLiked ? COLORS.primary : COLORS.textMuted}
+                />
+              </TouchableOpacity>
+              {showBurst && <HeartBurst />}
+            </View>
+          </View>
+          {(book.discount || book.stock) && (
+            <View style={styles.metaRow}>
+              {book.discount && <Text style={styles.discountText}>{book.discount}</Text>}
+              {book.stock && <Text style={styles.stockText}>{book.stock}</Text>}
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  }
+);
 
 const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({ data }) => {
   const insets = useSafeAreaInsets();
@@ -44,7 +113,7 @@ const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({ data }) =
               <Image
                 source={{ uri: item.imageUrl }}
                 style={styles.adImage}
-                contentFit="cover"
+                contentFit="fill"
               />
               {item.text && (
                 <View style={styles.adOverlay}>
@@ -56,44 +125,9 @@ const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({ data }) =
         );
 
       case 'book':
-        const book = item.book;
         return (
           <View style={wrapperStyle}>
-            <TouchableOpacity
-              style={styles.card}
-              activeOpacity={0.9}
-              onPress={() => {
-                navigation.navigate('BookDetails', {
-                  book: book,
-                });
-              }}
-            >
-              <Image
-                source={{ uri: book.imageUri || book.coverUri }}
-                style={styles.bookImage}
-                contentFit="cover"
-              />
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle} numberOfLines={2}>
-                  {book.title}
-                </Text>
-                <Text style={styles.author} numberOfLines={1}>
-                  {book.author || 'Unknown'}
-                </Text>
-                <View style={styles.priceRow}>
-                  <Text style={styles.priceText}>₹{book.price}</Text>
-                  <TouchableOpacity style={styles.addButton}>
-                    <Ionicons name="bag-handle-sharp" size={14} color={COLORS.white} />
-                  </TouchableOpacity>
-                </View>
-                {(book.discount || book.stock) && (
-                  <View style={styles.metaRow}>
-                    {book.discount && <Text style={styles.discountText}>{book.discount}</Text>}
-                    {book.stock && <Text style={styles.stockText}>{book.stock}</Text>}
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
+            <MasonryBookCard book={item.book} navigation={navigation} />
           </View>
         );
 
@@ -104,6 +138,7 @@ const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({ data }) =
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar style='dark' />
       <View style={styles.appBar}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -124,7 +159,6 @@ const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({ data }) =
           paddingBottom: SPACING.xl,
         }}
         showsVerticalScrollIndicator={false}
-        estimatedItemSize={250}
       />
     </View>
   );
@@ -139,7 +173,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: COLORS.white,
-    borderRadius: rf(15),
+    borderRadius: rf(12),
     overflow: 'hidden',
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 4 },
@@ -149,20 +183,20 @@ const styles = StyleSheet.create({
   },
   bookImage: {
     width: '100%',
-    height: rf(155),
+    height: rf(130),
   },
   cardContent: {
-    padding: rf(13),
+    padding: rf(9),
   },
   author: {
-    fontSize: rf(12),
+    fontSize: rf(10.5),
     color: COLORS.text,
-    marginTop: rf(4),
-    marginBottom: rf(7),
+    marginTop: rf(3),
+    marginBottom: rf(5),
   },
   cardTitle: {
-    fontSize: rf(14),
-    lineHeight: rf(18),
+    fontSize: rf(12.5),
+    lineHeight: rf(16),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
   },
@@ -191,7 +225,7 @@ const styles = StyleSheet.create({
   adCard: {
     borderRadius: rf(15),
     overflow: 'hidden',
-    height: rf(170),
+    height: rf(140),
     backgroundColor: COLORS.grayLight,
     position: 'relative',
     justifyContent: 'center',
@@ -224,7 +258,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   priceText: {
-    fontSize: rf(14),
+    fontSize: rf(12.5),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
   },
@@ -236,19 +270,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  heartContainer: {
+    width: rf(28),
+    height: rf(28),
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    marginRight: -rf(4),
+  },
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: rf(12),
+    marginTop: rf(6),
   },
   discountText: {
-    fontSize: rf(12),
+    fontSize: rf(10),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.primary,
   },
   stockText: {
-    fontSize: rf(12),
+    fontSize: rf(10),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.red,
   },

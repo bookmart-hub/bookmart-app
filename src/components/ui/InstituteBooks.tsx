@@ -1,23 +1,17 @@
-import React, { memo, useCallback, useRef, useMemo, useEffect } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import {
-    Dimensions,
-    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
 import { Image } from 'expo-image';
-import Animated, {
-    useAnimatedScrollHandler,
-    useSharedValue,
-} from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+import HeartBurst from './HeartBrust';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -28,84 +22,18 @@ export interface InstituteBookItem {
     price: number;
     coverUri: string;
     description?: string;
-    /** Single initial shown in the avatar pill when no photo is available */
     sellerName: string;
     sellerAvatarUri?: string;
 }
 
-// ── Sample data ───────────────────────────────────────────────────────────────
-
-const DEFAULT_INSTITUTE_BOOKS: InstituteBookItem[] = [
-    {
-        id: '1',
-        title: 'Fingersmith',
-        author: 'Sarah Waters',
-        price: 140,
-        coverUri:
-            'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=280&fit=crop',
-        description:
-            'Widely celebrated for its intricate "Dickensian" plot,',
-        sellerName: 'Amit Roy',
-        sellerAvatarUri:
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face',
-    },
-    {
-        id: '2',
-        title: 'The Skin and ...',
-        author: 'Sarah Cypher',
-        price: 175,
-        coverUri:
-            'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=200&h=280&fit=crop',
-        description:
-            'Widely celebrated for its intricate "Dickensian" plot,',
-        sellerName: 'Amit Roy',
-        sellerAvatarUri:
-            'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face',
-    },
-    {
-        id: '3',
-        title: 'Atomic Habits',
-        author: 'James Clear',
-        price: 220,
-        coverUri:
-            'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=200&h=280&fit=crop',
-        description: 'Tiny changes, remarkable results ── a proven framework.',
-        sellerName: 'Priya Sen',
-        sellerAvatarUri:
-            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop&crop=face',
-    },
-    {
-        id: '4',
-        title: 'Deep Work',
-        author: 'Cal Newport',
-        price: 195,
-        coverUri:
-            'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=200&h=280&fit=crop',
-        description: 'Rules for focused success in a distracted world.',
-        sellerName: 'Rahul Mehta',
-    },
-];
-
-// ── Layout constants ──────────────────────────────────────────────────────────
-
-const CARD_WIDTH = 230;
-const CARD_HEIGHT = 120;
-const COVER_WIDTH = 70;
-const COVER_HEIGHT = CARD_HEIGHT - 16; // fits card height with padding 8
-const ITEM_GAP = 12;
-const SNAP_INTERVAL = CARD_WIDTH + ITEM_GAP;
-const HORIZONTAL_PADDING = SPACING.lg;
-
-const LOOP_COPIES = 15; // Enough for seamless infinite scroll
-
-// ── SellerPill ────────────────────────────────────────────────────────────────
-
-interface SellerPillProps {
-    name: string;
-    avatarUri?: string;
+export interface InstituteBooksProps {
+    instituteName?: string;
+    books: InstituteBookItem[];
+    onBookPress?: (book: InstituteBookItem) => void;
+    onSeeAllPress?: () => void;
 }
 
-const SellerPill: React.FC<SellerPillProps> = memo(({ name, avatarUri }) => {
+const SellerPill: React.FC<{ name: string; avatarUri?: string }> = memo(({ name, avatarUri }) => {
     const initial = name.charAt(0).toUpperCase();
 
     return (
@@ -114,9 +42,8 @@ const SellerPill: React.FC<SellerPillProps> = memo(({ name, avatarUri }) => {
                 <Image
                     source={{ uri: avatarUri }}
                     style={styles.sellerAvatar}
-                    contentFit="cover"
+                    contentFit="fill"
                     cachePolicy="memory-disk"
-                    recyclingKey={avatarUri}
                 />
             ) : (
                 <View style={styles.sellerAvatarFallback}>
@@ -130,30 +57,37 @@ const SellerPill: React.FC<SellerPillProps> = memo(({ name, avatarUri }) => {
     );
 });
 
-// ── InstituteBookCard ─────────────────────────────────────────────────────────
+const BookRowCard = memo(
+    ({ item, onPress }: { item: InstituteBookItem; onPress?: (item: InstituteBookItem) => void }) => {
+        const [isLiked, setIsLiked] = useState(false);
+        const [showBurst, setShowBurst] = useState(false);
 
-interface InstituteBookCardProps {
-    item: InstituteBookItem;
-    onPress?: (item: InstituteBookItem) => void;
-}
-
-const InstituteBookCard: React.FC<InstituteBookCardProps> = memo(
-    ({ item, onPress }) => {
         const handlePress = useCallback(() => {
             onPress?.(item);
         }, [item, onPress]);
+
+        const toggleLike = useCallback(() => {
+            setIsLiked((prev) => {
+                const next = !prev;
+                if (next) {
+                    setShowBurst(true);
+                    setTimeout(() => setShowBurst(false), 600);
+                }
+                return next;
+            });
+        }, []);
 
         return (
             <TouchableOpacity
                 activeOpacity={0.88}
                 onPress={handlePress}
-                style={styles.card}
+                style={styles.rowCard}
             >
                 {/* Book cover */}
                 <Image
                     source={{ uri: item.coverUri }}
                     style={styles.cover}
-                    contentFit="cover"
+                    contentFit="fill"
                     recyclingKey={item.coverUri}
                     cachePolicy="memory-disk"
                 />
@@ -167,268 +101,199 @@ const InstituteBookCard: React.FC<InstituteBookCardProps> = memo(
                         {item.author}
                     </Text>
                     {item.description ? (
-                        <Text style={styles.descText} numberOfLines={3}>
+                        <Text style={styles.descText} numberOfLines={2}>
                             {item.description}
                         </Text>
                     ) : null}
-                    <View style={styles.spacer} />
                     <SellerPill
                         name={item.sellerName}
                         avatarUri={item.sellerAvatarUri}
                     />
                 </View>
+
+                {/* Price and Action */}
+                <View style={styles.rightActionWrap}>
+                    <Text style={styles.priceText}>₹{item.price}</Text>
+                    <View style={styles.actionBtn}>
+                        <Text style={styles.actionBtnText}>View</Text>
+                    </View>
+                </View>
             </TouchableOpacity>
         );
-    }
+    },
+    (prev, next) => prev.item.id === next.item.id
 );
-
-// ── InstituteBooks section ────────────────────────────────────────────────────
-
-export interface InstituteBooksProps {
-    instituteName?: string;
-    books?: InstituteBookItem[];
-    onBookPress?: (book: InstituteBookItem) => void;
-    onSeeAllPress?: () => void;
-}
 
 const InstituteBooks: React.FC<InstituteBooksProps> = memo(({
     instituteName = 'Your Institute',
-    books = DEFAULT_INSTITUTE_BOOKS,
+    books,
     onBookPress,
     onSeeAllPress,
 }) => {
-    const listRef = useRef<any>(null);
-    const scrollX = useSharedValue(0);
-    const N = books.length;
-
-    // Replicate data for infinite loop
-    const loopedData = useMemo(() => {
-        const arr = [];
-        for (let c = 0; c < LOOP_COPIES; c++) {
-            for (let i = 0; i < N; i++) {
-                arr.push({ ...books[i], _key: `${books[i].id}-${c}` });
-            }
-        }
-        return arr;
-    }, [books, N]);
-
-    const middleCopy = Math.floor(LOOP_COPIES / 2);
-    const middleStartIndex = middleCopy * N;
-
-    // Scroll to middle on mount
-    useEffect(() => {
-        if (N > 0 && listRef.current) {
-            const timer = setTimeout(() => {
-                listRef.current?.scrollToIndex({
-                    index: middleStartIndex,
-                    animated: false,
-                });
-            }, 80);
-            return () => clearTimeout(timer);
-        }
-    }, [middleStartIndex, N]);
-
-    const onScroll = useAnimatedScrollHandler({
-        onScroll: (event) => {
-            'worklet';
-            scrollX.value = event.contentOffset.x;
-        },
-    });
-
-    // Reset to middle on momentum end near boundaries
-    const handleMomentumScrollEnd = useCallback((e: any) => {
-        const x = e.nativeEvent.contentOffset.x;
-        const index = Math.round(x / SNAP_INTERVAL);
-        const originalIdx = ((index % N) + N) % N;
-        const newIndex = middleCopy * N + originalIdx;
-
-        if (index < N * 2 || index > loopedData.length - N * 2) {
-            listRef.current?.scrollToIndex({ index: newIndex, animated: false });
-            scrollX.value = newIndex * SNAP_INTERVAL;
-        }
-    }, [N, middleCopy, loopedData.length]);
-
-    const renderItem = useCallback(
-        ({ item }: any) => (
-            <InstituteBookCard
-                item={item}
-                onPress={onBookPress}
-            />
-        ),
-        [onBookPress]
-    );
-
-    const keyExtractor = useCallback((item: any) => item._key, []);
-
-    const getItemLayout = useCallback(
-        (_: any, index: number) => ({
-            length: SNAP_INTERVAL,
-            offset: SNAP_INTERVAL * index,
-            index,
-        }),
-        []
-    );
+    // Only display top 3 books for Q-commerce vertical rows
+    const displayBooks = books.slice(0, 3);
 
     return (
         <View style={styles.section}>
-            {/* ── Header ── */}
+            {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.headerTitle} numberOfLines={1}>
                     From Your {instituteName === 'Your Institute' ? 'College' : instituteName}
                 </Text>
-                <TouchableOpacity activeOpacity={0.7} onPress={onSeeAllPress}>
-                    <Text style={styles.headerLink}>see all</Text>
-                </TouchableOpacity>
+                {onSeeAllPress && (
+                    <TouchableOpacity activeOpacity={0.7} onPress={onSeeAllPress}>
+                        <Text style={styles.headerLink}>see all</Text>
+                    </TouchableOpacity>
+                )}
             </View>
 
-            {/* ── Infinite loop carousel ── */}
-            <Animated.FlatList
-                ref={listRef}
-                horizontal
-                data={loopedData}
-                keyExtractor={keyExtractor}
-                renderItem={renderItem}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.listContent}
-                getItemLayout={getItemLayout}
-                onScroll={onScroll}
-                onMomentumScrollEnd={handleMomentumScrollEnd}
-                scrollEventThrottle={16}
-                snapToInterval={SNAP_INTERVAL}
-                snapToAlignment="start"
-                decelerationRate="fast"
-                bounces={false}
-                initialNumToRender={3}
-                maxToRenderPerBatch={2}
-                windowSize={5}
-                removeClippedSubviews={true}
-                updateCellsBatchingPeriod={40}
-            />
+            {/* Vertical rows */}
+            <View style={styles.list}>
+                {displayBooks.map((book) => (
+                    <BookRowCard
+                        key={book.id}
+                        item={book}
+                        onPress={onBookPress}
+                    />
+                ))}
+            </View>
         </View>
     );
 });
 
 export default InstituteBooks;
 
-// ── Styles ────────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
     section: {
-        // marginTop: SPACING.xs,
+        marginTop: SPACING.md,
+        paddingHorizontal: SPACING.md,
     },
-
-    // ── Header ──
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: HORIZONTAL_PADDING,
         marginBottom: SPACING.sm,
     },
     headerTitle: {
-        fontSize: rf(18),
+        fontSize: rf(16),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
-        fontSize: rf(13),
+        fontSize: rf(12),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
-
-    // ── List ──
-    listContent: {
-        paddingHorizontal: HORIZONTAL_PADDING,
-        paddingBottom: 4,
+    list: {
+        gap: 8,
     },
-
-    // ── Card ──
-    card: {
-        width: CARD_WIDTH,
-        height: CARD_HEIGHT,
+    rowCard: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
         backgroundColor: COLORS.white,
-        borderRadius: 14,
+        borderRadius: 10,
         borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.04)',
+        borderColor: 'rgba(0,0,0,0.05)',
         padding: 8,
-        marginRight: ITEM_GAP,
-
+        alignItems: 'center',
         shadowColor: COLORS.black,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.02,
+        shadowRadius: 2,
+        elevation: 1,
     },
-
-    // ── Cover ──
     cover: {
-        width: COVER_WIDTH,
-        height: COVER_HEIGHT,
-        borderRadius: 8,
+        width: 58,
+        height: 78,
+        borderRadius: 6,
         backgroundColor: COLORS.secondary,
-        flexShrink: 0,
     },
-
-    // ── Card text area ──
     cardBody: {
         flex: 1,
         marginLeft: 10,
-        alignSelf: 'stretch',
+        justifyContent: 'space-between',
     },
     titleText: {
-        fontSize: rf(12),
+        fontSize: rf(11.5),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
-        marginBottom: 2,
+        marginBottom: 1,
     },
     authorText: {
-        fontSize: rf(10.5),
+        fontSize: rf(9.5),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.textMuted,
-        marginBottom: 4,
+        marginBottom: 2,
     },
     descText: {
-        fontSize: rf(9.5),
+        fontSize: rf(9),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
-        lineHeight: 14,
+        lineHeight: 12,
+        marginBottom: 4,
     },
-    spacer: {
-        flex: 1,
-    },
-
-    // ── Seller pill ──
     sellerPill: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 6,
+        marginTop: 2,
     },
     sellerAvatar: {
-        width: 18,
-        height: 18,
-        borderRadius: 9,
-        marginRight: 5,
+        width: 14,
+        height: 14,
+        borderRadius: 7,
+        marginRight: 4,
         backgroundColor: COLORS.secondary,
     },
     sellerAvatarFallback: {
-        width: 18,
-        height: 18,
-        borderRadius: 9,
-        marginRight: 5,
+        width: 14,
+        height: 14,
+        borderRadius: 7,
+        marginRight: 4,
         backgroundColor: COLORS.primary,
         justifyContent: 'center',
         alignItems: 'center',
     },
     sellerAvatarInitial: {
-        fontSize: rf(9),
+        fontSize: rf(8),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.white,
     },
     sellerName: {
-        fontSize: rf(10),
+        fontSize: rf(9),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
-        flex: 1,
+    },
+    rightActionWrap: {
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        marginLeft: 8,
+        gap: 6,
+    },
+    priceText: {
+        fontSize: rf(13),
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.primary,
+    },
+    actionRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 2,
+    },
+    actionBtn: {
+        backgroundColor: COLORS.primary,
+        borderRadius: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+    },
+    actionBtnText: {
+        fontSize: rf(9.5),
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.white,
+    },
+    heartContainer: {
+        width: 34,
+        height: 34,
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'relative',
     },
 });

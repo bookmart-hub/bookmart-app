@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import Animated, {
     interpolate,
@@ -14,7 +14,12 @@ import { rf } from '@/utils/responsive';
 const CARD_WIDTH = rf(170);
 const CARD_HEIGHT = rf(200);
 
-const EditorsChoiceComp = ({ item }: { item: any[] }) => {
+interface EditorsChoiceCompProps {
+    item: any[];
+    onBookPress?: (book: any) => void;
+}
+
+const EditorsChoiceComp = ({ item, onBookPress }: EditorsChoiceCompProps) => {
     return (
         <View style={styles.sectionContainer}>
             <Text style={styles.headerTitle}>Editor's Choice</Text>
@@ -45,7 +50,11 @@ const EditorsChoiceComp = ({ item }: { item: any[] }) => {
                     });
 
                     return (
-                        <View style={styles.box}>
+                        <TouchableOpacity
+                            activeOpacity={0.9}
+                            onPress={() => onBookPress?.(item)}
+                            style={styles.box}
+                        >
                             <Animated.View
                                 style={[StyleSheet.absoluteFillObject, imageStyle]}
                             >
@@ -61,7 +70,7 @@ const EditorsChoiceComp = ({ item }: { item: any[] }) => {
                                     </View>
                                 </ImageBackground>
                             </Animated.View>
-                        </View>
+                        </TouchableOpacity>
                     );
                 }}
             />
@@ -75,7 +84,7 @@ const styles = StyleSheet.create({
     sectionContainer: {
         marginTop: rf(12),
         marginBottom: rf(10),
-        paddingLeft: rf(20),
+        paddingHorizontal: rf(20),
     },
     headerTitle: {
         fontSize: rf(16),
@@ -87,7 +96,7 @@ const styles = StyleSheet.create({
         height: CARD_HEIGHT,
         borderRadius: 10,
         overflow: 'hidden',
-        backgroundColor: COLORS.white,
+        backgroundColor: COLORS.background,
     },
 
     overlay: {

@@ -202,7 +202,7 @@ export default function BoostListingScreen() {
                             onPress={() => handleToggleBook(book.id, book.isBoosted)}
                             activeOpacity={0.8}
                         >
-                            <Image source={{ uri: book.coverUri }} style={styles.bookCover} contentFit="cover" />
+                            <Image source={{ uri: book.coverUri }} style={styles.bookCover} contentFit="fill" />
                             <View style={styles.bookInfo}>
                                 <Text style={styles.bookTitle} numberOfLines={1}>{book.title}</Text>
                                 <Text style={styles.bookAuthor} numberOfLines={1}>{book.author}</Text>
