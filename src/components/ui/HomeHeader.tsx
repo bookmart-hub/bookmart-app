@@ -7,6 +7,7 @@ import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import { StatusBar } from 'expo-status-bar';
+import { BookMartLogo } from '@/constants/svgs';
 
 interface HomeHeaderProps {
   avatarUri?: string;
@@ -25,7 +26,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = memo(({
     <View style={styles.container}>
       <StatusBar style='dark' />
       {/* Brand Logo */}
-      <Image source={require('../../../assets/BookmartLogo.png')} style={{ width: rf(140), height: rf(50) }} />
+      <BookMartLogo width={rf(140)} height={rf(50)} style={{ marginLeft: rf(-5) }} />
 
       {/* Right Actions */}
       <View style={styles.rightSection}>
