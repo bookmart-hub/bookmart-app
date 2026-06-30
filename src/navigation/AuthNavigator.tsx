@@ -4,11 +4,13 @@ import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import ForgotPassScreen from '@/screens/auth/ForgotPassScreen';
 import PersonalizationScreen from '@/screens/auth/PersonalizationScreen';
+import VerifyEmail from '@/screens/auth/VerifyEmail';
 
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
   ForgotPassScreen: undefined;
+  VerifyEmail: undefined;
   Personalization: undefined;
 };
 
@@ -34,6 +36,10 @@ export default function AuthNavigator() {
       <Stack.Screen
         name="ForgotPassScreen"
         component={ForgotPassScreen}
+      />
+      <Stack.Screen
+        name="VerifyEmail"
+        component={VerifyEmail}
       />
       <Stack.Screen
         name="Personalization"

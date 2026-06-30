@@ -73,7 +73,7 @@ const RegisterScreen: React.FC = () => {
 
     onSuccess: () => {
       ToastAndroid.show('Account created successfully!', ToastAndroid.SHORT);
-      navigation.navigate('Personalization');
+      navigation.navigate('VerifyEmail');
     },
 
     onError: (error: any) => {
@@ -253,11 +253,11 @@ const RegisterScreen: React.FC = () => {
           {/* Action Button */}
           <View style={styles.buttonContainer}>
             {registerMutation.isPending ? (
-              <View style={styles.loadingContainer}>
-                <Text style={styles.loadingText}>
-                  {loadingText}
-                </Text>
-              </View>
+              <Button
+                title={loadingText}
+                onPress={handleSignUp}
+                variant="primary"
+              />
             ) : (
               <Button
                 title="Sign Up"
@@ -329,15 +329,13 @@ const styles = StyleSheet.create({
     height: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.primary,
     borderRadius: 28,
-    borderWidth: 1,
-    borderColor: COLORS.grayHeavvy,
   },
   loadingText: {
     fontSize: rf(16),
     fontFamily: FONTS.manrope.bold,
-    color: COLORS.primary,
+    color: COLORS.white,
   },
   termsText: {
     fontSize: rf(14),
