@@ -24,6 +24,9 @@ import { Input } from '@/components/ui/Input';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { rf } from '@/utils/responsive';
 
+import { useMutation } from '@tanstack/react-query';
+import { registerUser } from '@/types/auth';
+
 type RegisterScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Register'>;
 
 // Google multi-colored G SVG icon component
@@ -63,28 +66,44 @@ const RegisterScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('Signing up');
 
+  const registerMutation = useMutation({
+    mutationFn: registerUser,
+
+    onSuccess: () => {
+      ToastAndroid.show('Account created successfully!', ToastAndroid.SHORT);
+      navigation.navigate('Personalization');
+    },
+
+    onError: (error: any) => {
+      const message =
+        error?.response?.data?.detail ||
+        error?.response?.data?.email?.[0] ||
+        error?.response?.data?.username?.[0] ||
+        error?.response?.data?.password?.[0] ||
+        'Registration failed';
+
+      if (Platform.OS === 'android') {
+        ToastAndroid.show(message, ToastAndroid.LONG);
+      } else {
+        Alert.alert('Error', message);
+      }
+    },
+  });
+
   useEffect(() => {
-    if (!isLoading) return;
+    if (!registerMutation.isPending) return;
 
     let count = 0;
 
     const interval = setInterval(() => {
       count = (count + 1) % 4;
-
       setLoadingText(`Signing up${'.'.repeat(count)}`);
     }, 400);
 
-    return () => {
-      clearInterval(interval)
-      setUsername("")
-      setEmail("")
-      setPassword("")
-      setAcceptedTerms(false);
-    };
-  }, [isLoading]);
+    return () => clearInterval(interval);
+  }, [registerMutation.isPending]);
 
   // Helper function to trigger platform-appropriate notifications
   const showToastOrAlert = (message: string) => {
@@ -143,13 +162,11 @@ const RegisterScreen: React.FC = () => {
   const handleSignUp = () => {
     if (!validateForm()) return;
 
-    setIsLoading(true);
-
-    // Simulate account registration
-    setTimeout(() => {
-      setIsLoading(false);
-      navigation.navigate('Personalization');
-    }, 1500);
+    registerMutation.mutate({
+      username,
+      email,
+      password,
+    });
   };
 
   return (
@@ -235,7 +252,7 @@ const RegisterScreen: React.FC = () => {
 
           {/* Action Button */}
           <View style={styles.buttonContainer}>
-            {isLoading ? (
+            {registerMutation.isPending ? (
               <View style={styles.loadingContainer}>
                 <Text style={styles.loadingText}>
                   {loadingText}

@@ -3,7 +3,6 @@ import { View, StyleSheet, Dimensions, Platform, TouchableOpacity, TextInput, Sc
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import MapView, { Marker, PROVIDER_GOOGLE, Region, Circle, Polyline } from 'react-native-maps';
-import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
@@ -25,12 +24,68 @@ const MOCK_USER_LOCATION = {
     longitude: 88.4230,
 };
 
+// Static categories calculation outside the component to prevent recreation on every render
+const EXTENDED_CATEGORIES = [{ id: 'all', name: 'All' }, ...MOCK_CATEGORIES];
+
+// Memoized Category Chip component to prevent redundant chip rendering
+const CategoryChip = React.memo(({ cat, isActive, onPress }: {
+    cat: { id: string; name: string };
+    isActive: boolean;
+    onPress: (id: string) => void;
+}) => {
+    const handlePress = useCallback(() => {
+        onPress(cat.id);
+    }, [cat.id, onPress]);
+
+    return (
+        <TouchableOpacity
+            style={[styles.categoryChip, isActive && styles.categoryChipActive]}
+            onPress={handlePress}
+            activeOpacity={0.8}
+        >
+            <Text style={[styles.categoryText, isActive && styles.categoryTextActive]}>{cat.name}</Text>
+        </TouchableOpacity>
+    );
+});
+
+// Memoized Map Marker Wrapper component
+const MapMarkerWrapper = React.memo(({ book, isSelected, hasSelection, onPress }: {
+    book: NearestBook;
+    isSelected: boolean;
+    hasSelection: boolean;
+    onPress: (book: NearestBook) => void;
+}) => {
+    const [tracksViewChanges, setTracksViewChanges] = useState(true);
+
+    useEffect(() => {
+        setTracksViewChanges(true);
+        const timer = setTimeout(() => {
+            setTracksViewChanges(false);
+        }, 350);
+        return () => clearTimeout(timer);
+    }, [isSelected, hasSelection]);
+
+    const handlePress = useCallback(() => {
+        onPress(book);
+    }, [book, onPress]);
+
+    return (
+        <Marker
+            coordinate={{ latitude: book.latitude!, longitude: book.longitude! }}
+            onPress={handlePress}
+            tracksViewChanges={tracksViewChanges}
+        >
+            <MapMarker book={book} isSelected={isSelected} hasSelection={hasSelection} />
+        </Marker>
+    );
+});
+
 const NearestBooksMapScreen = () => {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
     const mapRef = useRef<MapView>(null);
-    const bottomSheetRef = useRef<BottomSheet>(null);
+    const [bottomSheetVisible, setBottomSheetVisible] = useState(true);
 
     const [userLocation, setUserLocation] = useState<{ latitude: number, longitude: number } | null>(null);
     const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
@@ -39,7 +94,10 @@ const NearestBooksMapScreen = () => {
     const [routeCoords, setRouteCoords] = useState<{ latitude: number, longitude: number }[]>([]);
     const [routeInfo, setRouteInfo] = useState<{ distance: string, duration: string } | null>(null);
 
-    const extendedCategories = [{ id: 'all', name: 'All' }, ...MOCK_CATEGORIES];
+    const handleCategoryPress = useCallback((categoryId: string) => {
+        setActiveCategoryId(categoryId);
+        setSelectedBookId(null);
+    }, []);
 
     const filteredBooks = useMemo(() => {
         let books = MOCK_NEAREST_BOOKS;
@@ -131,6 +189,7 @@ const NearestBooksMapScreen = () => {
             }
             return newSelectedId;
         });
+        setBottomSheetVisible(true);
     }, [userLocation]);
 
     const handleCenterLocation = useCallback(() => {
@@ -164,11 +223,16 @@ const NearestBooksMapScreen = () => {
                 showsCompass={false}
                 mapType="standard"
                 customMapStyle={[]}
+                showsTraffic={false}
+                showsIndoors={false}
+                showsIndoorLevelPicker={false}
+                showsBuildings={false}
             >
                 {/* User Location Marker */}
                 <Marker
                     coordinate={{ latitude: userLocation.latitude, longitude: userLocation.longitude }}
                     zIndex={999}
+                    tracksViewChanges={false}
                 >
                     <View style={styles.userLocationMarker}>
                         <Ionicons name="navigate-circle" size={32} color={COLORS.primary} />
@@ -200,13 +264,13 @@ const NearestBooksMapScreen = () => {
                     if (!book.latitude || !book.longitude) return null;
                     const isSelected = selectedBookId === book.id;
                     return (
-                        <Marker
+                        <MapMarkerWrapper
                             key={book.id}
-                            coordinate={{ latitude: book.latitude, longitude: book.longitude }}
-                            onPress={() => handleBookPress(book)}
-                        >
-                            <MapMarker book={book} isSelected={isSelected} hasSelection={!!selectedBookId} />
-                        </Marker>
+                            book={book}
+                            isSelected={isSelected}
+                            hasSelection={!!selectedBookId}
+                            onPress={handleBookPress}
+                        />
                     );
                 })}
             </MapView>
@@ -236,26 +300,22 @@ const NearestBooksMapScreen = () => {
                         <Ionicons name="list" size={22} color={COLORS.primary} />
                     </TouchableOpacity>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesScroll}>
-                        {extendedCategories.map((cat) => {
+                        {EXTENDED_CATEGORIES.map((cat) => {
                             const isActive = activeCategoryId === cat.id;
                             return (
-                                <TouchableOpacity
+                                <CategoryChip
                                     key={cat.id}
-                                    style={[styles.categoryChip, isActive && styles.categoryChipActive]}
-                                    onPress={() => {
-                                        setActiveCategoryId(cat.id);
-                                        setSelectedBookId(null);
-                                    }}
-                                >
-                                    <Text style={[styles.categoryText, isActive && styles.categoryTextActive]}>{cat.name}</Text>
-                                </TouchableOpacity>
+                                    cat={cat}
+                                    isActive={isActive}
+                                    onPress={handleCategoryPress}
+                                />
                             );
                         })}
                     </ScrollView>
                 </View>
             </LinearGradient>
 
-            <View style={[styles.locationButtonContainer, { bottom: insets.bottom + 290 }]}>
+            <View style={[styles.locationButtonContainer, { bottom: insets.bottom + (bottomSheetVisible ? 290 : 80) }]}>
                 <UserLocationButton onPress={handleCenterLocation} />
             </View>
 
@@ -266,20 +326,23 @@ const NearestBooksMapScreen = () => {
                 </Animated.View>
             )}
 
-            {/* <TouchableOpacity 
-                style={[styles.listToggleButton, { bottom: insets.bottom + 290 }]} 
-                onPress={handleToggleScreen}
-            >
-                <Ionicons name="list" size={20} color={COLORS.white} style={{ marginRight: 8 }} />
-                <Text style={styles.listToggleText}>List View</Text>
-            </TouchableOpacity> */}
+            {!bottomSheetVisible && (
+                <TouchableOpacity 
+                    style={[styles.listToggleButton, { bottom: insets.bottom + 20 }]} 
+                    onPress={() => setBottomSheetVisible(true)}
+                >
+                    <Ionicons name="list" size={20} color={COLORS.white} style={{ marginRight: 8 }} />
+                    <Text style={styles.listToggleText}>List View</Text>
+                </TouchableOpacity>
+            )}
 
             <BooksBottomSheet
-                ref={bottomSheetRef}
                 books={filteredBooks}
                 selectedBookId={selectedBookId}
                 onBookPress={handleBookPress}
                 userLocation={userLocation}
+                visible={bottomSheetVisible}
+                onClose={() => setBottomSheetVisible(false)}
             />
         </View>
     );

@@ -115,9 +115,9 @@ const DEFAULT_AUTHORS: AuthorItem[] = [
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 
-const HORIZONTAL_PADDING = SPACING.md; // 16
-const COLLAPSED_WIDTH = 90;
-const ITEM_GAP = 8;
+const HORIZONTAL_PADDING = rf(20); // 16
+const COLLAPSED_WIDTH = rf(80);
+const ITEM_GAP = rf(5);
 
 const SNAP_INTERVAL = SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - COLLAPSED_WIDTH;
 const EXPANDED_WIDTH = SNAP_INTERVAL - ITEM_GAP;

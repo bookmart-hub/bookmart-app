@@ -19,7 +19,7 @@ export interface Category {
 }
 
 export const MOCK_CATEGORIES: Category[] = [
-    { id: '1', name: 'Scince Finction' },
+    { id: '1', name: 'Science Fiction' },
     { id: '2', name: 'Romance' },
     { id: '3', name: 'Self Help' },
     { id: '4', name: 'Biography' },

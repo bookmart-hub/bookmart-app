@@ -1,6 +1,6 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
-import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
+import React, { useEffect, useRef, useCallback } from 'react';
+import { StyleSheet, FlatList, Platform } from 'react-native';
+import CleanBottomSheet from '@/components/ui/CleanBottomSheet';
 import { NearestBook } from '@/data/nearestBooksMockData';
 import { COLORS } from '@/constants/colors';
 import BookMapCard from './BookMapCard';
@@ -12,57 +12,70 @@ interface BooksBottomSheetProps {
     selectedBookId: string | null;
     onBookPress: (book: NearestBook) => void;
     userLocation: { latitude: number; longitude: number };
+    visible: boolean;
+    onClose: () => void;
 }
 
-const BooksBottomSheet = forwardRef<BottomSheet, BooksBottomSheetProps>(
-    ({ books, selectedBookId, onBookPress, userLocation }, ref) => {
-        const insets = useSafeAreaInsets();
-        const localRef = useRef<BottomSheet>(null);
-        const flatListRef = useRef<any>(null);
+const BooksBottomSheet: React.FC<BooksBottomSheetProps> = ({
+    books,
+    selectedBookId,
+    onBookPress,
+    userLocation,
+    visible,
+    onClose,
+}) => {
+    const insets = useSafeAreaInsets();
+    const flatListRef = useRef<FlatList<NearestBook>>(null);
 
-        useImperativeHandle(ref, () => localRef.current!);
-
-        // Sync flatlist with marker selection
-        useEffect(() => {
-            if (selectedBookId) {
-                const index = books.findIndex(b => b.id === selectedBookId);
-                if (index !== -1 && flatListRef.current) {
-                    flatListRef.current.scrollToIndex({ index, animated: true, viewPosition: 0.5 });
-                }
+    // Sync flatlist with marker selection
+    useEffect(() => {
+        if (selectedBookId) {
+            const index = books.findIndex(b => b.id === selectedBookId);
+            if (index !== -1 && flatListRef.current) {
+                flatListRef.current.scrollToIndex({ index, animated: true, viewPosition: 0.5 });
             }
-        }, [selectedBookId, books]);
+        }
+    }, [selectedBookId, books]);
 
-        // Define snap points so the map is visible behind the bottom sheet
-        const snapPoints = React.useMemo(() => ['20%', '40%', '85%'], []);
+    const renderItem = useCallback(({ item }: { item: NearestBook }) => (
+        <BookMapCard
+            book={item}
+            userLocation={userLocation}
+            onPress={onBookPress}
+            isSelected={selectedBookId === item.id}
+        />
+    ), [onBookPress, selectedBookId, userLocation]);
 
-        return (
-            <BottomSheet
-                ref={localRef}
-                snapPoints={snapPoints}
-                index={1}
-                backgroundStyle={{ backgroundColor: COLORS.white, borderRadius: 24 }}
-                style={{ zIndex: 10 }}
-            >
-                <BottomSheetFlatList
-                    ref={flatListRef}
-                    data={books}
-                    keyExtractor={item => item.id}
-                    contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + SPACING.xl }]}
-                    renderItem={({ item }) => (
-                        <BookMapCard
-                            book={item}
-                            userLocation={userLocation}
-                            onPress={onBookPress}
-                            isSelected={selectedBookId === item.id}
-                        />
-                    )}
-                />
-            </BottomSheet>
-        );
-    }
-);
+    return (
+        <CleanBottomSheet
+            visible={visible}
+            onClose={onClose}
+            backgroundColor={COLORS.white}
+            borderRadius={24}
+            showCross={true}
+        >
+            <FlatList
+                ref={flatListRef}
+                data={books}
+                keyExtractor={item => item.id}
+                contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + SPACING.xl }]}
+                renderItem={renderItem}
+                initialNumToRender={5}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={Platform.OS === 'android'}
+                onScrollToIndexFailed={info => {
+                    const wait = new Promise(resolve => setTimeout(resolve, 50));
+                    wait.then(() => {
+                        flatListRef.current?.scrollToIndex({ index: info.index, animated: true, viewPosition: 0.5 });
+                    });
+                }}
+            />
+        </CleanBottomSheet>
+    );
+};
 
-export default BooksBottomSheet;
+export default React.memo(BooksBottomSheet);
 
 const styles = StyleSheet.create({
     listContent: {
@@ -70,3 +83,4 @@ const styles = StyleSheet.create({
         paddingTop: SPACING.md,
     },
 });
+

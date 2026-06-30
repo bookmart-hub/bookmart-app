@@ -143,15 +143,6 @@ const ROLES: RoleItem[] = [
         lightColor: COLORS.blueLight,
     },
     {
-        id: 'homemaker',
-        title: "Homemaker",
-        subtitle: "Housewife",
-        icon: "home-outline",
-        iconType: "Ionicons",
-        color: COLORS.pink,
-        lightColor: COLORS.pinklight,
-    },
-    {
         id: 'lover',
         title: "Book Lover",
         subtitle: "Love reading books",
@@ -159,16 +150,7 @@ const ROLES: RoleItem[] = [
         iconType: "Ionicons",
         color: COLORS.green,
         lightColor: COLORS.greenlight,
-    },
-    {
-        id: 'other',
-        title: "Something Else",
-        subtitle: "Not listed above",
-        icon: "ellipsis-horizontal-circle-outline",
-        iconType: "Ionicons",
-        color: '#718096',
-        lightColor: '#EDF2F7',
-    },
+    }
 ];
 
 // ── Book Interests Mock Data ─────────────────────────────────────────────────

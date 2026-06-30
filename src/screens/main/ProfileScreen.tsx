@@ -75,7 +75,7 @@ const ProfileScreen = () => {
         <View style={styles.container}>
             {/* Header Section (Gradient Background) */}
             <LinearGradient
-                colors={[COLORS.secondary, COLORS.background]}
+                colors={[COLORS.primary, COLORS.background]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0, y: 1 }}
                 style={[styles.headerContainer, { paddingTop: insets.top + SPACING.md }]}

@@ -6,6 +6,7 @@ import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
+import { StatusBar } from 'expo-status-bar';
 
 interface HomeHeaderProps {
   avatarUri?: string;
@@ -22,8 +23,9 @@ const HomeHeader: React.FC<HomeHeaderProps> = memo(({
 }) => {
   return (
     <View style={styles.container}>
+      <StatusBar style='dark' />
       {/* Brand Logo */}
-      <Text style={styles.brandLogo}>Bookmart</Text>
+      <Text style={styles.brandLogo}><Text style={{ fontFamily: FONTS.montserrat.bold }}>B</Text>ookmart</Text>
 
       {/* Right Actions */}
       <View style={styles.rightSection}>
@@ -76,7 +78,7 @@ const styles = StyleSheet.create({
   },
   brandLogo: {
     fontSize: rf(22),
-    fontFamily: FONTS.montserrat.bold,
+    fontFamily: FONTS.montserrat.regular,
     color: COLORS.primary,
     lineHeight: 28,
   },
