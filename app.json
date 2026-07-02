@@ -10,6 +10,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.bookmart.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -24,6 +25,12 @@
     "plugins": [
       "expo-font",
       "expo-maps"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "42751c64-47ad-47b1-b4d9-e4397b92879a"
+      }
+    },
+    "owner": "bookmart-expos-team"
   }
 }

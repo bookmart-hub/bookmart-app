@@ -25,3 +25,5 @@ export const rf = (size: number, factor: number = 0.5): number => {
   const scaledSize = size + (size * scale - size) * factor;
   return Math.round(PixelRatio.roundToNearestPixel(scaledSize));
 };
+
+export default rf;

@@ -26,7 +26,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = memo(({
     <View style={styles.container}>
       <StatusBar style='dark' />
       {/* Brand Logo */}
-      <BookMartLogo width={rf(140)} height={rf(50)} style={{ marginLeft: rf(-5) }} />
+      <BookMartLogo width={rf(140)} height={rf(45)} style={{ marginLeft: rf(-10) }} />
 
       {/* Right Actions */}
       <View style={styles.rightSection}>

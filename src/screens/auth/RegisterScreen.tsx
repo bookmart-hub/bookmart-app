@@ -160,13 +160,14 @@ const RegisterScreen: React.FC = () => {
   };
 
   const handleSignUp = () => {
-    if (!validateForm()) return;
+    // if (!validateForm()) return;
 
-    registerMutation.mutate({
-      username,
-      email,
-      password,
-    });
+    // registerMutation.mutate({
+    //   username,
+    //   email,
+    //   password,
+    // });
+    navigation.navigate('VerifyEmail');
   };
 
   return (
