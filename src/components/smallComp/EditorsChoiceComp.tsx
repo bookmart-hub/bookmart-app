@@ -4,6 +4,7 @@ import Carousel from 'react-native-reanimated-carousel';
 import Animated, {
     interpolate,
     useAnimatedStyle,
+    SharedValue,
 } from 'react-native-reanimated';
 import { ImageBackground } from 'expo-image';
 
@@ -19,6 +20,51 @@ interface EditorsChoiceCompProps {
     onBookPress?: (book: any) => void;
 }
 
+interface EditorsChoiceItemProps {
+    item: any;
+    animationValue: SharedValue<number>;
+    onBookPress?: (book: any) => void;
+}
+
+const EditorsChoiceItem = React.memo(({ item, animationValue, onBookPress }: EditorsChoiceItemProps) => {
+    const imageStyle = useAnimatedStyle(() => {
+        const scale = interpolate(
+            animationValue.value,
+            [-1, 0, 1],
+            [1, 1.1, 1],
+            'identity'
+        );
+
+        return {
+            transform: [{ scale }],
+        };
+    });
+
+    return (
+        <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => onBookPress?.(item)}
+            style={styles.box}
+        >
+            <Animated.View
+                style={[StyleSheet.absoluteFillObject, imageStyle]}
+            >
+                <ImageBackground
+                    source={{ uri: item.coverUri }}
+                    style={StyleSheet.absoluteFill}
+                    contentFit="cover"
+                >
+                    <View style={styles.overlay}>
+                        <Text style={styles.title}>{item.title}</Text>
+                        <Text style={styles.author}>{item.author}</Text>
+                        <Text style={styles.price}>{item.price}</Text>
+                    </View>
+                </ImageBackground>
+            </Animated.View>
+        </TouchableOpacity>
+    );
+});
+
 const EditorsChoiceComp = ({ item, onBookPress }: EditorsChoiceCompProps) => {
     return (
         <View style={styles.sectionContainer}>
@@ -32,47 +78,22 @@ const EditorsChoiceComp = ({ item, onBookPress }: EditorsChoiceCompProps) => {
                 autoPlay={false}
                 pagingEnabled
                 snapEnabled
+                scrollAnimationDuration={600}
+                onConfigurePanGesture={(gesture) => {
+                    'worklet';
+                    gesture.activeOffsetX([-15, 15]);
+                }}
                 style={{
                     width: '100%',
                     marginTop: 10,
                 }}
-                renderItem={({ item, animationValue }) => {
-                    const imageStyle = useAnimatedStyle(() => {
-                        const scale = interpolate(
-                            animationValue.value,
-                            [-1, 0, 1],
-                            [1, 1.08, 1]
-                        );
-
-                        return {
-                            transform: [{ scale }],
-                        };
-                    });
-
-                    return (
-                        <TouchableOpacity
-                            activeOpacity={0.9}
-                            onPress={() => onBookPress?.(item)}
-                            style={styles.box}
-                        >
-                            <Animated.View
-                                style={[StyleSheet.absoluteFillObject, imageStyle]}
-                            >
-                                <ImageBackground
-                                    source={{ uri: item.coverUri }}
-                                    style={StyleSheet.absoluteFill}
-                                    contentFit="cover"
-                                >
-                                    <View style={styles.overlay}>
-                                        <Text style={styles.title}>{item.title}</Text>
-                                        <Text style={styles.author}>{item.author}</Text>
-                                        <Text style={styles.price}>{item.price}</Text>
-                                    </View>
-                                </ImageBackground>
-                            </Animated.View>
-                        </TouchableOpacity>
-                    );
-                }}
+                renderItem={({ item: book, animationValue }) => (
+                    <EditorsChoiceItem
+                        item={book}
+                        animationValue={animationValue}
+                        onBookPress={onBookPress}
+                    />
+                )}
             />
         </View>
     );

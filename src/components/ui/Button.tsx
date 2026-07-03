@@ -64,8 +64,8 @@ export const Button: React.FC<ButtonProps> = ({
       disabled={disabled || loading}
       rippleColor={
         isPrimary
-          ? 'rgba(255,255,255,0.25)'
-          : 'rgba(0,0,0,0.08)'
+          ? COLORS.background
+          : COLORS.completeTransparency
       }
       borderless={false}
       style={containerStyles}
@@ -91,8 +91,6 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     overflow: 'hidden', // Required for ripple to stay inside rounded corners
-    alignItems: 'center',
-    justifyContent: 'center',
     width: '100%',
     marginVertical: SPACING.xs,
   },
@@ -116,6 +114,8 @@ const styles = StyleSheet.create({
     borderColor: COLORS.grayHeavvy,
   },
   contentContainer: {
+    width: '100%',
+    height: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

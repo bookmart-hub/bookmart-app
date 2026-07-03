@@ -22,6 +22,15 @@ const CONDITIONS = [
     { id: 'poor', label: 'Poor', icon: 'alert-circle-outline' as any },
 ];
 
+const SLOTS_CONFIG = [
+    { label: 'Front Cover', required: true, icon: 'book-open-variant' as const },
+    { label: 'Back Cover', required: true, icon: 'book-open' as const },
+    { label: 'Spine', required: true, icon: 'book-minus' as const },
+    { label: 'Middle Page', required: true, icon: 'book-open-outline' as const },
+    { label: 'Damage 1', required: false, icon: 'alert-circle-outline' as const },
+    { label: 'Damage 2', required: false, icon: 'alert-circle-outline' as const },
+];
+
 const CreateScreen = () => {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation();
@@ -31,7 +40,41 @@ const CreateScreen = () => {
     const [condition, setCondition] = useState('good');
     const [notes, setNotes] = useState('');
     const [price, setPrice] = useState('');
-    const [image, setImage] = useState<string | null>(null);
+    const [images, setImages] = useState<(string | null)[]>([null, null, null, null, null, null]);
+    const [uploadProgress, setUploadProgress] = useState<number[]>([0, 0, 0, 0, 0, 0]);
+    const uploadIntervals = React.useRef<{ [key: number]: NodeJS.Timeout }>({});
+
+    React.useEffect(() => {
+        return () => {
+            Object.values(uploadIntervals.current).forEach(clearInterval);
+        };
+    }, []);
+
+    const simulateUpload = (index: number) => {
+        if (uploadIntervals.current[index]) {
+            clearInterval(uploadIntervals.current[index]);
+        }
+        setUploadProgress(prev => {
+            const next = [...prev];
+            next[index] = 0;
+            return next;
+        });
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            setUploadProgress(prev => {
+                const next = [...prev];
+                next[index] = Math.min(progress, 100);
+                return next;
+            });
+            if (progress >= 100) {
+                clearInterval(interval);
+                delete uploadIntervals.current[index];
+            }
+        }, 100);
+        uploadIntervals.current[index] = interval;
+    };
+
     const [description, setDescription] = useState('');
     const [currentStep, setCurrentStep] = useState(1);
     const [location, setLocation] = useState<{
@@ -81,19 +124,19 @@ const CreateScreen = () => {
         }
     };
 
-    const handleImagePick = () => {
+    const handleImagePick = (index: number) => {
         Alert.alert(
             "Upload Photo",
-            "Choose an option",
+            `Upload ${SLOTS_CONFIG[index].label}`,
             [
-                { text: "Take Photo", onPress: takePhoto },
-                { text: "Choose from Gallery", onPress: pickImage },
+                { text: "Take Photo", onPress: () => takePhoto(index) },
+                { text: "Choose from Gallery", onPress: () => pickImage(index) },
                 { text: "Cancel", style: "cancel" }
             ]
         );
     };
 
-    const takePhoto = async () => {
+    const takePhoto = async (index: number) => {
         const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
         if (permissionResult.granted === false) {
@@ -103,16 +146,22 @@ const CreateScreen = () => {
 
         const result = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
-            aspect: [16, 9],
-            quality: 0.5,
+            aspect: [3, 4],
+            quality: 0.6,
         });
 
         if (!result.canceled && result.assets && result.assets.length > 0) {
-            setImage(result.assets[0].uri);
+            const pickedUri = result.assets[0].uri;
+            setImages(prev => {
+                const next = [...prev];
+                next[index] = pickedUri;
+                return next;
+            });
+            simulateUpload(index);
         }
     };
 
-    const pickImage = async () => {
+    const pickImage = async (index: number) => {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
         if (permissionResult.granted === false) {
@@ -123,19 +172,77 @@ const CreateScreen = () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
-            aspect: [16, 9],
-            quality: 0.5,
+            aspect: [3, 4],
+            quality: 0.6,
         });
 
         if (!result.canceled && result.assets && result.assets.length > 0) {
-            setImage(result.assets[0].uri);
+            const pickedUri = result.assets[0].uri;
+            setImages(prev => {
+                const next = [...prev];
+                next[index] = pickedUri;
+                return next;
+            });
+            simulateUpload(index);
         }
     };
 
+    const handleSlotPress = (index: number) => {
+        const hasImage = !!images[index];
+        if (hasImage) {
+            Alert.alert(
+                "Manage Photo",
+                `Options for ${SLOTS_CONFIG[index].label}`,
+                [
+                    { text: "Replace Photo", onPress: () => handleImagePick(index) },
+                    {
+                        text: "Remove Photo",
+                        style: "destructive",
+                        onPress: () => {
+                            if (uploadIntervals.current[index]) {
+                                clearInterval(uploadIntervals.current[index]);
+                                delete uploadIntervals.current[index];
+                            }
+                            setImages(prev => {
+                                const next = [...prev];
+                                next[index] = null;
+                                return next;
+                            });
+                            setUploadProgress(prev => {
+                                const next = [...prev];
+                                next[index] = 0;
+                                return next;
+                            });
+                        }
+                    },
+                    { text: "Cancel", style: "cancel" }
+                ]
+            );
+        } else {
+            handleImagePick(index);
+        }
+    };
+
+    const isSlotValid = (index: number) => {
+        return !!images[index] && uploadProgress[index] === 100;
+    };
+
+    const isUploadValid = () => {
+        return isSlotValid(0) && isSlotValid(1) && isSlotValid(2) && isSlotValid(3);
+    };
+
     const handleNextStep = async () => {
-        if (!title || !author || !price || !condition || !image) {
+        if (!title || !author || !price || !condition) {
             ToastAndroid.show(
                 "Please fill all the required fields",
+                ToastAndroid.SHORT
+            );
+            return;
+        }
+
+        if (!isUploadValid()) {
+            ToastAndroid.show(
+                "Please upload all required photos (Front Cover, Back Cover, Spine, Middle Page) and wait for upload to complete.",
                 ToastAndroid.SHORT
             );
             return;
@@ -156,7 +263,8 @@ const CreateScreen = () => {
         setCondition('good');
         setNotes('');
         setPrice('');
-        setImage(null);
+        setImages([null, null, null, null, null, null]);
+        setUploadProgress([0, 0, 0, 0, 0, 0]);
         setDescription('');
         setCurrentStep(1);
         // Reset navigation to go back to the root of the tab navigator, effectively returning to Create screen
@@ -182,29 +290,124 @@ const CreateScreen = () => {
                         <View style={styles.photoSectionWrapper}>
                             <View style={styles.sectionHeaderRow}>
                                 <Ionicons name="camera-outline" size={20} color={COLORS.primary} />
-                                <Text style={styles.sectionTitle}>Book Photo</Text>
+                                <Text style={styles.sectionTitle}>Book Photos</Text>
                             </View>
                             <View style={styles.photoContainer}>
-                                {image ? (
-                                    <View style={[styles.dashedBox, styles.previewContainer]}>
-                                        <Image source={{ uri: image }} contentFit='fill' style={styles.previewImage} />
-                                        <TouchableOpacity
-                                            style={styles.removeImageBtn}
-                                            onPress={() => setImage(null)}
-                                            activeOpacity={0.8}
-                                        >
-                                            <MaterialCommunityIcons name="delete" size={20} color={COLORS.white} />
-                                        </TouchableOpacity>
-                                    </View>
-                                ) : (
-                                    <TouchableOpacity style={styles.dashedBox} activeOpacity={0.8} onPress={handleImagePick}>
+                                {images.every(img => img === null) ? (
+                                    /* Single Large Placeholder initially */
+                                    <TouchableOpacity style={styles.dashedBox} activeOpacity={0.8} onPress={() => handleImagePick(0)}>
                                         <View style={styles.cameraIconWrapper}>
                                             <MaterialCommunityIcons name="camera-plus" size={32} color={COLORS.white} />
                                         </View>
-                                        <Text style={styles.captureText}>Upload Image</Text>
+                                        <Text style={styles.captureText}>Upload Cover Image</Text>
+                                        <Text style={{ fontSize: rf(11), fontFamily: FONTS.manrope.medium, color: COLORS.textMuted, marginTop: 4 }}>
+                                            Tap to add Front Cover & start upload flow
+                                        </Text>
                                     </TouchableOpacity>
+                                ) : (
+                                    /* 6-Slot Grid */
+                                    <View style={styles.gridContainer}>
+                                        {SLOTS_CONFIG.map((slot, index) => {
+                                            const imgUri = images[index];
+                                            const progress = uploadProgress[index];
+                                            const isUploading = imgUri && progress < 100;
+
+                                            return (
+                                                <TouchableOpacity
+                                                    key={index}
+                                                    style={[
+                                                        styles.gridSlot,
+                                                        slot.required && !imgUri && styles.gridSlotRequired,
+                                                        imgUri && progress === 100 && styles.gridSlotUploaded
+                                                    ]}
+                                                    activeOpacity={0.8}
+                                                    onPress={() => handleSlotPress(index)}
+                                                >
+                                                    {imgUri ? (
+                                                        <View style={styles.slotImageContainer}>
+                                                            <Image source={{ uri: imgUri }} contentFit='cover' style={styles.slotImage} />
+                                                            {isUploading && (
+                                                                <View style={styles.progressOverlay}>
+                                                                    <View style={styles.progressBarBackground}>
+                                                                        <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
+                                                                    </View>
+                                                                    <Text style={styles.progressText}>{progress}%</Text>
+                                                                </View>
+                                                            )}
+                                                            {!isUploading && (
+                                                                <View style={styles.slotBadge}>
+                                                                    <Text style={styles.slotBadgeText}>{slot.label}</Text>
+                                                                </View>
+                                                            )}
+                                                            <TouchableOpacity
+                                                                style={styles.removeSlotBtn}
+                                                                activeOpacity={0.7}
+                                                                onPress={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (uploadIntervals.current[index]) {
+                                                                        clearInterval(uploadIntervals.current[index]);
+                                                                        delete uploadIntervals.current[index];
+                                                                    }
+                                                                    setImages(prev => {
+                                                                        const next = [...prev];
+                                                                        next[index] = null;
+                                                                        return next;
+                                                                    });
+                                                                    setUploadProgress(prev => {
+                                                                        const next = [...prev];
+                                                                        next[index] = 0;
+                                                                        return next;
+                                                                    });
+                                                                }}
+                                                            >
+                                                                <Ionicons name="close-circle" size={22} color={COLORS.completeTransparency} />
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    ) : (
+                                                        <View style={styles.emptySlotContent}>
+                                                            <MaterialCommunityIcons
+                                                                name={slot.icon}
+                                                                size={24}
+                                                                color={slot.required ? COLORS.primary : COLORS.textMuted}
+                                                            />
+                                                            <Text style={[styles.slotLabel, slot.required && styles.slotLabelRequired]}>
+                                                                {slot.label}
+                                                            </Text>
+                                                            <Text style={styles.slotRequiredIndicator}>
+                                                                {slot.required ? 'Required' : 'If Any'}
+                                                            </Text>
+                                                        </View>
+                                                    )}
+                                                </TouchableOpacity>
+                                            );
+                                        })}
+                                    </View>
                                 )}
                             </View>
+
+                            {/* Validation Checklist */}
+                            {!images.every(img => img === null) && (
+                                <View style={styles.checklistContainer}>
+                                    <Text style={styles.checklistTitle}>Upload Checklist:</Text>
+                                    <View style={styles.checklistGrid}>
+                                        {SLOTS_CONFIG.filter(s => s.required).map((slot, idx) => {
+                                            const completed = isSlotValid(idx);
+                                            return (
+                                                <View key={idx} style={styles.checklistItem}>
+                                                    <Ionicons
+                                                        name={completed ? "checkmark-circle" : "close-circle"}
+                                                        size={16}
+                                                        color={completed ? COLORS.green : COLORS.red}
+                                                    />
+                                                    <Text style={[styles.checklistText, completed && styles.checklistTextCompleted]}>
+                                                        {slot.label}
+                                                    </Text>
+                                                </View>
+                                            );
+                                        })}
+                                    </View>
+                                </View>
+                            )}
                         </View>
 
                         {/* Basic Info Section */}
@@ -453,6 +656,142 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.white,
         borderRadius: 16,
         padding: 2,
+    },
+    gridContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        padding: SPACING.xs,
+    },
+    gridSlot: {
+        width: '31%',
+        height: rf(110),
+        borderRadius: 12,
+        borderWidth: 1.5,
+        borderColor: COLORS.grayHeavvy,
+        borderStyle: 'dashed',
+        backgroundColor: COLORS.grayLight,
+        overflow: 'hidden',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginVertical: 6,
+    },
+    gridSlotRequired: {
+        borderColor: COLORS.primary + '60',
+    },
+    gridSlotUploaded: {
+        borderStyle: 'solid',
+        borderColor: COLORS.primary,
+    },
+    emptySlotContent: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 4,
+    },
+    slotLabel: {
+        fontSize: rf(10),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.text,
+        textAlign: 'center',
+        marginTop: 4,
+    },
+    slotLabelRequired: {
+        color: COLORS.black,
+    },
+    slotRequiredIndicator: {
+        fontSize: rf(8),
+        fontFamily: FONTS.manrope.regular,
+        color: COLORS.textMuted,
+        marginTop: 2,
+    },
+    slotImageContainer: {
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+    },
+    slotImage: {
+        width: '100%',
+        height: '100%',
+    },
+    slotBadge: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: COLORS.completeTransparency,
+        paddingVertical: 2,
+        alignItems: 'center',
+    },
+    slotBadgeText: {
+        color: COLORS.white,
+        fontSize: rf(9),
+        fontFamily: FONTS.manrope.bold,
+    },
+    progressOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: COLORS.completeTransparency,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+    },
+    progressBarBackground: {
+        width: '85%',
+        height: 5,
+        backgroundColor: 'rgba(255, 255, 255, 0.4)',
+        borderRadius: 3,
+        overflow: 'hidden',
+        marginBottom: 4,
+    },
+    progressBarFill: {
+        height: '100%',
+        backgroundColor: COLORS.green,
+    },
+    progressText: {
+        color: COLORS.white,
+        fontSize: rf(10),
+        fontFamily: FONTS.manrope.bold,
+    },
+    removeSlotBtn: {
+        position: 'absolute',
+        top: 4,
+        right: 4,
+        backgroundColor: 'transparent',
+    },
+    checklistContainer: {
+        marginTop: SPACING.md,
+        backgroundColor: COLORS.white,
+        borderRadius: 12,
+        padding: SPACING.md,
+        borderWidth: 1,
+        borderColor: COLORS.grayLight,
+    },
+    checklistTitle: {
+        fontSize: rf(12),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.black,
+        marginBottom: 8,
+    },
+    checklistGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        gap: 6,
+    },
+    checklistItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '48%',
+        marginBottom: 4,
+    },
+    checklistText: {
+        fontSize: rf(11),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
+        marginLeft: 4,
+    },
+    checklistTextCompleted: {
+        color: COLORS.black,
+        fontFamily: FONTS.manrope.bold,
     },
     dashedBox: {
         borderWidth: 1.5,

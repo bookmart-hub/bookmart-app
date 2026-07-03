@@ -258,30 +258,37 @@ const PromoBanner: React.FC<PromoBannerProps> = memo(({
 const ProgressIndicator = memo(
   ({ active }: { active: boolean }) => {
     const progress = useSharedValue(active ? 0 : 1);
+    const dotWidth = useSharedValue(active ? rf(30) : rf(10));
 
     useEffect(() => {
       cancelAnimation(progress);
+      cancelAnimation(dotWidth);
+      dotWidth.value = withTiming(active ? rf(30) : rf(10), { duration: 300 });
 
       if (active) {
         progress.value = 0;
         progress.value = withTiming(1, {
-          duration: 4000,
+          duration: 5000,
         });
       } else {
         progress.value = 0;
       }
     }, [active]);
 
-    const animatedStyle = useAnimatedStyle(() => ({
+    const trackAnimatedStyle = useAnimatedStyle(() => ({
+      width: dotWidth.value,
+    }));
+
+    const fillAnimatedStyle = useAnimatedStyle(() => ({
       width: `${progress.value * 100}%`,
     }));
 
     return (
-      <View style={styles.indicatorTrack}>
+      <Animated.View style={[styles.indicatorTrack, trackAnimatedStyle]}>
         <Animated.View
-          style={[styles.indicatorFill, animatedStyle]}
+          style={[styles.indicatorFill, fillAnimatedStyle]}
         />
-      </View>
+      </Animated.View>
     );
   }
 );
@@ -393,15 +400,15 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
   },
   indicatorTrack: {
-    width: rf(34),
+    width: rf(100),
     height: rf(2),
-    borderRadius: 2,
+    borderRadius: rf(3),
     overflow: 'hidden',
     backgroundColor: COLORS.grayHeavvy,
   },
   indicatorFill: {
     height: '100%',
-    borderRadius: 2,
+    borderRadius: rf(3),
     backgroundColor: COLORS.primary,
   },
 });

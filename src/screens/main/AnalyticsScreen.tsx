@@ -10,6 +10,7 @@ import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import { MOCK_ANALYTICS_DATA, MOCK_TOP_BOOKS, TopBook } from '@/data/analyticsMockData';
+import Header from '@/components/ui/Header';
 
 type MetricType = 'views' | 'clicks' | 'waContacts';
 type TimeframeType = 'daily' | 'weekly' | 'monthly';
@@ -75,14 +76,14 @@ const AnalyticsScreen = () => {
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Analytics</Text>
-                <Text style={styles.headerSubtitle}>Your Bookshelf</Text>
+                <Header title='Analytics' />
             </View>
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
+                <Text style={styles.headerSubtitle}>Your Bookshelf</Text>
                 {/* Summary Cards */}
                 <View style={styles.summaryRow}>
                     <TouchableOpacity
@@ -288,8 +289,6 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.background,
     },
     header: {
-        paddingHorizontal: SPACING.lg,
-        paddingTop: SPACING.md,
         paddingBottom: SPACING.sm,
     },
     headerTitle: {
@@ -300,8 +299,9 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     headerSubtitle: {
-        fontSize: rf(22),
-        fontFamily: FONTS.montserrat.bold,
+        paddingHorizontal: SPACING.lg,
+        fontSize: rf(18),
+        fontFamily: FONTS.montserrat.semibold,
         color: COLORS.black,
     },
     scrollContent: {

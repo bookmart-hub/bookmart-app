@@ -119,11 +119,7 @@ export default function BoostListingScreen() {
     const renderPlans = () => (
         <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>Your Plan</Text>
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.plansContainer}
-            >
+            <View style={styles.plansContainer}>
                 {PLANS.map((plan) => {
                     const isActive = selectedPlanId === plan.id;
                     return (
@@ -153,7 +149,7 @@ export default function BoostListingScreen() {
                         </TouchableOpacity>
                     );
                 })}
-            </ScrollView>
+            </View>
         </View>
     );
 
@@ -362,20 +358,18 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.md,
     },
     plansContainer: {
-        paddingRight: SPACING.lg,
-        gap: SPACING.sm,
+        flexDirection: 'row',
+        gap: SPACING.xs,
     },
     planCard: {
         flex: 1,
         backgroundColor: COLORS.white,
         borderRadius: 12,
-        padding: SPACING.md,
         borderWidth: 1,
         borderColor: COLORS.grayHeavvy,
         alignItems: 'center',
-        width: rf(130),
-        paddingVertical: SPACING.lg,
-        paddingHorizontal: SPACING.md,
+        paddingVertical: SPACING.md,
+        paddingHorizontal: SPACING.xs,
     },
     planCardActive: {
         borderColor: COLORS.primary,
