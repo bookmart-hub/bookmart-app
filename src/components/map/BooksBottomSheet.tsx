@@ -11,7 +11,7 @@ interface BooksBottomSheetProps {
     books: NearestBook[];
     selectedBookId: string | null;
     onBookPress: (book: NearestBook) => void;
-    userLocation: { latitude: number; longitude: number };
+    userLocation: { latitude: number; longitude: number } | null;
     visible: boolean;
     onClose: () => void;
 }

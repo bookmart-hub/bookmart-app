@@ -165,8 +165,8 @@ export default function BoostListingScreen() {
                 </View>
             </View>
             <TouchableOpacity style={styles.managePlanBtn} activeOpacity={0.7}>
-                <Text style={styles.managePlanText}>Manage Plan</Text>
-                <Ionicons name="chevron-forward" size={14} color={COLORS.primary} />
+                <Text style={styles.managePlanText}>Manage</Text>
+                <Ionicons name="chevron-forward" size={12} color={COLORS.primary} />
             </TouchableOpacity>
         </View>
     );
@@ -456,6 +456,7 @@ const styles = StyleSheet.create({
     managePlanBtn: {
         flexDirection: 'row',
         alignItems: 'center',
+        paddingVertical: rf(5),
     },
     managePlanText: {
         fontSize: rf(12),

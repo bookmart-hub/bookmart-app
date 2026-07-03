@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, Dimensions, Platform, TouchableOpacity, TextInput, ScrollView, Text } from 'react-native';
+import { View, StyleSheet, Dimensions, Platform, TouchableOpacity, TextInput, ScrollView, Text, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import MapView, { Marker, PROVIDER_GOOGLE, Region, Circle, Polyline } from 'react-native-maps';
@@ -15,6 +15,34 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import { FONTS } from '@/constants/fonts';
+
+// React Error Boundary for catching map rendering crashes
+class MapErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+    state = { hasError: false };
+
+    static getDerivedStateFromError() {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error: any, errorInfo: any) {
+        console.error("MapErrorBoundary caught an error:", error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <View style={[styles.container, styles.errorContainer]}>
+                    <Ionicons name="alert-circle-outline" size={48} color={COLORS.primary} />
+                    <Text style={styles.errorText}>Something went wrong loading the map.</Text>
+                    <TouchableOpacity style={styles.retryButton} onPress={() => this.setState({ hasError: false })}>
+                        <Text style={styles.retryButtonText}>Reload Map</Text>
+                    </TouchableOpacity>
+                </View>
+            );
+        }
+        return this.props.children;
+    }
+}
 
 const { width, height } = Dimensions.get('window');
 
@@ -85,14 +113,20 @@ const NearestBooksMapScreen = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
     const mapRef = useRef<MapView>(null);
+    const prevLocationRef = useRef<{ latitude: number, longitude: number } | null>(null);
+    
     const [bottomSheetVisible, setBottomSheetVisible] = useState(true);
-
     const [userLocation, setUserLocation] = useState<{ latitude: number, longitude: number } | null>(null);
     const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
     const [activeCategoryId, setActiveCategoryId] = useState<string>(route.params?.categoryId || 'all');
 
     const [routeCoords, setRouteCoords] = useState<{ latitude: number, longitude: number }[]>([]);
     const [routeInfo, setRouteInfo] = useState<{ distance: string, duration: string } | null>(null);
+
+    // Location permission & status flags
+    const [locationPermissionStatus, setLocationPermissionStatus] = useState<'checking' | 'granted' | 'denied'>('checking');
+    const [locationServicesEnabled, setLocationServicesEnabled] = useState<boolean>(true);
+    const [isUsingMockLocation, setIsUsingMockLocation] = useState<boolean>(false);
 
     const handleCategoryPress = useCallback((categoryId: string) => {
         setActiveCategoryId(categoryId);
@@ -107,11 +141,11 @@ const NearestBooksMapScreen = () => {
         return books;
     }, [activeCategoryId]);
 
+    // OSRM route fetcher
     useEffect(() => {
         if (selectedBookId && userLocation) {
             const book = filteredBooks.find(b => b.id === selectedBookId);
             if (book?.latitude && book?.longitude) {
-                // Fetch real road route using public OSRM API
                 fetch(`https://router.project-osrm.org/route/v1/driving/${userLocation.longitude},${userLocation.latitude};${book.longitude},${book.latitude}?overview=full&geometries=geojson`)
                     .then(res => res.json())
                     .then(data => {
@@ -135,24 +169,79 @@ const NearestBooksMapScreen = () => {
         }
     }, [selectedBookId, userLocation, filteredBooks]);
 
-    useEffect(() => {
-        (async () => {
-            let { status } = await Location.requestForegroundPermissionsAsync();
+    // Robust location requester with permissions, availability check and fallback configuration
+    const requestLocation = useCallback(async () => {
+        try {
+            setLocationPermissionStatus('checking');
+            const servicesEnabled = await Location.hasServicesEnabledAsync();
+            setLocationServicesEnabled(servicesEnabled);
+            
+            if (!servicesEnabled) {
+                console.warn("Location services disabled. Falling back to mock location.");
+                setIsUsingMockLocation(true);
+                setUserLocation(MOCK_USER_LOCATION);
+                setLocationPermissionStatus('denied');
+                return;
+            }
+
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            setLocationPermissionStatus(status === 'granted' ? 'granted' : 'denied');
+
             if (status !== 'granted') {
+                console.warn("Location permission denied. Falling back to mock location.");
+                setIsUsingMockLocation(true);
                 setUserLocation(MOCK_USER_LOCATION);
                 return;
             }
+
+            let location = null;
             try {
-                let location = await Location.getCurrentPositionAsync({});
+                // Try fast last known position first
+                location = await Location.getLastKnownPositionAsync({});
+                if (!location) {
+                    location = await Location.getCurrentPositionAsync({
+                        accuracy: Location.Accuracy.Balanced,
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to get device current location coordinate:", err);
+            }
+
+            if (location && location.coords) {
                 setUserLocation({
                     latitude: location.coords.latitude,
                     longitude: location.coords.longitude,
                 });
-            } catch (error) {
+                setIsUsingMockLocation(false);
+            } else {
+                console.warn("No coordinates retrieved. Falling back to mock location.");
+                setIsUsingMockLocation(true);
                 setUserLocation(MOCK_USER_LOCATION);
             }
-        })();
+        } catch (error) {
+            console.error("Error checking location setup:", error);
+            setIsUsingMockLocation(true);
+            setUserLocation(MOCK_USER_LOCATION);
+            setLocationPermissionStatus('denied');
+        }
     }, []);
+
+    useEffect(() => {
+        requestLocation();
+    }, [requestLocation]);
+
+    // Animate map camera to user location when location changes
+    useEffect(() => {
+        if (userLocation && (!prevLocationRef.current || prevLocationRef.current.latitude !== userLocation.latitude || prevLocationRef.current.longitude !== userLocation.longitude)) {
+            mapRef.current?.animateToRegion({
+                latitude: userLocation.latitude,
+                longitude: userLocation.longitude,
+                latitudeDelta: 0.02,
+                longitudeDelta: 0.02,
+            }, 500);
+            prevLocationRef.current = userLocation;
+        }
+    }, [userLocation]);
 
     const initialRegion: Region = {
         latitude: userLocation?.latitude || MOCK_USER_LOCATION.latitude,
@@ -167,7 +256,6 @@ const NearestBooksMapScreen = () => {
             const newSelectedId = isClosing ? null : book.id;
 
             if (!isClosing && book.latitude && book.longitude && userLocation) {
-                // Focus both user and marker
                 mapRef.current?.fitToCoordinates(
                     [
                         { latitude: userLocation.latitude, longitude: userLocation.longitude },
@@ -179,7 +267,6 @@ const NearestBooksMapScreen = () => {
                     }
                 );
             } else if (isClosing && userLocation) {
-                // Re-center on user
                 mapRef.current?.animateToRegion({
                     latitude: userLocation.latitude,
                     longitude: userLocation.longitude,
@@ -207,17 +294,32 @@ const NearestBooksMapScreen = () => {
         navigation.navigate('NearestBooks', { categoryId: activeCategoryId });
     }, [navigation, activeCategoryId]);
 
-    if (!userLocation) {
-        return <View style={styles.container} />; // Loading state can be added here
+    const handleOpenSettings = useCallback(() => {
+        if (Platform.OS === 'ios') {
+            Linking.openURL('app-settings:');
+        } else {
+            Linking.openSettings();
+        }
+    }, []);
+
+    if (!userLocation && locationPermissionStatus === 'checking') {
+        return (
+            <View style={[styles.container, styles.centerContent]}>
+                <Text style={styles.loadingText}>Initializing Map...</Text>
+            </View>
+        );
     }
+
+    const mapProvider = Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined;
 
     return (
         <View style={styles.container}>
-            <MapView
-                ref={mapRef}
-                style={styles.map}
-                provider={PROVIDER_GOOGLE}
-                initialRegion={initialRegion}
+            <MapErrorBoundary>
+                <MapView
+                    ref={mapRef}
+                    style={styles.map}
+                    provider={mapProvider}
+                    initialRegion={initialRegion}
                 showsUserLocation={false}
                 showsMyLocationButton={false}
                 showsCompass={false}
@@ -229,24 +331,28 @@ const NearestBooksMapScreen = () => {
                 showsBuildings={false}
             >
                 {/* User Location Marker */}
-                <Marker
-                    coordinate={{ latitude: userLocation.latitude, longitude: userLocation.longitude }}
-                    zIndex={999}
-                    tracksViewChanges={false}
-                >
-                    <View style={styles.userLocationMarker}>
-                        <Ionicons name="navigate-circle" size={32} color={COLORS.primary} />
-                    </View>
-                </Marker>
+                {userLocation && (
+                    <Marker
+                        coordinate={{ latitude: userLocation.latitude, longitude: userLocation.longitude }}
+                        zIndex={999}
+                        tracksViewChanges={false}
+                    >
+                        <View style={styles.userLocationMarker}>
+                            <Ionicons name="navigate-circle" size={32} color={COLORS.primary} />
+                        </View>
+                    </Marker>
+                )}
 
                 {/* 1km Radius Circle */}
-                <Circle
-                    center={{ latitude: userLocation.latitude, longitude: userLocation.longitude }}
-                    radius={1000}
-                    fillColor="rgba(128, 128, 128, 0.2)"
-                    strokeColor="rgba(128, 128, 128, 0.5)"
-                    strokeWidth={1}
-                />
+                {userLocation && (
+                    <Circle
+                        center={{ latitude: userLocation.latitude, longitude: userLocation.longitude }}
+                        radius={1000}
+                        fillColor="rgba(128, 128, 128, 0.2)"
+                        strokeColor="rgba(128, 128, 128, 0.5)"
+                        strokeWidth={1}
+                    />
+                )}
 
                 {/* Route Line for selected book */}
                 {selectedBookId && routeCoords.length > 0 && (
@@ -274,12 +380,32 @@ const NearestBooksMapScreen = () => {
                     );
                 })}
             </MapView>
+            </MapErrorBoundary>
 
             <LinearGradient
                 colors={['rgba(255,255,255,1)', 'rgba(255,255,255,0.8)', 'transparent']}
                 style={[styles.headerGradient, { paddingTop: insets.top + SPACING.sm }]}
                 pointerEvents="box-none"
             >
+                {isUsingMockLocation && (
+                    <View style={styles.warningBanner}>
+                        <Ionicons name="location-outline" size={16} color={COLORS.white} style={{ marginRight: 6 }} />
+                        <Text style={styles.warningBannerText} numberOfLines={1}>
+                            {!locationServicesEnabled 
+                                ? "GPS is disabled. Showing default location." 
+                                : "Location denied. Showing default location."}
+                        </Text>
+                        <TouchableOpacity 
+                            style={styles.warningBannerAction} 
+                            onPress={!locationServicesEnabled ? requestLocation : handleOpenSettings}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={styles.warningBannerActionText}>
+                                {!locationServicesEnabled ? "Retry" : "Enable"}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
                 <View style={styles.headerTopRow}>
                     <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                         <Ionicons name="chevron-back" size={28} color={COLORS.primary} />
@@ -506,5 +632,72 @@ const styles = StyleSheet.create({
         fontFamily: FONTS.manrope.bold,
         fontSize: rf(13),
         color: COLORS.white,
+    },
+    centerContent: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: COLORS.white,
+    },
+    loadingText: {
+        fontFamily: FONTS.manrope.bold,
+        fontSize: rf(14),
+        color: COLORS.primary,
+    },
+    errorContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: COLORS.white,
+        padding: SPACING.xl,
+    },
+    errorText: {
+        fontFamily: FONTS.manrope.semibold,
+        fontSize: rf(14),
+        color: COLORS.black,
+        marginTop: SPACING.md,
+        marginBottom: SPACING.lg,
+        textAlign: 'center',
+    },
+    retryButton: {
+        backgroundColor: COLORS.primary,
+        paddingHorizontal: SPACING.lg,
+        paddingVertical: SPACING.sm,
+        borderRadius: 12,
+    },
+    retryButtonText: {
+        fontFamily: FONTS.manrope.bold,
+        fontSize: rf(14),
+        color: COLORS.white,
+    },
+    warningBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(239, 68, 68, 0.95)',
+        paddingVertical: 6,
+        paddingHorizontal: SPACING.md,
+        marginHorizontal: SPACING.lg,
+        marginTop: SPACING.xs,
+        borderRadius: 10,
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    warningBannerText: {
+        flex: 1,
+        fontFamily: FONTS.manrope.semibold,
+        fontSize: rf(11),
+        color: COLORS.white,
+    },
+    warningBannerAction: {
+        backgroundColor: COLORS.white,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 6,
+    },
+    warningBannerActionText: {
+        fontFamily: FONTS.manrope.bold,
+        fontSize: rf(10),
+        color: 'rgb(239, 68, 68)',
     },
 });

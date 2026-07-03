@@ -25,7 +25,7 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
 
 interface BookMapCardProps {
     book: NearestBook;
-    userLocation: { latitude: number; longitude: number };
+    userLocation: { latitude: number; longitude: number } | null;
     onPress?: (book: NearestBook) => void;
     isSelected?: boolean;
 }
@@ -36,7 +36,7 @@ const BookMapCard: React.FC<BookMapCardProps> = ({ book, userLocation, onPress, 
     const navigation = useNavigation<any>();
 
     const distance = useMemo(() => {
-        if (!book.latitude || !book.longitude) return 0;
+        if (!book.latitude || !book.longitude || !userLocation) return 0;
         return calculateDistance(userLocation.latitude, userLocation.longitude, book.latitude, book.longitude);
     }, [book.latitude, book.longitude, userLocation]);
 
@@ -101,12 +101,14 @@ const BookMapCard: React.FC<BookMapCardProps> = ({ book, userLocation, onPress, 
 
                     <View style={styles.bottomRow}>
                         <Text style={styles.priceText}>₹{book.price}</Text>
-                        <View style={styles.distanceBadge}>
-                            <Ionicons name="location-outline" size={12} color={COLORS.primary} />
-                            <Text style={styles.distanceText}>
-                                {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`}
-                            </Text>
-                        </View>
+                        {userLocation && (
+                            <View style={styles.distanceBadge}>
+                                <Ionicons name="location-outline" size={12} color={COLORS.primary} />
+                                <Text style={styles.distanceText}>
+                                    {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`}
+                                </Text>
+                            </View>
+                        )}
                     </View>
                 </View>
             </View>
@@ -118,10 +120,12 @@ const BookMapCard: React.FC<BookMapCardProps> = ({ book, userLocation, onPress, 
                         <Ionicons name="person-outline" size={14} color={COLORS.textMuted} />
                         <Text style={styles.detailLabel}>Author: <Text style={styles.detailValue}>{book.author || 'Unknown'}</Text></Text>
                     </View>
-                    <View style={styles.detailItem}>
-                        <Ionicons name="walk-outline" size={14} color={COLORS.textMuted} />
-                        <Text style={styles.detailLabel}>Walk: <Text style={styles.detailValue}>{walkingTime} mins</Text></Text>
-                    </View>
+                    {userLocation && (
+                        <View style={styles.detailItem}>
+                            <Ionicons name="walk-outline" size={14} color={COLORS.textMuted} />
+                            <Text style={styles.detailLabel}>Walk: <Text style={styles.detailValue}>{walkingTime} mins</Text></Text>
+                        </View>
+                    )}
                 </View>
 
                 <Text style={styles.descriptionText} numberOfLines={2}>

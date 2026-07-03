@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, ToastAndroid, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, ToastAndroid, Alert, Platform } from 'react-native';
+
+const showToast = (message: string) => {
+    if (Platform.OS === 'android') {
+        ToastAndroid.show(message, ToastAndroid.SHORT);
+    } else {
+        Alert.alert("Notice", message);
+    }
+};
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -90,10 +98,7 @@ const CreateScreen = () => {
             const { status } = await Location.requestForegroundPermissionsAsync();
 
             if (status !== "granted") {
-                ToastAndroid.show(
-                    "Location permission is required to fetch pickup address.",
-                    ToastAndroid.SHORT
-                );
+                showToast("Location permission is required to fetch pickup address.");
                 return false;
             }
 
@@ -117,7 +122,7 @@ const CreateScreen = () => {
 
             return true;
         } catch (error) {
-            ToastAndroid.show("Failed to fetch location. Please ensure GPS is enabled.", ToastAndroid.SHORT);
+            showToast("Failed to fetch location. Please ensure GPS is enabled.");
             return false;
         } finally {
             setIsFetchingLocation(false);
@@ -140,7 +145,7 @@ const CreateScreen = () => {
         const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
         if (permissionResult.granted === false) {
-            ToastAndroid.show("Camera permission is required to take photos.", ToastAndroid.SHORT);
+            showToast("Camera permission is required to take photos.");
             return;
         }
 
@@ -165,7 +170,7 @@ const CreateScreen = () => {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
         if (permissionResult.granted === false) {
-            ToastAndroid.show("Gallery permission is required to choose photos.", ToastAndroid.SHORT);
+            showToast("Gallery permission is required to choose photos.");
             return;
         }
 
@@ -233,18 +238,12 @@ const CreateScreen = () => {
 
     const handleNextStep = async () => {
         if (!title || !author || !price || !condition) {
-            ToastAndroid.show(
-                "Please fill all the required fields",
-                ToastAndroid.SHORT
-            );
+            showToast("Please fill all the required fields");
             return;
         }
 
         if (!isUploadValid()) {
-            ToastAndroid.show(
-                "Please upload all required photos (Front Cover, Back Cover, Spine, Middle Page) and wait for upload to complete.",
-                ToastAndroid.SHORT
-            );
+            showToast("Please upload all required photos (Front Cover, Back Cover, Spine, Middle Page) and wait for upload to complete.");
             return;
         }
 
@@ -256,7 +255,7 @@ const CreateScreen = () => {
     };
 
     const handleFinalSubmit = () => {
-        ToastAndroid.show("Book listed successfully", ToastAndroid.SHORT);
+        showToast("Book listed successfully");
         // Reset state for future usage
         setTitle('');
         setAuthor('');
