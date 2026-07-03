@@ -1,4 +1,5 @@
 import RootNavigator from '@/navigation/RootNavigator';
+import SplashScreen, { StaticSplashScreen } from '@/screens/auth/SplashScreen';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { fontAssets } from '@/constants/fonts';
@@ -11,7 +12,7 @@ export default function App() {
   const [fontsLoaded] = useFonts(fontAssets);
 
   if (!fontsLoaded) {
-    return null;
+    return <StaticSplashScreen />;
   }
 
   return (
