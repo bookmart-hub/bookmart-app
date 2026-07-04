@@ -13,7 +13,7 @@
       "package": "com.bookmart.app",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyAeHr68GlpYqHBcgZaHRnf5-psPEwMsbmI"
+          "apiKey": "AIzaSyDbMsdpuYY6LcJPn2UZ-rSs1iXAqiiQ84Q"
         }
       },
       "adaptiveIcon": {
@@ -43,9 +43,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "3f15e29f-09ca-43f7-937c-cd9eaa118265"
+        "projectId": "831b228a-59fb-4a4b-a0a0-c820893168ac"
       }
     },
-    "owner": "ayandip02"
+    "owner": "bookmart-expo"
   }
 }

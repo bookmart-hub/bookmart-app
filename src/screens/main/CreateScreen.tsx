@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/Input';
 import * as Location from "expo-location";
 import { Image } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 const CONDITIONS = [
     { id: 'like_new', label: 'Like New', icon: 'decagram-outline' as any },
@@ -545,30 +546,60 @@ const CreateScreen = () => {
                             </View>
                         </View>
                         {location && (
-                            <View style={styles.locationCard}>
-                                <Ionicons
-                                    name="location"
-                                    size={24}
-                                    color={COLORS.primary}
-                                />
+                            <View style={styles.locationContainer}>
+                                <View style={styles.locationCard}>
+                                    <Ionicons
+                                        name="location"
+                                        size={24}
+                                        color={COLORS.primary}
+                                    />
 
-                                <View style={{ flex: 1, marginLeft: 10 }}>
-                                    <Text style={styles.locationTitle}>
-                                        Pickup Location
-                                    </Text>
-                                    <Text style={styles.locationText}>
-                                        {location.address}
-                                    </Text>
+                                    <View style={{ flex: 1, marginLeft: 10 }}>
+                                        <Text style={styles.locationTitle}>
+                                            Pickup Location
+                                        </Text>
+                                        <Text style={styles.locationText}>
+                                            {location.address}
+                                        </Text>
+                                    </View>
+
+                                    <TouchableOpacity
+                                        style={styles.refreshButton}
+                                        activeOpacity={0.7}
+                                        onPress={getCurrentLocation}
+                                        disabled={isFetchingLocation}
+                                    >
+                                        <Ionicons name="refresh" size={20} color={COLORS.primary} />
+                                    </TouchableOpacity>
                                 </View>
 
-                                <TouchableOpacity
-                                    style={styles.refreshButton}
-                                    activeOpacity={0.7}
-                                    onPress={getCurrentLocation}
-                                    disabled={isFetchingLocation}
-                                >
-                                    <Ionicons name="refresh" size={20} color={COLORS.primary} />
-                                </TouchableOpacity>
+                                <View style={styles.mapContainer}>
+                                    <MapView
+                                        style={styles.map}
+                                        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+                                        initialRegion={{
+                                            latitude: location.latitude,
+                                            longitude: location.longitude,
+                                            latitudeDelta: 0.005,
+                                            longitudeDelta: 0.005,
+                                        }}
+                                        pitchEnabled={false}
+                                        rotateEnabled={false}
+                                        scrollEnabled={false}
+                                        zoomEnabled={false}
+                                    >
+                                        <Marker
+                                            coordinate={{
+                                                latitude: location.latitude,
+                                                longitude: location.longitude,
+                                            }}
+                                        >
+                                            <View style={styles.userLocationMarker}>
+                                                <Ionicons name="location" size={24} color={COLORS.white} />
+                                            </View>
+                                        </Marker>
+                                    </MapView>
+                                </View>
                             </View>
                         )}
 
@@ -1015,20 +1046,19 @@ const styles = StyleSheet.create({
         flex: 1,
         borderRadius: 12,
     },
+    locationContainer: {
+        marginBottom: SPACING.xl,
+    },
     locationCard: {
         backgroundColor: COLORS.white,
-        borderRadius: 16,
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
         padding: SPACING.lg,
         flexDirection: 'row',
         alignItems: 'center',
-        shadowColor: COLORS.black,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 3,
         borderWidth: 1,
         borderColor: COLORS.grayLight,
-        marginBottom: SPACING.xl,
+        borderBottomWidth: 0,
     },
     locationTitle: {
         fontSize: rf(14),
@@ -1050,5 +1080,32 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderWidth: 1,
         borderColor: COLORS.grayHeavvy,
+    },
+    mapContainer: {
+        height: 150,
+        width: '100%',
+        borderBottomLeftRadius: 16,
+        borderBottomRightRadius: 16,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: COLORS.grayLight,
+    },
+    map: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    userLocationMarker: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: COLORS.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 3,
+        borderColor: COLORS.white,
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
     },
 });
