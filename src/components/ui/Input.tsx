@@ -19,6 +19,9 @@ interface InputProps extends TextInputProps {
   error?: string;
   containerStyle?: ViewStyle;
   isPassword?: boolean;
+  prefix?: React.ReactNode;
+  multiline?: boolean;
+  numberOfLines?: number;
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -30,6 +33,9 @@ export const Input: React.FC<InputProps> = ({
   style,
   onFocus,
   onBlur,
+  prefix,
+  multiline = false,
+  numberOfLines = 1,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -53,17 +59,25 @@ export const Input: React.FC<InputProps> = ({
       <View
         style={[
           styles.inputContainer,
+          multiline && { height: undefined, minHeight: 100, paddingVertical: 12, alignItems: 'flex-start' },
           isFocused && styles.focusedInput,
           !!error && styles.errorInput,
         ]}
       >
+        {prefix}
         <TextInput
-          style={[styles.input, style]}
+          style={[
+            styles.input, 
+            multiline && { textAlignVertical: 'top', paddingTop: 0, paddingBottom: 0 }, 
+            style
+          ]}
           placeholderTextColor={COLORS.textMuted}
           secureTextEntry={isSecure}
           onFocus={handleFocus}
           onBlur={handleBlur}
           autoCapitalize="none"
+          multiline={multiline}
+          numberOfLines={numberOfLines}
           {...props}
         />
         {isPassword && (

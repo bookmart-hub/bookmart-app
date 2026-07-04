@@ -4,13 +4,9 @@ import { CATEGORY_DATA } from '@/data/categoryMockData';
 
 const BiographyScreen = () => {
     const data = CATEGORY_DATA['Biography'];
+    console.log(data.items);
     return (
-        <CategoryMasonryLayout 
-            title="Biography" 
-            subtitle={data.subtitle}
-            leftColumnData={data.left}
-            rightColumnData={data.right}
-        />
+        <CategoryMasonryLayout data={data.items} />
     );
 };
 

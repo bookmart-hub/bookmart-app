@@ -13,6 +13,12 @@ import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  cancelAnimation,
+} from 'react-native-reanimated';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_HORIZONTAL_PADDING = SPACING.lg;
@@ -249,19 +255,45 @@ const PromoBanner: React.FC<PromoBannerProps> = memo(({
     </View>
   );
 });
-const PaginationDots = memo(
-  ({ count, activeIndex }: { count: number, activeIndex: number }) => {
+const ProgressIndicator = memo(
+  ({ active }: { active: boolean }) => {
+    const progress = useSharedValue(active ? 0 : 1);
+
+    useEffect(() => {
+      cancelAnimation(progress);
+
+      if (active) {
+        progress.value = 0;
+        progress.value = withTiming(1, {
+          duration: 4000,
+        });
+      } else {
+        progress.value = 0;
+      }
+    }, [active]);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+      width: `${progress.value * 100}%`,
+    }));
+
     return (
-      <View style={styles.dotsContainer}>
+      <View style={styles.indicatorTrack}>
+        <Animated.View
+          style={[styles.indicatorFill, animatedStyle]}
+        />
+      </View>
+    );
+  }
+);
+
+const PaginationDots = memo(
+  ({ count, activeIndex }: { count: number; activeIndex: number }) => {
+    return (
+      <View style={styles.indicatorContainer}>
         {Array.from({ length: count }).map((_, index) => (
-          <View
+          <ProgressIndicator
             key={index}
-            style={[
-              styles.dot,
-              index === activeIndex
-                ? styles.dotActive
-                : styles.dotInactive,
-            ]}
+            active={index === activeIndex}
           />
         ))}
       </View>
@@ -281,8 +313,8 @@ const styles = StyleSheet.create({
   },
   card: {
     width: CARD_WIDTH,
-    height: 180,
-    borderRadius: 24,
+    height: rf(150),
+    borderRadius: rf(16),
     flexDirection: 'row',
     overflow: 'hidden',
     position: 'relative',
@@ -298,8 +330,8 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: '60%',
-    borderTopLeftRadius: 24,
-    borderBottomLeftRadius: 24,
+    borderTopLeftRadius: rf(20),
+    borderBottomLeftRadius: rf(20),
   },
   cardContent: {
     flex: 1,
@@ -310,13 +342,13 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   cardTitle: {
-    fontSize: rf(14),
+    fontSize: rf(15),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.text,
-    lineHeight: 20,
+    lineHeight: rf(18),
   },
   cardSubtitle: {
-    fontSize: rf(12),
+    fontSize: rf(11),
     fontFamily: FONTS.manrope.semibold,
     color: COLORS.textMuted,
     marginTop: 4,
@@ -324,10 +356,10 @@ const styles = StyleSheet.create({
   ctaButton: {
     backgroundColor: COLORS.text,
     alignSelf: 'flex-start',
-    paddingHorizontal: SPACING.md + 4,
-    paddingVertical: SPACING.sm + 2,
-    borderRadius: 24,
-    marginTop: SPACING.sm,
+    paddingHorizontal: rf(12),
+    paddingVertical: rf(7),
+    borderRadius: rf(20),
+    marginTop: rf(6),
   },
   ctaText: {
     fontSize: rf(12),
@@ -335,15 +367,15 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   bookImageContainer: {
-    width: 130,
+    width: rf(105),
     justifyContent: 'center',
     alignItems: 'center',
     paddingRight: SPACING.md,
     paddingVertical: SPACING.md,
   },
   bookImage: {
-    width: 100,
-    height: 145,
+    width: rf(85),
+    height: rf(115),
     borderRadius: 8,
   },
   dotsContainer: {
@@ -353,18 +385,23 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
     gap: SPACING.sm,
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  indicatorContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: rf(10),
+    marginTop: SPACING.md,
   },
-  dotActive: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: COLORS.primary,
-  },
-  dotInactive: {
+  indicatorTrack: {
+    width: rf(34),
+    height: rf(2),
+    borderRadius: 2,
+    overflow: 'hidden',
     backgroundColor: COLORS.grayHeavvy,
+  },
+  indicatorFill: {
+    height: '100%',
+    borderRadius: 2,
+    backgroundColor: COLORS.primary,
   },
 });

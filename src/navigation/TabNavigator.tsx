@@ -5,12 +5,12 @@ import { Ionicons } from '@expo/vector-icons';
 
 import HomeScreen from '../screens/main/HomeScreen';
 import CreateScreen from '../screens/main/CreateScreen';
-import Analytics from '../screens/main/Analytics';
 import ProfileScreen from '../screens/main/ProfileScreen';
-import { COLORS } from '@/constants/colors'; // Adjust imports to match your project paths
+import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import CustomTabBar from '@/components/ui/CustomTabBar';
 import { rf } from '@/utils/responsive';
+import AnalyticsScreen from '@/screens/main/AnalyticsScreen';
 
 export type TabParamList = {
     Home: undefined;
@@ -59,7 +59,7 @@ export default function TabNavigator() {
             />
             <Tab.Screen
                 name="Analytics"
-                component={Analytics}
+                component={AnalyticsScreen}
             />
             <Tab.Screen
                 name="Profile"

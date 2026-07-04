@@ -1,26 +1,27 @@
 export const COLORS = {
   primary: '#008080',
-  secondary: '#DBEDED',
+  secondary: '#00968814',
+  darkerTeal: '#00968826',
 
-  background: '#F7F9F6',
+  background: '#F4F9F9',
 
   black: '#06202B',
   white: '#FFFFFF',
 
-  text: '#222222',
+  text: '#333333',
   textMuted: '#8a8a8aff',
 
   grayLight: '#F9FAFB',
   grayHeavvy: '#CECECE',
 
   green: '#10B981',
-  greenlight: '#E2F6F0',
+  greenlight: '#10b9811a',
 
   yellow: '#F5C518',
-  yellowlight: '#FEF3C7',
+  yellowlight: '#f59e0b1a',
 
   blue: '#1877F2',
-  blueLight: '#DBDBFF',
+  blueLight: '#001aff23',
 
   pink: '#D52DC2',
   pinklight: '#FCE7F3',
@@ -29,5 +30,7 @@ export const COLORS = {
   purplelight: '#F4EAFE',
 
   red: '#EF4545',
-  redLight: '#FDE8E8',
+  redLight: '#ef44441a',
+
+  completeTransparency: '#00000080'
 };

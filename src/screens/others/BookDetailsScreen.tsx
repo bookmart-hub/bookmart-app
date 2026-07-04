@@ -35,11 +35,11 @@ const BookDetailsScreen = () => {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation();
     const route = useRoute<any>();
-    const [rating, setRating] = useState(0);
     const [isFavorite, setIsFavorite] = useState(false);
     const [showBurst, setShowBurst] = useState(false);
 
     const book: Book | undefined = route.params?.book;
+    console.log(book)
     const categoryTitle: string = route.params?.categoryTitle || '';
 
     const isAcademic = useMemo(() => isAcademicCategory(categoryTitle), [categoryTitle]);
@@ -118,7 +118,7 @@ const BookDetailsScreen = () => {
     }
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
             <Header backButton />
             <ScrollView
                 showsVerticalScrollIndicator={false}
@@ -128,7 +128,7 @@ const BookDetailsScreen = () => {
                 {/* Book Cover Image */}
                 <View style={styles.imageContainer}>
                     <Image
-                        source={{ uri: book.imageUri }}
+                        source={{ uri: book.coverUri }}
                         style={styles.bookImage}
                         contentFit="cover"
                         cachePolicy="memory-disk"
@@ -184,16 +184,7 @@ const BookDetailsScreen = () => {
                             <Text style={styles.conditionValue}>
                                 {book.condition || 'Used - Good'}
                             </Text>
-
-                            {book.conditionNote ? (
-                                <Text style={styles.conditionNote}>
-                                    {book.conditionNote}
-                                </Text>
-                            ) : null}
                         </View>
-
-                        <View style={styles.divider} />
-
                         <View style={styles.priceSection}>
                             <Text style={styles.priceLabel}>Price</Text>
                             <Text style={styles.priceValue}>₹{book.price}</Text>
@@ -473,7 +464,7 @@ const styles = StyleSheet.create({
     },
 
     priceSection: {
-        gap: SPACING.sm,
+        // gap: SPACING.sm,
     },
 
     priceLabel: {

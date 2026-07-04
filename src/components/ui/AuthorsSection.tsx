@@ -116,13 +116,13 @@ const DEFAULT_AUTHORS: AuthorItem[] = [
 // ── Layout constants ──────────────────────────────────────────────────────────
 
 const HORIZONTAL_PADDING = SPACING.lg; // 24
-const COLLAPSED_WIDTH = 100;
-const ITEM_GAP = 10;
+const COLLAPSED_WIDTH = 90;
+const ITEM_GAP = 8;
 
 const SNAP_INTERVAL = SCREEN_WIDTH - HORIZONTAL_PADDING - COLLAPSED_WIDTH;
 const EXPANDED_WIDTH = SNAP_INTERVAL - ITEM_GAP;
 const PHOTO_SIZE = COLLAPSED_WIDTH;
-const CARD_HEIGHT = 150;
+const CARD_HEIGHT = 135;
 
 const LOOP_COPIES = 15;
 
@@ -446,12 +446,12 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     headerTitle: {
-        fontSize: rf(20),
+        fontSize: rf(18),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
-        fontSize: rf(14),
+        fontSize: rf(13),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
     card: {
         height: CARD_HEIGHT,
         backgroundColor: CARD_BG,
-        borderRadius: 16,
+        borderRadius: 14,
         flexDirection: 'row',
         overflow: 'hidden',
         shadowColor: COLORS.black,
@@ -500,17 +500,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     authorName: {
-        fontSize: rf(14),
+        fontSize: rf(13),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.white,
         marginBottom: 6,
     },
     authorBio: {
-        fontSize: rf(11),
+        fontSize: rf(10),
         fontFamily: FONTS.manrope.light,
         color: 'rgba(255,255,255,0.78)',
-        lineHeight: 15,
-        marginBottom: 8,
+        lineHeight: 14,
+        marginBottom: 6,
     },
 
     // ── Star rating ──
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     star: {
-        fontSize: rf(15),
+        fontSize: rf(13),
     },
     starFilled: {
         color: COLORS.yellow,

@@ -33,7 +33,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = memo(({
           onPress={onNotificationPress}
           activeOpacity={0.7}
         >
-          <Ionicons name="notifications-outline" size={24} color={COLORS.primary} />
+          <Ionicons name="notifications-outline" size={22} color={COLORS.primary} />
           {notificationCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>
@@ -71,14 +71,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.sm,
-    paddingBottom: SPACING.md,
+    paddingTop: SPACING.xs,
+    paddingBottom: SPACING.sm,
   },
   brandLogo: {
-    fontSize: rf(25),
+    fontSize: rf(22),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
-    lineHeight: 32,
+    lineHeight: 28,
   },
   rightSection: {
     flexDirection: 'row',
@@ -86,9 +86,9 @@ const styles = StyleSheet.create({
     gap: SPACING.md,
   },
   notificationBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -97,9 +97,9 @@ const styles = StyleSheet.create({
     top: 4,
     right: 4,
     backgroundColor: COLORS.red,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
@@ -107,14 +107,14 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: COLORS.white,
-    fontSize: rf(9),
+    fontSize: rf(8),
     fontFamily: FONTS.montserrat.bold,
     lineHeight: 12,
   },
   avatarBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     overflow: 'hidden',
     borderWidth: 2,
     borderColor: COLORS.secondary,

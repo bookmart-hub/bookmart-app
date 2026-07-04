@@ -11,6 +11,42 @@ import CategorySection from '@/components/ui/CategorySection';
 import NearestBooks, { NearestBookItem } from '@/components/ui/NearestBooks';
 import AuthorsSection, { AuthorItem } from '@/components/ui/AuthorsSection';
 import InstituteBooks, { InstituteBookItem } from '@/components/ui/InstituteBooks';
+import EditorsChoiceComp from '@/components/smallComp/EditorsChoiceComp';
+import ExcellentCondition from '@/components/smallComp/ExcellentCondition';
+import RecentlyAdded from '@/components/smallComp/RecentlyAdded';
+import PeopleViewing from '@/components/smallComp/PeopleViewing';
+import EndingSoon from '@/components/smallComp/EndingSoon';
+
+const RECENTLY_ADDED = [
+  { id: 'ra1', title: 'The Silent Patient', author: 'Alex Michaelides', price: 250, coverUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop', condition: 'Like New', distance: '1km' },
+  { id: 'ra2', title: 'Educated', author: 'Tara Westover', price: 300, coverUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=300&h=440&fit=crop', condition: 'Good', distance: '2km' },
+  { id: 'ra3', title: 'Sapiens', author: 'Yuval Noah Harari', price: 400, coverUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=440&fit=crop', condition: 'Like New', distance: '3km' },
+  { id: 'ra4', title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman', price: 350, coverUri: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=440&fit=crop', condition: 'Acceptable', distance: '1.5km' },
+];
+
+const ENDING_SOON = [
+  { id: 'es1', title: 'The Alchemist', author: 'Paulo Coelho', price: 150, coverUri: 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=300&h=440&fit=crop', condition: 'Good', distance: '5km' },
+  { id: 'es2', title: '1984', author: 'George Orwell', price: 200, coverUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=300&h=440&fit=crop', condition: 'Like New', distance: '4km' },
+  { id: 'es3', title: 'Brave New World', author: 'Aldous Huxley', price: 180, coverUri: 'https://images.unsplash.com/photo-1629196914225-eb488db9f0eb?w=300&h=440&fit=crop', condition: 'Acceptable', distance: '8km' },
+];
+
+const PEOPLE_ARE_VIEWING = [
+  { id: 'pv1', title: 'Dune', author: 'Frank Herbert', price: 450, coverUri: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop', condition: 'Like New', distance: '2km' },
+  { id: 'pv2', title: 'Foundation', author: 'Isaac Asimov', price: 380, coverUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=440&fit=crop', condition: 'Good', distance: '1km' },
+  { id: 'pv3', title: 'Neuromancer', author: 'William Gibson', price: 300, coverUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=300&h=440&fit=crop', condition: 'Acceptable', distance: '6km' },
+];
+
+const EXCELLENT_CONDITION = [
+  { id: 'ec1', title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', price: 220, coverUri: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=440&fit=crop', condition: 'Like New', distance: '2km' },
+  { id: 'ec2', title: 'To Kill a Mockingbird', author: 'Harper Lee', price: 280, coverUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=300&h=440&fit=crop', condition: 'Like New', distance: '5km' },
+  { id: 'ec3', title: 'Pride and Prejudice', author: 'Jane Austen', price: 190, coverUri: 'https://images.unsplash.com/photo-1614214560195-2eb49ebde0be?w=300&h=440&fit=crop', condition: 'Like New', distance: '3km' },
+];
+
+const EDITORS_CHOICE = [
+  { id: 'ed1', title: 'Steve Jobs', author: 'Walter Isaacson', price: 500, coverUri: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=300&h=440&fit=crop', condition: 'Like New', distance: '4km' },
+  { id: 'ed2', title: 'Shoe Dog', author: 'Phil Knight', price: 400, coverUri: 'https://images.unsplash.com/photo-1656266724092-d979cb85469b?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', condition: 'Good', distance: '2km' },
+  { id: 'ed3', title: 'Zero to One', author: 'Peter Thiel', price: 350, coverUri: 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=300&h=440&fit=crop', condition: 'Like New', distance: '1km' },
+];
 
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
@@ -41,8 +77,8 @@ const HomeScreen = () => {
   }, [navigation]);
 
   const handleInstituteSeeAllPress = useCallback(() => {
-    // TODO: navigate to institute books list
-  }, []);
+    navigation.navigate('AppStack', { screen: 'CollegeInsights' });
+  }, [navigation]);
 
   const handleAuthorPress = useCallback((author: AuthorItem) => {
     navigation.navigate('AppStack', { screen: 'AuthorDetails', params: { author } });
@@ -101,6 +137,40 @@ const HomeScreen = () => {
           onAuthorPress={handleAuthorPress}
           onSeeAllPress={handleAuthorSeeAllPress}
         />
+
+        <RecentlyAdded
+          title="Recently Added"
+          books={RECENTLY_ADDED}
+          onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Recently Added' } })}
+          onSeeAllPress={() => { }}
+          loop={true}
+        />
+
+        <PeopleViewing
+          title="People Are Viewing"
+          books={PEOPLE_ARE_VIEWING}
+          loop={true}
+          onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Trending' } })}
+          onSeeAllPress={() => { }}
+        />
+
+        <EndingSoon
+          title="Ending Soon"
+          books={ENDING_SOON}
+          onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Ending Soon' } })}
+          onSeeAllPress={() => { }}
+          loop={true}
+        />
+
+        <ExcellentCondition
+          title="Excellent Condition"
+          books={EXCELLENT_CONDITION}
+          onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Premium' } })}
+          onSeeAllPress={() => { }}
+          loop={true}
+        />
+
+        <EditorsChoiceComp item={EDITORS_CHOICE} />
 
       </ScrollView>
     </View>

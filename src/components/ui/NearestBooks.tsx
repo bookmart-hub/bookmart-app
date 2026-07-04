@@ -91,16 +91,16 @@ const DEFAULT_BOOKS: NearestBookItem[] = [
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 
-const CARD_WIDTH = SCREEN_WIDTH * 0.44;
-const ITEM_GAP = 16;
+const CARD_WIDTH = SCREEN_WIDTH * 0.32;
+const ITEM_GAP = 5;
 const SNAP_INTERVAL = CARD_WIDTH + ITEM_GAP;
-const HORIZONTAL_PADDING = SPACING.lg;
+const HORIZONTAL_PADDING = SPACING.md;
 
-const CARD_HEIGHT = 300;
+const CARD_HEIGHT = 195;
 const LIST_HEIGHT = CARD_HEIGHT + 20;
-const COVER_FLOAT = 12;
+const COVER_FLOAT = 10;
 
-const LOOP_COUNT = 3;
+const LOOP_COUNT = 30;
 
 // ── Shared animation configs (defined once at module scope) ──────────────────
 
@@ -154,17 +154,11 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
     const cardAnimatedStyle = useAnimatedStyle(() => {
         'worklet';
         const progressVal = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
-        const activeProgressVal = interpolate(progressVal, [0.4, 0.7], [0, 1], Extrapolation.CLAMP);
-        const active = activeProgressVal > 0.5;
 
         return {
-            // minHeight: withSpring(active ? 300 : 220, SPRING_CONFIG),
             transform: [
                 {
-                    scale: withSpring(
-                        active ? 1 : 0.94,
-                        SPRING_CONFIG
-                    )
+                    scale: interpolate(progressVal, [0, 1], [0.95, 1], Extrapolation.CLAMP)
                 }
             ],
         };
@@ -172,28 +166,46 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
 
     const coverAnimStyle = useAnimatedStyle(() => {
         'worklet';
-        const progressVal = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
-        const targetY = interpolate(progressVal, [0, 1], [0, -COVER_FLOAT], Extrapolation.CLAMP);
+
+        const progress = interpolate(
+            scrollX.value,
+            inputRange,
+            [0, 1, 0],
+            Extrapolation.CLAMP
+        );
 
         return {
-            transform: [{ translateY: withSpring(targetY, COVER_SPRING_CONFIG) }],
+            transform: [
+                {
+                    translateY: interpolate(progress, [0, 1], [0, -COVER_FLOAT]),
+                },
+                {
+                    scale: interpolate(progress, [0, 1], [0.9, 1]),
+                },
+            ],
+            borderBottomLeftRadius: interpolate(progress, [0, 1], [16, 0]),
+            borderBottomRightRadius: interpolate(progress, [0, 1], [16, 0]),
+        };
+    });
+
+    const bgStyle = useAnimatedStyle(() => {
+        'worklet';
+        const progressVal = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
+        return {
+            bottom: interpolate(progressVal, [0, 1], [35, 0], Extrapolation.CLAMP),
         };
     });
 
     const detailsStyle = useAnimatedStyle(() => {
         'worklet';
         const progressVal = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
-        const activeProgressVal = interpolate(progressVal, [0.4, 0.7], [0, 1], Extrapolation.CLAMP);
-        const active = activeProgressVal > 0.5;
+        const activeProgressVal = interpolate(progressVal, [0.5, 1], [0, 1], Extrapolation.CLAMP);
 
         return {
-            opacity: withTiming(active ? 1 : 0, REVEAL_TIMING),
+            opacity: activeProgressVal,
             transform: [
                 {
-                    translateY: withTiming(
-                        active ? 0 : 20,
-                        REVEAL_TIMING
-                    ),
+                    translateY: interpolate(activeProgressVal, [0, 1], [12, 0], Extrapolation.CLAMP),
                 },
             ],
         };
@@ -202,12 +214,11 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
     const priceStyle = useAnimatedStyle(() => {
         'worklet';
         const progressVal = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
-        const activeProgressVal = interpolate(progressVal, [0.4, 0.7], [0, 1], Extrapolation.CLAMP);
-        const active = activeProgressVal > 0.5;
+        const activeProgressVal = interpolate(progressVal, [0.5, 1], [0, 1], Extrapolation.CLAMP);
 
         return {
-            opacity: withTiming(active ? 1 : 0, REVEAL_TIMING_SLOW),
-            transform: [{ scale: withSpring(active ? 1 : 0.5, SPRING_CONFIG) }],
+            opacity: activeProgressVal,
+            transform: [{ scale: interpolate(activeProgressVal, [0, 1], [0.8, 1], Extrapolation.CLAMP) }],
         };
     });
 
@@ -219,7 +230,7 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
         >
             <Animated.View style={[styles.cardRoot, cardAnimatedStyle]}>
                 {/* Expandable card background */}
-                <View style={styles.whiteBg} />
+                <Animated.View style={[styles.whiteBg, bgStyle]} />
 
                 {/* Floating Cover */}
                 <Animated.View style={[styles.coverWrap, coverAnimStyle]}>
@@ -254,29 +265,12 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, onPress 
                         {item.author}
                     </Text>
 
-                    {/* Seller row */}
-                    {item.sellerAvatarUri && item.description && (
-                        <View style={styles.sellerRow}>
-                            <Image
-                                source={{ uri: item.sellerAvatarUri }}
-                                style={styles.sellerAvatar}
-                                contentFit="cover"
-                                recyclingKey={item.sellerAvatarUri}
-                                cachePolicy="memory-disk"
-                                transition={0}
-                            />
-                            <Text style={styles.sellerDesc} numberOfLines={2}>
-                                {item.description}
-                            </Text>
-                        </View>
-                    )}
-
                     {/* Meta Row ── Condition / Distance */}
                     <View style={styles.metaRow}>
                         <View style={styles.conditionBadge}>
                             <Text style={styles.conditionLabel}>{item.condition}</Text>
                         </View>
-                        <Text style={styles.distanceLabel}>{item.distance} away</Text>
+                        <Text style={styles.distanceLabel}>{item.distance}</Text>
                     </View>
                 </Animated.View>
             </Animated.View>
@@ -401,7 +395,7 @@ const NearestBooks: React.FC<NearestBooksProps> = memo(({
                 initialNumToRender={3}
                 maxToRenderPerBatch={2}
                 windowSize={3}
-                removeClippedSubviews={true}
+                removeClippedSubviews={false}
             />
         </View>
     );
@@ -421,12 +415,12 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     headerTitle: {
-        fontSize: rf(20),
+        fontSize: rf(18),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
-        fontSize: rf(14),
+        fontSize: rf(13),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
@@ -445,27 +439,31 @@ const styles = StyleSheet.create({
     },
     cardRoot: {
         width: '100%',
+        height: '100%',
         alignItems: 'center',
         position: 'relative',
-        overflow: 'hidden',
     },
     whiteBg: {
-        ...StyleSheet.absoluteFillObject,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
         backgroundColor: COLORS.white,
-        borderRadius: 16,
+        borderRadius: 14,
         borderWidth: 1,
         borderColor: 'rgba(0,0,0,0.04)',
         shadowColor: COLORS.black,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 12,
-        // elevation: 4,
+        elevation: 4,
     },
     coverWrap: {
-        width: '88%',
-        height: 160,
-        marginTop: 12,
-        borderRadius: 8,
+        width: '99%',
+        height: 110,
+        marginTop: 8,
+        borderTopLeftRadius: 14,
+        borderTopRightRadius: 14,
         overflow: 'hidden',
         backgroundColor: COLORS.grayLight,
         zIndex: 2,
@@ -484,8 +482,8 @@ const styles = StyleSheet.create({
     },
     titleContainer: {
         width: '100%',
-        paddingHorizontal: 12,
-        paddingTop: 8,
+        paddingHorizontal: 8,
+        paddingTop: 6,
     },
     titleRow: {
         flexDirection: 'row',
@@ -493,25 +491,25 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     titleText: {
-        fontSize: rf(13.5),
+        fontSize: rf(11),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
         flex: 1,
         marginRight: 4,
     },
     priceText: {
-        fontSize: rf(13),
+        fontSize: rf(11),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
     details: {
         width: '100%',
-        paddingHorizontal: 12,
-        paddingTop: 4,
+        paddingHorizontal: 8,
+        paddingTop: 2,
         overflow: 'hidden',
     },
     authorText: {
-        fontSize: rf(11),
+        fontSize: rf(9.5),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginTop: 1,
@@ -532,30 +530,29 @@ const styles = StyleSheet.create({
     },
     sellerDesc: {
         flex: 1,
-        fontSize: rf(9),
+        fontSize: rf(8.5),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
-        lineHeight: 11,
+        lineHeight: 10,
     },
     metaRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 8,
+        marginTop: rf(8)
     },
     conditionBadge: {
         backgroundColor: COLORS.secondary + '20',
-        paddingHorizontal: 6,
-        paddingVertical: 2,
+        paddingVertical: 1,
         borderRadius: 6,
     },
     conditionLabel: {
-        fontSize: rf(9),
+        fontSize: rf(7.5),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
     distanceLabel: {
-        fontSize: rf(10),
+        fontSize: rf(8.5),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.textMuted,
     },

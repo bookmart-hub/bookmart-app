@@ -67,9 +67,9 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 52,
+    height: 48,
     backgroundColor: COLORS.white,
-    borderRadius: 26,
+    borderRadius: 24,
     paddingHorizontal: SPACING.md,
     // Elevated shadow to match the premium floating search feel
     shadowColor: COLORS.black,
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: '100%',
-    fontSize: rf(15),
+    fontSize: rf(14),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.text,
   },
