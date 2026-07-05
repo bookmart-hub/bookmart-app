@@ -155,6 +155,10 @@ const NearestBooksScreen = ({ route }: any) => {
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
+                initialNumToRender={6}
+                maxToRenderPerBatch={6}
+                windowSize={5}
+                removeClippedSubviews={false}
             />
             {showFilter && (
                 <Animated.View

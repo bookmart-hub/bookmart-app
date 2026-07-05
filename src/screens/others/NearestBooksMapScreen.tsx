@@ -114,7 +114,7 @@ const NearestBooksMapScreen = () => {
     const route = useRoute<any>();
     const mapRef = useRef<MapView>(null);
     const prevLocationRef = useRef<{ latitude: number, longitude: number } | null>(null);
-    
+
     const [bottomSheetVisible, setBottomSheetVisible] = useState(true);
     const [userLocation, setUserLocation] = useState<{ latitude: number, longitude: number } | null>(null);
     const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
@@ -175,7 +175,7 @@ const NearestBooksMapScreen = () => {
             setLocationPermissionStatus('checking');
             const servicesEnabled = await Location.hasServicesEnabledAsync();
             setLocationServicesEnabled(servicesEnabled);
-            
+
             if (!servicesEnabled) {
                 console.warn("Location services disabled. Falling back to mock location.");
                 setIsUsingMockLocation(true);
@@ -320,66 +320,66 @@ const NearestBooksMapScreen = () => {
                     style={styles.map}
                     provider={mapProvider}
                     initialRegion={initialRegion}
-                showsUserLocation={false}
-                showsMyLocationButton={false}
-                showsCompass={false}
-                mapType="standard"
-                customMapStyle={[]}
-                showsTraffic={false}
-                showsIndoors={false}
-                showsIndoorLevelPicker={false}
-                showsBuildings={false}
-            >
-                {/* User Location Marker */}
-                {userLocation && (
-                    <Marker
-                        coordinate={{ latitude: userLocation.latitude, longitude: userLocation.longitude }}
-                        zIndex={999}
-                        tracksViewChanges={false}
-                    >
-                        <View style={styles.userLocationMarker}>
-                            <Ionicons name="navigate-circle" size={32} color={COLORS.primary} />
-                        </View>
-                    </Marker>
-                )}
+                    showsUserLocation={false}
+                    showsMyLocationButton={false}
+                    showsCompass={false}
+                    mapType="standard"
+                    customMapStyle={[]}
+                    showsTraffic={false}
+                    showsIndoors={false}
+                    showsIndoorLevelPicker={false}
+                    showsBuildings={false}
+                >
+                    {/* User Location Marker */}
+                    {userLocation && (
+                        <Marker
+                            coordinate={{ latitude: userLocation.latitude, longitude: userLocation.longitude }}
+                            zIndex={999}
+                            tracksViewChanges={true}
+                        >
+                            <View style={styles.userLocationMarker}>
+                                <Ionicons name="locate" size={32} color={COLORS.primary} />
+                            </View>
+                        </Marker>
+                    )}
 
-                {/* 1km Radius Circle */}
-                {userLocation && (
-                    <Circle
-                        center={{ latitude: userLocation.latitude, longitude: userLocation.longitude }}
-                        radius={1000}
-                        fillColor="rgba(128, 128, 128, 0.2)"
-                        strokeColor="rgba(128, 128, 128, 0.5)"
-                        strokeWidth={1}
-                    />
-                )}
-
-                {/* Route Line for selected book */}
-                {selectedBookId && routeCoords.length > 0 && (
-                    <Polyline
-                        coordinates={routeCoords}
-                        strokeColor={COLORS.primary}
-                        strokeWidth={4}
-                        lineJoin="round"
-                        lineCap="round"
-                        zIndex={10}
-                    />
-                )}
-
-                {filteredBooks.map((book) => {
-                    if (!book.latitude || !book.longitude) return null;
-                    const isSelected = selectedBookId === book.id;
-                    return (
-                        <MapMarkerWrapper
-                            key={book.id}
-                            book={book}
-                            isSelected={isSelected}
-                            hasSelection={!!selectedBookId}
-                            onPress={handleBookPress}
+                    {/* 1km Radius Circle */}
+                    {userLocation && (
+                        <Circle
+                            center={{ latitude: userLocation.latitude, longitude: userLocation.longitude }}
+                            radius={1000}
+                            fillColor="rgba(128, 128, 128, 0.2)"
+                            strokeColor="rgba(128, 128, 128, 0.5)"
+                            strokeWidth={1}
                         />
-                    );
-                })}
-            </MapView>
+                    )}
+
+                    {/* Route Line for selected book */}
+                    {selectedBookId && routeCoords.length > 0 && (
+                        <Polyline
+                            coordinates={routeCoords}
+                            strokeColor={COLORS.primary}
+                            strokeWidth={4}
+                            lineJoin="round"
+                            lineCap="round"
+                            zIndex={10}
+                        />
+                    )}
+
+                    {filteredBooks.map((book) => {
+                        if (!book.latitude || !book.longitude) return null;
+                        const isSelected = selectedBookId === book.id;
+                        return (
+                            <MapMarkerWrapper
+                                key={book.id}
+                                book={book}
+                                isSelected={isSelected}
+                                hasSelection={!!selectedBookId}
+                                onPress={handleBookPress}
+                            />
+                        );
+                    })}
+                </MapView>
             </MapErrorBoundary>
 
             <LinearGradient
@@ -391,12 +391,12 @@ const NearestBooksMapScreen = () => {
                     <View style={styles.warningBanner}>
                         <Ionicons name="location-outline" size={16} color={COLORS.white} style={{ marginRight: 6 }} />
                         <Text style={styles.warningBannerText} numberOfLines={1}>
-                            {!locationServicesEnabled 
-                                ? "GPS is disabled. Showing default location." 
+                            {!locationServicesEnabled
+                                ? "GPS is disabled. Showing default location."
                                 : "Location denied. Showing default location."}
                         </Text>
-                        <TouchableOpacity 
-                            style={styles.warningBannerAction} 
+                        <TouchableOpacity
+                            style={styles.warningBannerAction}
                             onPress={!locationServicesEnabled ? requestLocation : handleOpenSettings}
                             activeOpacity={0.8}
                         >
@@ -453,8 +453,8 @@ const NearestBooksMapScreen = () => {
             )}
 
             {!bottomSheetVisible && (
-                <TouchableOpacity 
-                    style={[styles.listToggleButton, { bottom: insets.bottom + 20 }]} 
+                <TouchableOpacity
+                    style={[styles.listToggleButton, { bottom: insets.bottom + 20 }]}
                     onPress={() => setBottomSheetVisible(true)}
                 >
                     <Ionicons name="list" size={20} color={COLORS.white} style={{ marginRight: 8 }} />

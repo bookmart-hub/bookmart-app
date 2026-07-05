@@ -140,7 +140,6 @@ const HomeScreen = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        removeClippedSubviews={true}
       >
         {/* ── Promo Carousel ── */}
         <PromoBanner onCtaPress={handleCtaPress} />
