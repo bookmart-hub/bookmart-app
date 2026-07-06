@@ -13,6 +13,7 @@ import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import HeartBurst from './HeartBrust';
+import * as Haptics from 'expo-haptics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HORIZONTAL_PADDING = SPACING.md;
@@ -45,6 +46,7 @@ const BookCard = memo(
         const [showBurst, setShowBurst] = useState(false);
 
         const handlePress = useCallback(() => {
+            Haptics.selectionAsync();
             onPress?.(item);
         }, [item, onPress]);
 
@@ -52,8 +54,11 @@ const BookCard = memo(
             setIsLiked((prev) => {
                 const next = !prev;
                 if (next) {
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                     setShowBurst(true);
                     setTimeout(() => setShowBurst(false), 600);
+                } else {
+                    Haptics.selectionAsync();
                 }
                 return next;
             });

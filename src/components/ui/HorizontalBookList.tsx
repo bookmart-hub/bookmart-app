@@ -8,6 +8,7 @@ import {
     Platform,
 } from 'react-native';
 import { Image } from 'expo-image';
+import * as Haptics from 'expo-haptics';
 import Animated, {
     Extrapolation,
     interpolate,
@@ -54,6 +55,7 @@ const BookCard: React.FC<BookCardProps> = memo(({ item, index, scrollX, animatio
     const inputRange = [center - snapInterval, center, center + snapInterval] as const;
 
     const handlePress = useCallback(() => {
+        Haptics.selectionAsync();
         onPress?.(item);
     }, [item, onPress]);
 

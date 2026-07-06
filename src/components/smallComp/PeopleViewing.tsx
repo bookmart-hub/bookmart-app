@@ -10,9 +10,9 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
-import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import { NearestBookItem } from '../ui/NearestBooks';
+import { SPACING } from '@/constants/spacings';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HORIZONTAL_PADDING = SPACING.md;
@@ -143,7 +143,7 @@ export default PeopleViewing;
 
 const styles = StyleSheet.create({
     section: {
-        marginTop: SPACING.md,
+        marginTop: SPACING.lg,
         paddingHorizontal: HORIZONTAL_PADDING,
     },
     header: {

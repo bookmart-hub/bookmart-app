@@ -7,6 +7,7 @@ import Animated, {
     SharedValue,
 } from 'react-native-reanimated';
 import { ImageBackground } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
@@ -54,11 +55,14 @@ const EditorsChoiceItem = React.memo(({ item, animationValue, onBookPress }: Edi
                     style={StyleSheet.absoluteFill}
                     contentFit="cover"
                 >
-                    <View style={styles.overlay}>
+                    <LinearGradient
+                        colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.8)']}
+                        style={styles.overlay}
+                    >
                         <Text style={styles.title}>{item.title}</Text>
                         <Text style={styles.author}>{item.author}</Text>
                         <Text style={styles.price}>{item.price}</Text>
-                    </View>
+                    </LinearGradient>
                 </ImageBackground>
             </Animated.View>
         </TouchableOpacity>
@@ -124,26 +128,22 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'flex-end',
         padding: 10,
-        backgroundColor: COLORS.completeTransparency,
     },
     title: {
         fontSize: rf(14),
         color: COLORS.white,
-        fontFamily: FONTS.manrope.medium,
-        textShadowColor: COLORS.black,
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 1,
+        fontFamily: FONTS.montserrat.bold,
     },
-
     author: {
-        fontSize: rf(13),
-        color: COLORS.white,
-        fontFamily: FONTS.manrope.light,
-    },
-
-    price: {
         fontSize: rf(12),
         color: COLORS.white,
-        fontFamily: FONTS.manrope.regular,
+        fontFamily: FONTS.manrope.medium,
+        opacity: 0.9,
+    },
+    price: {
+        fontSize: rf(14),
+        color: COLORS.white,
+        fontFamily: FONTS.montserrat.bold,
+        marginTop: 4,
     },
 });

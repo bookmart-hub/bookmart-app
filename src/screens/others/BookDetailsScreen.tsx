@@ -20,6 +20,7 @@ import { TextInput } from 'react-native';
 import HeartBurst from '@/components/ui/HeartBrust';
 import { rf } from '@/utils/responsive';
 import { StatusBar } from 'expo-status-bar';
+import * as Haptics from 'expo-haptics';
 
 const isAcademicCategory = (category: string) => {
     if (!category) return false;
@@ -66,11 +67,14 @@ const BookDetailsScreen = () => {
         setIsFavorite(next);
 
         if (next) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             setShowBurst(true);
 
             setTimeout(() => {
                 setShowBurst(false);
             }, 700);
+        } else {
+            Haptics.selectionAsync();
         }
     };
 
@@ -357,7 +361,10 @@ const BookDetailsScreen = () => {
 
                 <Button
                     title="Contact Seller"
-                    onPress={() => console.log('Contact Seller')}
+                    onPress={() => {
+                        Haptics.selectionAsync();
+                        console.log('Contact Seller');
+                    }}
                     style={styles.secondaryButton}
                     textStyle={styles.secondaryButtonText}
                 />

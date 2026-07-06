@@ -10,9 +10,10 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
-import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
+import { LinearGradient } from 'expo-linear-gradient';
 import { NearestBookItem } from '../ui/NearestBooks';
+import { SPACING } from '@/constants/spacings';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HORIZONTAL_PADDING = SPACING.md;
@@ -69,7 +70,10 @@ const EndingSoon: React.FC<EndingSoonProps> = memo(({
     const displayBooks = books.slice(0, 4);
 
     return (
-        <View style={styles.section}>
+        <LinearGradient
+            colors={[COLORS.redLight, COLORS.background]}
+            style={styles.section}
+        >
             {/* Header */}
             <View style={styles.header}>
                 <View style={styles.titleRow}>
@@ -93,7 +97,7 @@ const EndingSoon: React.FC<EndingSoonProps> = memo(({
                     />
                 ))}
             </View>
-        </View>
+        </LinearGradient>
     );
 });
 
@@ -101,8 +105,11 @@ export default EndingSoon;
 
 const styles = StyleSheet.create({
     section: {
-        marginTop: SPACING.md,
+        marginTop: SPACING.lg,
         paddingHorizontal: HORIZONTAL_PADDING,
+        paddingVertical: SPACING.md,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
     },
     header: {
         flexDirection: 'row',

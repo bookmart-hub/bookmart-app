@@ -14,11 +14,19 @@ import InstituteBooks, { InstituteBookItem } from '@/components/ui/InstituteBook
 import EditorsChoiceComp from '@/components/smallComp/EditorsChoiceComp';
 import ExcellentCondition from '@/components/smallComp/ExcellentCondition';
 import RecentlyAdded from '@/components/smallComp/RecentlyAdded';
+import SponsoredSection from '@/components/smallComp/SponsoredSection';
 import PeopleViewing from '@/components/smallComp/PeopleViewing';
 import EndingSoon from '@/components/smallComp/EndingSoon';
 import { rf } from '@/utils/responsive';
 
 // ── Expanded Mock Datasets ──────────────────────────────────────────────────
+
+const SPONSORED_BOOKS = [
+  { id: 'sp1', title: 'Start with Why', author: 'Simon Sinek', price: 299, coverUri: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=300&h=440&fit=crop', condition: 'Like New', distance: '1.2km' },
+  { id: 'sp2', title: 'The Lean Startup', author: 'Eric Ries', price: 349, coverUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=440&fit=crop', condition: 'Mint Condition', distance: '3.5km' },
+  { id: 'sp3', title: 'The Lean Startup', author: 'Eric Ries', price: 349, coverUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=440&fit=crop', condition: 'Mint Condition', distance: '3.5km' },
+  { id: 'sp4', title: 'The Lean Startup', author: 'Eric Ries', price: 349, coverUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=440&fit=crop', condition: 'Mint Condition', distance: '3.5km' },
+];
 
 const NEAREST_BOOKS = [
   { id: 'n1', title: 'Ikigai', author: 'Hector Garcia', price: 160, coverUri: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=440&fit=crop', condition: 'Good Condition', distance: '0.8km', description: 'Find your reason for being. A beautiful guide to a long and happy life.' },
@@ -147,6 +155,12 @@ const HomeScreen = () => {
         {/* ── Categories ── */}
         <CategorySection />
 
+        {/* ── Trending / Sponsored ── */}
+        <SponsoredSection
+          books={SPONSORED_BOOKS}
+          onBookPress={handleBookPress}
+        />
+
         {/* ── Nearest Books ── */}
         <NearestBooks
           books={NEAREST_BOOKS}
@@ -175,6 +189,12 @@ const HomeScreen = () => {
           onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Recently Added' } })}
         />
 
+        {/* ── Excellent Condition ── */}
+        <ExcellentCondition
+          title="Excellent Condition"
+          books={EXCELLENT_CONDITION}
+          onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Premium' } })}
+        />
         {/* ── People Are Viewing ── */}
         <PeopleViewing
           title="People Are Viewing"
@@ -187,13 +207,6 @@ const HomeScreen = () => {
           title="Ending Soon"
           books={ENDING_SOON}
           onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Ending Soon' } })}
-        />
-
-        {/* ── Excellent Condition ── */}
-        <ExcellentCondition
-          title="Excellent Condition"
-          books={EXCELLENT_CONDITION}
-          onBookPress={(book) => navigation.navigate('AppStack', { screen: 'BookDetails', params: { book, categoryTitle: 'Premium' } })}
         />
 
         {/* ── Editor's Choice ── */}

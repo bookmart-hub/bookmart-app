@@ -14,7 +14,9 @@ import Animated, {
     FadeOut,
 } from 'react-native-reanimated';
 import Slider from '@react-native-community/slider';
+import * as Haptics from 'expo-haptics';
 import { Button } from '@/components/ui/Button';
+import HeartBurst from '@/components/ui/HeartBrust';
 
 const { width, height } = Dimensions.get('window');
 const COLUMN_GAP = SPACING.md;
@@ -114,31 +116,70 @@ const NearestBooksScreen = ({ route }: any) => {
         </View>
     );
 
-    const renderBookCard = useCallback(({ item }: { item: NearestBook }) => (
-        <TouchableOpacity style={styles.cardContainer} onPress={() => handleBookPress(item)} activeOpacity={0.9}>
-            <View style={styles.cardInner}>
-                <Image
-                    source={{ uri: item.imageUri }}
-                    style={styles.bookCover}
-                    contentFit="cover"
-                    cachePolicy="memory-disk"
-                />
-                <Text style={styles.bookTitle} numberOfLines={1}>{item.title}</Text>
+    const BookCardItem = React.memo(({ item, onPress }: { item: NearestBook; onPress: (item: NearestBook) => void }) => {
+        const [isLiked, setIsLiked] = useState(false);
+        const [showBurst, setShowBurst] = useState(false);
 
-                <View style={styles.bottomRow}>
-                    <Text style={styles.discountText}>{item.discount}</Text>
-                    <View style={styles.priceContainer}>
-                        <Text style={styles.currencySymbol}>₹ </Text>
-                        <Text style={styles.priceText}>{item.price}</Text>
+        const toggleLike = useCallback(() => {
+            setIsLiked((prev) => {
+                const next = !prev;
+                if (next) {
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    setShowBurst(true);
+                    setTimeout(() => setShowBurst(false), 600);
+                } else {
+                    Haptics.selectionAsync();
+                }
+                return next;
+            });
+        }, []);
+
+        return (
+            <TouchableOpacity
+                style={styles.cardContainer}
+                onPress={() => {
+                    Haptics.selectionAsync();
+                    onPress(item);
+                }}
+                activeOpacity={0.9}
+            >
+                <View style={styles.cardInner}>
+                    <Image
+                        source={{ uri: item.imageUri }}
+                        style={styles.bookCover}
+                        contentFit="cover"
+                        cachePolicy="memory-disk"
+                    />
+                    <Text style={styles.bookTitle} numberOfLines={1}>{item.title}</Text>
+
+                    <View style={styles.bottomRow}>
+                        <Text style={styles.discountText}>{item.discount}</Text>
+                        <View style={styles.priceContainer}>
+                            <Text style={styles.currencySymbol}>₹ </Text>
+                            <Text style={styles.priceText}>{item.price}</Text>
+                        </View>
                     </View>
                 </View>
-            </View>
 
-            {/* Floating Bag Button */}
-            <TouchableOpacity style={styles.fab} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <Ionicons name="bag-outline" size={16} color={COLORS.white} />
+                {/* Floating Bag Button */}
+                <TouchableOpacity
+                    style={styles.fab}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    onPress={toggleLike}
+                >
+                    <Ionicons name={isLiked ? "heart" : "heart-outline"} size={20} color={isLiked ? COLORS.primary : COLORS.textMuted} />
+                    {showBurst && (
+                        <View style={{ position: 'absolute', top: 5, left: 5 }}>
+                            <HeartBurst />
+                        </View>
+                    )}
+                </TouchableOpacity>
             </TouchableOpacity>
-        </TouchableOpacity>
+        );
+    });
+
+    const renderBookCard = useCallback(({ item }: { item: NearestBook }) => (
+        <BookCardItem item={item} onPress={handleBookPress} />
     ), [handleBookPress]);
 
     return (

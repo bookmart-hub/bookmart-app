@@ -68,7 +68,7 @@ export default function AppStackNavigator() {
             id="AppStack"
             screenOptions={{
                 headerShown: false,
-                animation: 'default'
+                animation: 'fade'
             }}
         >
             <Stack.Screen name="Business" component={BusinessScreen} />

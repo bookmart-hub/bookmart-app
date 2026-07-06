@@ -13,6 +13,7 @@ import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -86,14 +87,11 @@ const PromoCard: React.FC<PromoCardProps> = memo(({ item, onCtaPress }) => {
         },
       ]}
     >
-      <View
-        style={[
-          styles.cardOverlay,
-          {
-            backgroundColor: item.bgColorLight,
-            opacity: 0.5,
-          },
-        ]}
+      <LinearGradient
+        colors={[item.bgColorLight + '11', item.bgColorLight + '00']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.cardOverlay}
       />
 
       <View style={styles.cardContent}>
@@ -361,17 +359,22 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   ctaButton: {
-    backgroundColor: COLORS.text,
+    backgroundColor: COLORS.white,
     alignSelf: 'flex-start',
-    paddingHorizontal: rf(12),
-    paddingVertical: rf(7),
-    borderRadius: rf(20),
+    paddingHorizontal: rf(16),
+    paddingVertical: rf(8),
+    borderRadius: rf(24),
     marginTop: rf(6),
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   ctaText: {
     fontSize: rf(12),
-    fontFamily: FONTS.montserrat.semibold,
-    color: COLORS.white,
+    fontFamily: FONTS.montserrat.bold,
+    color: COLORS.black,
   },
   bookImageContainer: {
     width: rf(105),

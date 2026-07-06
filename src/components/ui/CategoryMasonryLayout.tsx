@@ -101,7 +101,13 @@ const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({ data }) =
       case 'header':
         return (
           <View style={[styles.headerContainer, wrapperStyle]}>
-            <Text style={styles.headerTitle}>{item.title.replace(' ', '\n')}</Text>
+            <Text 
+              style={styles.headerTitle} 
+              numberOfLines={1} 
+              adjustsFontSizeToFit={true}
+            >
+              {item.title}
+            </Text>
             <Text style={styles.headerSubtitle}>{item.subtitle}</Text>
           </View>
         );
@@ -211,7 +217,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: rf(32),
-    lineHeight: rf(30),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
     marginBottom: rf(5),

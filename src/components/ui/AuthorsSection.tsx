@@ -8,6 +8,7 @@ import {
     View,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
     Extrapolation,
     interpolate,
@@ -391,7 +392,10 @@ const AuthorsSection: React.FC<AuthorsSectionProps> = memo(({
     );
 
     return (
-        <View style={styles.section}>
+        <LinearGradient
+            colors={[COLORS.secondary, COLORS.background]}
+            style={styles.section}
+        >
             {/* ── Header ── */}
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Authors</Text>
@@ -422,7 +426,7 @@ const AuthorsSection: React.FC<AuthorsSectionProps> = memo(({
                 removeClippedSubviews={true}
                 updateCellsBatchingPeriod={40}
             />
-        </View>
+        </LinearGradient>
     );
 });
 
@@ -434,7 +438,8 @@ const CARD_BG = COLORS.text;
 
 const styles = StyleSheet.create({
     section: {
-        marginTop: SPACING.md,
+        marginTop: SPACING.sm,
+        paddingVertical: SPACING.sm,
     },
 
     // ── Header ──

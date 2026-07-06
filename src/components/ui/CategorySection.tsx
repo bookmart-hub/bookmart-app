@@ -25,6 +25,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { CATEGORIES_LIST, CategoryItem } from '@/data/categoryMockData';
 import { rf } from '@/utils/responsive';
+import * as Haptics from 'expo-haptics';
 
 const ITEM_WIDTH = 50;
 const ITEM_HEIGHT = 70;
@@ -254,6 +255,7 @@ const CategorySection = memo(
                 (
                     item: ExtendedCategoryItem
                 ) => {
+                    Haptics.selectionAsync();
                     navigation.navigate(
                         'AppStack',
                         {

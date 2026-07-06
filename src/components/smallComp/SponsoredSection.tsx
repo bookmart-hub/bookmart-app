@@ -5,31 +5,32 @@ import {
     Text,
     Pressable,
     View,
+    FlatList,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import { NearestBookItem } from '../ui/NearestBooks';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HORIZONTAL_PADDING = SPACING.md;
-const COLUMN_GAP = 8;
-const CARD_WIDTH = (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - COLUMN_GAP * 2) / 3;
+const CARD_WIDTH = SCREEN_WIDTH * 0.28; // Show ~3.5 items (4 visible in a row)
 
-interface ExcellentConditionProps {
+interface SponsoredSectionProps {
     title?: string;
     books: NearestBookItem[];
     onBookPress?: (book: NearestBookItem) => void;
-    onSeeAllPress?: () => void;
 }
 
-const BookCard = memo(
+const SponsoredCard = memo(
     ({ item, onPress }: { item: NearestBookItem; onPress?: (item: NearestBookItem) => void }) => {
         const handlePress = useCallback(() => {
+            Haptics.selectionAsync();
             onPress?.(item);
         }, [item, onPress]);
 
@@ -39,16 +40,14 @@ const BookCard = memo(
                     <Image
                         source={{ uri: item.coverUri }}
                         style={styles.coverImg}
-                        contentFit="fill"
+                        contentFit="cover"
                         recyclingKey={item.coverUri}
                         cachePolicy="memory-disk"
                     />
-                    <View style={styles.mintBadge}>
-                        <Ionicons name="sparkles" size={8} color={COLORS.white} />
-                        <Text style={styles.mintBadgeText}>MINT</Text>
+                    <View style={styles.sponsoredBadge}>
+                        <Ionicons name="trending-up" size={rf(14)} color={COLORS.white} />
                     </View>
                 </View>
-
                 <View style={styles.infoWrap}>
                     <Text numberOfLines={1} style={styles.titleText}>
                         {item.title}
@@ -58,7 +57,6 @@ const BookCard = memo(
                     </Text>
                     <View style={styles.footerRow}>
                         <Text style={styles.priceText}>₹{item.price}</Text>
-                        <Text style={styles.distanceText}>{item.distance}</Text>
                     </View>
                 </View>
             </Pressable>
@@ -67,125 +65,124 @@ const BookCard = memo(
     (prev, next) => prev.item.id === next.item.id
 );
 
-const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(({
-    title = "Excellent Condition",
+const SponsoredSection: React.FC<SponsoredSectionProps> = memo(({
+    title = "Trending Now",
     books,
     onBookPress,
-    onSeeAllPress,
 }) => {
-    // Render up to 6 items in a clean 3-column grid
-    const displayBooks = books.slice(0, 6);
+    if (books.length === 0) return null;
+
+    const displayBooks = books;
 
     return (
         <LinearGradient
-            colors={[COLORS.purple + '35', COLORS.purple + '70']}
+            colors={['#FFF8E7', '#FDF5E6', COLORS.background]}
             style={styles.section}
         >
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>{title}</Text>
-                {onSeeAllPress && (
-                    <Pressable onPress={onSeeAllPress}>
-                        <Text style={styles.headerLink}>see all</Text>
-                    </Pressable>
-                )}
+                <View style={styles.adTag}>
+                    <Text style={styles.adTagText}>Ad</Text>
+                </View>
             </View>
 
-            <View style={styles.grid}>
-                {displayBooks.map((book) => (
-                    <BookCard
-                        key={book.id}
-                        item={book}
+            <FlatList
+                data={displayBooks}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                snapToInterval={CARD_WIDTH + 12}
+                snapToAlignment="start"
+                decelerationRate="fast"
+                contentContainerStyle={{ paddingHorizontal: HORIZONTAL_PADDING, paddingBottom: SPACING.md }}
+                ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+                renderItem={({ item }) => (
+                    <SponsoredCard
+                        item={item}
                         onPress={onBookPress}
                     />
-                ))}
-            </View>
+                )}
+            />
         </LinearGradient>
     );
 });
 
-export default ExcellentCondition;
+export default SponsoredSection;
 
 const styles = StyleSheet.create({
     section: {
-        marginTop: SPACING.md,
-        paddingHorizontal: HORIZONTAL_PADDING,
-        borderRadius: 20,
-        paddingTop: 10,
-        paddingBottom: 10
+        paddingTop: SPACING.md,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
     },
     header: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: SPACING.sm,
+        marginBottom: SPACING.md,
+        paddingHorizontal: HORIZONTAL_PADDING,
+        gap: 8,
     },
     headerTitle: {
-        fontSize: rf(16),
+        fontSize: rf(18),
         fontFamily: FONTS.montserrat.bold,
-        color: COLORS.text,
+        color: '#4B3621', // Dark brown/gold hue
     },
-    headerLink: {
-        fontSize: rf(12),
-        fontFamily: FONTS.montserrat.semibold,
-        color: COLORS.primary,
+    adTag: {
+        backgroundColor: '#E8D5B5',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
     },
-    grid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: COLUMN_GAP,
+    adTagText: {
+        fontSize: rf(9),
+        fontFamily: FONTS.montserrat.bold,
+        color: '#4B3621',
     },
     card: {
         width: CARD_WIDTH,
+        height: CARD_WIDTH * 1.45,
         backgroundColor: COLORS.white,
         borderRadius: 12,
-        borderWidth: 1,
-        borderColor: COLORS.white,
         overflow: 'hidden',
-        shadowColor: COLORS.black,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        elevation: 3,
-        marginBottom: 8,
+        borderWidth: 1,
+        borderColor: '#F5E6D3',
     },
     coverWrap: {
         width: '100%',
-        height: 100,
-        backgroundColor: COLORS.background,
+        height: '65%',
         position: 'relative',
     },
     coverImg: {
         width: '100%',
-        height: '100%',
+        height: '80%',
     },
-    mintBadge: {
+    sponsoredBadge: {
         position: 'absolute',
-        top: 6,
-        left: 6,
-        backgroundColor: COLORS.green, // Mint green color
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 5,
-        paddingVertical: 1.5,
+        top: 4,
+        left: 4,
+        backgroundColor: COLORS.completeTransparency,
+        paddingHorizontal: 4,
+        paddingVertical: 2,
         borderRadius: 4,
-        gap: 2,
     },
-    mintBadgeText: {
+    sponsoredBadgeText: {
         fontSize: rf(7.5),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.white,
+        letterSpacing: 0.5,
     },
     infoWrap: {
-        padding: 6,
-        gap: 1,
+        paddingHorizontal: rf(6),
+        marginTop: rf(-5),
+        gap: 2,
     },
     titleText: {
-        fontSize: rf(10.5),
+        fontSize: rf(9),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
     },
     authorText: {
-        fontSize: rf(9),
+        fontSize: rf(8),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -198,10 +195,10 @@ const styles = StyleSheet.create({
     priceText: {
         fontSize: rf(11.5),
         fontFamily: FONTS.montserrat.bold,
-        color: COLORS.primary,
+        color: '#D4AF37', // Gold color for price
     },
     distanceText: {
-        fontSize: rf(8.5),
+        fontSize: rf(9),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
