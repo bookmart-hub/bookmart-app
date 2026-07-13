@@ -11,6 +11,7 @@ import {
     ToastAndroid, // 1. Imported ToastAndroid
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Path } from 'react-native-svg';
@@ -124,8 +125,9 @@ const LoginScreen: React.FC = () => {
 
         setIsLoading(true);
 
-        setTimeout(() => {
+        setTimeout(async () => {
             setIsLoading(false);
+            await AsyncStorage.setItem('@bookmart:is_logged_in', 'true');
             navigation.navigate('Tab' as any);
         }, 1500);
     };

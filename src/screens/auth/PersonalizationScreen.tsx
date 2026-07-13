@@ -16,6 +16,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons, FontAwesome, Feather, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import Svg, { Ellipse, Rect, Path, Polygon, Text as SvgText } from 'react-native-svg';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
@@ -23,37 +25,9 @@ import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import { Button } from '@/components/ui/Button';
 
-// ── Mock College Data ──────────────────────────────────────────────────────────
-const INDIAN_COLLEGES = [
-    'Shri Ram College of Commerce (SRCC), Delhi',
-    'Hindu College, Delhi University',
-    'Lady Shri Ram College for Women (LSR), Delhi',
-    'Kirori Mal College (KMC), Delhi',
-    'Hansraj College, Delhi University',
-    'Miranda House, Delhi University',
-    'St. Stephen\'s College, Delhi',
-    'Indian Institute of Technology, Delhi (IITD)',
-    'Indian Institute of Technology, Bombay (IITB)',
-    'Indian Institute of Technology, Kharagpur (IITKGP)',
-    'Indian Institute of Technology, Madras (IITM)',
-    'Indian Institute of Technology, Kanpur (IITK)',
-    'Birla Institute of Technology and Science (BITS Pilani)',
-    'Delhi Technological University (DTU)',
-    'Netaji Subhas University of Technology (NSUT), Delhi',
-    'Jadavpur University, Kolkata',
-    'Presidency University, Kolkata',
-    'St. Xavier\'s College, Kolkata',
-    'Loyola College, Chennai',
-    'Christ University, Bengaluru',
-    'Fergusson College, Pune',
-    'Symbiosis International University, Pune',
-    'Vellore Institute of Technology (VIT), Vellore',
-    'Manipal Academy of Higher Education, Manipal',
-    'Amity University, Noida',
-    'SRM Institute of Science and Technology, Chennai',
-    'National Institute of Technology, Trichy (NITT)',
-    'National Institute of Technology, Surathkal (NITK)',
-];
+import { useEffect } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { getColleges, submitOnboarding, College } from '@/types/core';
 
 // ── SVG Header Illustration ──────────────────────────────────────────────────
 const OnboardingHeroIllustration = () => (
@@ -179,20 +153,27 @@ export default function PersonalizationScreen() {
 
     const [selectedRole, setSelectedRole] = useState<string | null>(null);
     const [collegeQuery, setCollegeQuery] = useState('');
-    const [selectedCollege, setSelectedCollege] = useState<string | null>(null);
+    const [debouncedQuery, setDebouncedQuery] = useState('');
+    const [selectedCollege, setSelectedCollege] = useState<College | null>(null);
     const [collegeDropdownVisible, setCollegeDropdownVisible] = useState(false);
     const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
     const [collegeError, setCollegeError] = useState<string | null>(null);
     const [roleError, setRoleError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
 
-    // Filter colleges based on search query
-    const filteredColleges = useMemo(() => {
-        if (!collegeQuery.trim()) return [];
-        return INDIAN_COLLEGES.filter((name) =>
-            name.toLowerCase().includes(collegeQuery.toLowerCase())
-        );
+    // Debounce the college search query
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedQuery(collegeQuery);
+        }, 200);
+        return () => clearTimeout(handler);
     }, [collegeQuery]);
+
+    // Fetch colleges based on debounced search query
+    const { data: filteredColleges = [], isFetching: isCollegesLoading } = useQuery({
+        queryKey: ['colleges', debouncedQuery],
+        queryFn: () => getColleges(debouncedQuery),
+        enabled: debouncedQuery.length > 0,
+    });
 
     // Check if college field is required based on role
     const isCollegeRequired = selectedRole === 'student' || selectedRole === 'teacher';
@@ -229,12 +210,45 @@ export default function PersonalizationScreen() {
         }
     };
 
-    const handleCollegeSelect = (collegeName: string) => {
-        setSelectedCollege(collegeName);
-        setCollegeQuery(collegeName);
+    const handleCollegeSelect = (college: College) => {
+        setSelectedCollege(college);
+        setCollegeQuery(college.name);
         setCollegeDropdownVisible(false);
         setCollegeError(null);
     };
+
+    const handleLogout = async () => {
+        await SecureStore.deleteItemAsync('accessToken');
+        await SecureStore.deleteItemAsync('refreshToken');
+        await AsyncStorage.removeItem('@bookmart:is_logged_in');
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'Auth' }],
+        });
+    };
+
+    const onboardingMutation = useMutation({
+        mutationFn: submitOnboarding,
+        onSuccess: async () => {
+            ToastAndroid.show('Personalization saved!', ToastAndroid.SHORT);
+
+            // Mark user as fully onboarded/logged in
+            await AsyncStorage.setItem('@bookmart:is_logged_in', 'true');
+
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Tab' }],
+            });
+        },
+        onError: (error: any) => {
+            const message = error?.response?.data?.detail || 'Failed to save preferences.';
+            if (Platform.OS === 'android') {
+                ToastAndroid.show(message, ToastAndroid.LONG);
+            } else {
+                Alert.alert('Error', message);
+            }
+        }
+    });
 
     const handleContinue = () => {
         let hasError = false;
@@ -260,15 +274,14 @@ export default function PersonalizationScreen() {
             return;
         }
 
-        setIsLoading(true);
-        // Simulate saving onboarding preferences
-        setTimeout(() => {
-            setIsLoading(false);
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'Tab' }],
-            });
-        }, 1200);
+        // Format payload
+        const payload = {
+            user_role: selectedRole?.toUpperCase() || '',
+            college_id: isCollegeRequired ? selectedCollege?.id || null : null,
+            book_preferences: selectedInterests.length > 0 ? selectedInterests[0].toUpperCase() : 'OTHER'
+        };
+
+        onboardingMutation.mutate(payload);
     };
 
     const renderRoleIcon = (role: RoleItem) => {
@@ -307,12 +320,15 @@ export default function PersonalizationScreen() {
                 {/* Custom Header Nav bar */}
                 <View style={styles.appBar}>
                     <TouchableOpacity
-                        onPress={() => navigation.goBack()}
+                        onPress={handleLogout}
                         hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
                         style={styles.backBtn}
                     >
-                        <Ionicons name="arrow-back" size={24} color={COLORS.black} />
+                        <Ionicons name="log-out-outline" size={24} color={COLORS.red} />
                     </TouchableOpacity>
+                    <Text style={{ fontFamily: FONTS.manrope.bold, color: COLORS.red, marginLeft: 8 }}>
+                        Logout (Clear Token)
+                    </Text>
                 </View>
 
                 <ScrollView
@@ -426,14 +442,14 @@ export default function PersonalizationScreen() {
                             {collegeDropdownVisible && filteredColleges.length > 0 && (
                                 <View style={styles.dropdownContainer}>
                                     <ScrollView style={styles.dropdownList} keyboardShouldPersistTaps="handled">
-                                        {filteredColleges.map((item, index) => (
+                                        {filteredColleges.map((item: College) => (
                                             <TouchableOpacity
-                                                key={index}
+                                                key={item.id}
                                                 style={styles.dropdownItem}
                                                 onPress={() => handleCollegeSelect(item)}
                                             >
                                                 <Ionicons name="location-outline" size={14} color={COLORS.textMuted} style={{ marginRight: 6 }} />
-                                                <Text style={styles.dropdownText} numberOfLines={1}>{item}</Text>
+                                                <Text style={styles.dropdownText} numberOfLines={1}>{item.name}</Text>
                                             </TouchableOpacity>
                                         ))}
                                     </ScrollView>
@@ -512,7 +528,7 @@ export default function PersonalizationScreen() {
                         <Button
                             title="Continue"
                             onPress={handleContinue}
-                            loading={isLoading}
+                            loading={onboardingMutation.isPending}
                             icon={<Feather name="arrow-right" size={18} color={COLORS.white} />}
                         />
                     </View>
@@ -538,7 +554,8 @@ const styles = StyleSheet.create({
     },
     appBar: {
         height: 50,
-        justifyContent: 'center',
+        flexDirection: 'row',
+        alignItems: 'center',
         paddingHorizontal: SPACING.md,
     },
     backBtn: {

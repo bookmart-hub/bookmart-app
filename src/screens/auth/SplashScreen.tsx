@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, Animated, Dimensions, ActivityIndicator, Text, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@/constants/colors';
 import { rf } from '@/utils/responsive';
@@ -58,18 +59,31 @@ export default function SplashScreen({ isLoadingFonts = false }: SplashScreenPro
       const initializeApp = async () => {
         try {
           const isLoggedIn = await AsyncStorage.getItem('@bookmart:is_logged_in');
+          const token = await SecureStore.getItemAsync('accessToken');
 
           // Ensure a minimum splash screen duration of 1800ms for smooth/premium branding
           setTimeout(() => {
-            if (isLoggedIn !== 'true') {
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Auth' }],
-              });
-            } else {
+            if (isLoggedIn === 'true') {
               navigation.reset({
                 index: 0,
                 routes: [{ name: 'Tab' }],
+              });
+            } else if (token) {
+              // Token exists, but not fully onboarded/logged in. Go to Personalization.
+              navigation.reset({
+                index: 0,
+                routes: [
+                  { 
+                    name: 'Auth', 
+                    state: { routes: [{ name: 'Personalization' }] } 
+                  }
+                ],
+              });
+            } else {
+              // Not logged in and no token
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Auth' }],
               });
             }
           }, 1800);
