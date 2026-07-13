@@ -12,6 +12,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
+import { useMutation } from '@tanstack/react-query';
+import { loginUser } from '@/types/auth';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Path } from 'react-native-svg';
@@ -120,16 +123,38 @@ const LoginScreen: React.FC = () => {
         return true;
     };
 
+    const loginMutation = useMutation({
+        mutationFn: loginUser,
+        onSuccess: async (data) => {
+            // Check if tokens are returned in data or data.tokens
+            const accessToken = data?.tokens?.access || data?.access;
+            const refreshToken = data?.tokens?.refresh || data?.refresh;
+            
+            if (accessToken) {
+                await SecureStore.setItemAsync('accessToken', accessToken);
+            }
+            if (refreshToken) {
+                await SecureStore.setItemAsync('refreshToken', refreshToken);
+            }
+            
+            await AsyncStorage.setItem('@bookmart:is_logged_in', 'true');
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Tab' as any }],
+            });
+        },
+        onError: (error: any) => {
+            setIsLoading(false);
+            const message = error?.response?.data?.detail || 'Invalid email or password';
+            showToastOrAlert(message);
+        }
+    });
+
     const handleSignIn = () => {
-        // if (!validateForm()) return;
+        if (!validateForm()) return;
 
         setIsLoading(true);
-
-        setTimeout(async () => {
-            setIsLoading(false);
-            await AsyncStorage.setItem('@bookmart:is_logged_in', 'true');
-            navigation.navigate('Tab' as any);
-        }, 1500);
+        loginMutation.mutate({ email, password });
     };
 
     return (
@@ -178,9 +203,8 @@ const LoginScreen: React.FC = () => {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Action Button */}
                     <View style={styles.buttonContainer}>
-                        {isLoading ? (
+                        {isLoading || loginMutation.isPending ? (
                             <Button
                                 title={loadingText}
                                 onPress={handleSignIn}

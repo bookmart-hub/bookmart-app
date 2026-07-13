@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Share, Linking, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
 import { StatusBar } from 'expo-status-bar';
-import { Divider, Menu } from 'react-native-paper';
+import { Button, Dialog, Divider, Menu, Portal, Text } from 'react-native-paper';
 import { Image } from 'expo-image';
+import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { api } from '@/api/clients';
 
 const { width } = Dimensions.get('window');
 
@@ -49,11 +52,28 @@ const QUICK_ACTIONS = [
     },
 ];
 
+const ProfileMenuTile = ({ icon, title, subtitle, color, onPress, isDanger = false, rightElement }: any) => (
+    <TouchableOpacity style={styles.toolCard} activeOpacity={0.8} onPress={onPress}>
+        <View style={[styles.toolIconWrap, { backgroundColor: isDanger ? 'rgba(239, 68, 68, 0.1)' : `${color}20` }]}>
+            <Ionicons name={icon} size={22} color={isDanger ? COLORS.red : color} />
+        </View>
+        <View style={styles.toolContent}>
+            <Text style={[styles.toolTitle, isDanger && { color: COLORS.red }]}>{title}</Text>
+            {subtitle && <Text style={styles.toolSubtitle}>{subtitle}</Text>}
+        </View>
+        {rightElement ? rightElement : <Ionicons name="chevron-forward" size={20} color={isDanger ? COLORS.red : COLORS.textMuted} />}
+    </TouchableOpacity>
+);
+
 const ProfileScreen = () => {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
     const [menuVisible, setMenuVisible] = useState(false);
     const [ispublic, setIsPublic] = useState(true);
+    const [logoutVisible, setLogoutVisible] = useState(false);
+
+    const showLogoutDialog = () => setLogoutVisible(true);
+    const hideLogoutDialog = () => setLogoutVisible(false);
 
     const handleQuickAction = (id: string) => {
         if (id === 'requests') {
@@ -70,6 +90,50 @@ const ProfileScreen = () => {
     };
     const openMenu = () => setMenuVisible(true);
     const closeMenu = () => setMenuVisible(false);
+
+    const handleLogout = async () => {
+        try {
+            const refreshToken = await SecureStore.getItemAsync('refreshToken');
+
+            if (refreshToken) {
+                await api.post('/api/v1/auth/logout/', {
+                    refresh: refreshToken,
+                });
+            }
+        } catch (error: any) {
+            // A 400 error often happens if the token is already expired or blacklisted on the server.
+            // We can safely ignore it since we are clearing local data and logging out anyway.
+            if (error?.response?.status !== 400 && error?.response?.status !== 401) {
+                console.error('Logout API error:', error?.response?.data || error.message);
+            }
+        } finally {
+            await SecureStore.deleteItemAsync('accessToken');
+            await SecureStore.deleteItemAsync('refreshToken');
+            await AsyncStorage.removeItem('@bookmart:is_logged_in');
+
+            navigation.dispatch(
+                CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'Auth' }],
+                })
+            );
+        }
+    };
+
+    const handleShare = async () => {
+        try {
+            await Share.share({
+                message: 'Check out Bookmart - Your Campus Library Companion! Download the app now.',
+            });
+        } catch (error) {
+            console.error('Share error', error);
+        }
+    };
+
+    const handleRateUs = () => {
+        // Platform specific logic for opening app store could go here
+        Alert.alert('Rate Us', 'Thank you for using Bookmart! Redirecting to Play Store...');
+    };
 
     return (
         <View style={styles.container}>
@@ -192,7 +256,7 @@ const ProfileScreen = () => {
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
                 {/* Quick Actions */}
-                <View style={styles.sectionContainer}>
+                <View style={[styles.sectionContainer, { marginTop: rf(-20) }]}>
                     <Text style={styles.sectionTitle}>Quick Actions</Text>
                     <View style={styles.quickActionsGrid}>
                         {QUICK_ACTIONS.map((action) => (
@@ -216,40 +280,118 @@ const ProfileScreen = () => {
                 </View>
 
                 {/* Seller Tools */}
-                <View style={styles.sectionContainer}>
+                <View style={[styles.sectionContainer, { marginTop: rf(-10) }]}>
                     <Text style={styles.sectionTitle}>Seller Tools</Text>
-
-                    <TouchableOpacity
-                        style={styles.toolCard}
-                        activeOpacity={0.8}
+                    <ProfileMenuTile
+                        icon="list"
+                        title="Manage Listings"
+                        subtitle="Edit, delete or update your active books"
+                        color={COLORS.primary}
                         onPress={() => navigation.navigate('AppStack', { screen: 'ManageListings' })}
-                    >
-                        <View style={[styles.toolIconWrap, { backgroundColor: 'rgba(0, 128, 128, 0.1)' }]}>
-                            <Ionicons name="list" size={24} color={COLORS.primary} />
-                        </View>
-                        <View style={styles.toolContent}>
-                            <Text style={styles.toolTitle}>Manage Listings</Text>
-                            <Text style={styles.toolSubtitle}>Edit, delete or update your active books</Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={styles.toolCard}
-                        activeOpacity={0.8}
+                    />
+                    <ProfileMenuTile
+                        icon="rocket-outline"
+                        title="Boost Listing"
+                        subtitle="Increase visibility and get more buyers"
+                        color="#F59E0B"
                         onPress={() => navigation.navigate('AppStack', { screen: 'BoostListing' })}
-                    >
-                        <View style={[styles.toolIconWrap, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}>
-                            <Ionicons name="rocket-outline" size={24} color="#F59E0B" />
-                        </View>
-                        <View style={styles.toolContent}>
-                            <Text style={styles.toolTitle}>Boost Listing</Text>
-                            <Text style={styles.toolSubtitle}>Increase visibility and get more buyers</Text>
-                        </View>
-                        <View style={styles.proBadge}>
-                            <Text style={styles.proBadgeText}>PRO</Text>
-                        </View>
-                    </TouchableOpacity>
+                        rightElement={
+                            <View style={styles.proBadge}>
+                                <Text style={styles.proBadgeText}>PRO</Text>
+                            </View>
+                        }
+                    />
+                </View>
+
+                {/* Account Settings */}
+                <View style={[styles.sectionContainer, { marginTop: rf(-10) }]}>
+                    <Text style={styles.sectionTitle}>Account Settings</Text>
+                    <ProfileMenuTile
+                        icon="person-outline"
+                        title="Edit Profile"
+                        subtitle="Update your personal details"
+                        color={COLORS.blue}
+                        onPress={() => navigation.navigate('AppStack', { screen: 'EditProfile' })}
+                    />
+                    <ProfileMenuTile
+                        icon="location-outline"
+                        title="Saved Addresses"
+                        subtitle="Manage your delivery addresses"
+                        color={COLORS.green}
+                        onPress={() => navigation.navigate('AppStack', { screen: 'SavedAddresses' })}
+                    />
+                    <ProfileMenuTile
+                        icon="notifications-outline"
+                        title="Notifications"
+                        subtitle="Customize your alert preferences"
+                        color={COLORS.primary}
+                        onPress={() => navigation.navigate('AppStack', { screen: 'Notifications' })}
+                    />
+                </View>
+
+                {/* Support & Legal */}
+                <View style={styles.sectionContainer}>
+                    <Text style={styles.sectionTitle}>General</Text>
+                    <ProfileMenuTile
+                        icon="help-buoy-outline"
+                        title="Help & Support"
+                        color={COLORS.text}
+                        onPress={() => navigation.navigate('AppStack', { screen: 'HelpSupport' })}
+                    />
+                    <ProfileMenuTile
+                        icon="chatbubbles-outline"
+                        title="FAQs"
+                        color={COLORS.text}
+                        onPress={() => navigation.navigate('AppStack', { screen: 'FAQs' })}
+                    />
+                    <ProfileMenuTile
+                        icon="mail-outline"
+                        title="Contact Us"
+                        color={COLORS.text}
+                    // onPress={() => navigation.navigate('AppStack', { screen: 'ContactUs' })}
+                    />
+                    <ProfileMenuTile
+                        icon="shield-checkmark-outline"
+                        title="Privacy Policy"
+                        color={COLORS.text}
+                        onPress={() => navigation.navigate('AppStack', { screen: 'PrivacyPolicy' })}
+                    />
+                    <ProfileMenuTile
+                        icon="document-text-outline"
+                        title="Terms & Conditions"
+                        color={COLORS.text}
+                        onPress={() => navigation.navigate('AppStack', { screen: 'TermsConditions' })}
+                    />
+                    <ProfileMenuTile
+                        icon="information-circle-outline"
+                        title="About"
+                        color={COLORS.text}
+                        onPress={() => navigation.navigate('AppStack', { screen: 'About' })}
+                    />
+                    <ProfileMenuTile
+                        icon="star-outline"
+                        title="Rate Us"
+                        color={COLORS.text}
+                        onPress={handleRateUs}
+                    />
+                    <ProfileMenuTile
+                        icon="share-social-outline"
+                        title="Share App"
+                        color={COLORS.text}
+                        onPress={handleShare}
+                    />
+                </View>
+
+                {/* Logout Option */}
+                <View style={styles.sectionContainer}>
+                    <ProfileMenuTile
+                        icon="log-out-outline"
+                        title="Logout"
+                        isDanger={true}
+                        color={COLORS.red}
+                        onPress={showLogoutDialog}
+                        rightElement={<View />}
+                    />
                 </View>
 
                 {/* Recent Activities */}
@@ -280,6 +422,44 @@ const ProfileScreen = () => {
                 </View>
 
             </ScrollView>
+            <Portal>
+                <Dialog 
+                    visible={logoutVisible} 
+                    onDismiss={hideLogoutDialog}
+                    style={{ backgroundColor: COLORS.white, borderRadius: 16 }}
+                >
+                    <Dialog.Title style={{ fontFamily: FONTS.montserrat.bold, color: COLORS.black, fontSize: rf(18) }}>
+                        Logout
+                    </Dialog.Title>
+
+                    <Dialog.Content>
+                        <Text style={{ fontFamily: FONTS.manrope.medium, color: COLORS.textMuted, fontSize: rf(14) }}>
+                            Are you sure you want to log out?
+                        </Text>
+                    </Dialog.Content>
+
+                    <Dialog.Actions>
+                        <Button 
+                            onPress={hideLogoutDialog}
+                            textColor={COLORS.textMuted}
+                            labelStyle={{ fontFamily: FONTS.manrope.bold }}
+                        >
+                            Cancel
+                        </Button>
+
+                        <Button
+                            onPress={async () => {
+                                hideLogoutDialog();
+                                await handleLogout();
+                            }}
+                            textColor={COLORS.red}
+                            labelStyle={{ fontFamily: FONTS.manrope.bold }}
+                        >
+                            Logout
+                        </Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
         </View >
     );
 };

@@ -28,6 +28,15 @@ import BoostListingScreen from '@/screens/others/BoostListingScreen';
 import PublicProfileScreen from '@/screens/others/PublicProfileScreen';
 import CollegeInsightsScreen from '@/screens/others/CollegeInsightsScreen';
 import ContactScreen from '@/screens/others/ContactScreen';
+import MyOrdersScreen from '@/screens/others/MyOrdersScreen';
+import SavedAddressesScreen from '@/screens/others/SavedAddressesScreen';
+import NotificationsScreen from '@/screens/others/NotificationsScreen';
+import PaymentMethodsScreen from '@/screens/others/PaymentMethodsScreen';
+import PrivacyPolicyScreen from '@/screens/others/PrivacyPolicyScreen';
+import TermsConditionsScreen from '@/screens/others/TermsConditionsScreen';
+import HelpSupportScreen from '@/screens/others/HelpSupportScreen';
+import FAQsScreen from '@/screens/others/FAQsScreen';
+import AboutScreen from '@/screens/others/AboutScreen';
 
 export type AppStackParamList = {
     Business: undefined;
@@ -58,6 +67,15 @@ export type AppStackParamList = {
     PublicProfile: undefined;
     CollegeInsights: undefined;
     Contacts: undefined;
+    MyOrders: undefined;
+    SavedAddresses: undefined;
+    Notifications: undefined;
+    PaymentMethods: undefined;
+    PrivacyPolicy: undefined;
+    TermsConditions: undefined;
+    HelpSupport: undefined;
+    FAQs: undefined;
+    About: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -99,6 +117,15 @@ export default function AppStackNavigator() {
             <Stack.Screen name="PublicProfile" component={PublicProfileScreen} />
             <Stack.Screen name="CollegeInsights" component={CollegeInsightsScreen} />
             <Stack.Screen name="Contacts" component={ContactScreen} />
+            <Stack.Screen name="MyOrders" component={MyOrdersScreen} />
+            <Stack.Screen name="SavedAddresses" component={SavedAddressesScreen} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} />
+            <Stack.Screen name="PaymentMethods" component={PaymentMethodsScreen} />
+            <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+            <Stack.Screen name="TermsConditions" component={TermsConditionsScreen} />
+            <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
+            <Stack.Screen name="FAQs" component={FAQsScreen} />
+            <Stack.Screen name="About" component={AboutScreen} />
         </Stack.Navigator>
     );
 }
