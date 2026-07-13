@@ -150,7 +150,6 @@ export default NearestBooks;
 
 const styles = StyleSheet.create({
     section: {
-        marginTop: SPACING.md,
         paddingHorizontal: HORIZONTAL_PADDING,
     },
     header: {

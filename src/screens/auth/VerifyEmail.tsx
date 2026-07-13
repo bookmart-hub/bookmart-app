@@ -11,8 +11,12 @@ import {
     TextInputKeyPressEventData,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Alert, ToastAndroid } from 'react-native';
+import { useMutation } from '@tanstack/react-query';
+import { verifyRegisterOtp } from '@/types/auth';
+import * as SecureStore from 'expo-secure-store';
 
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
@@ -22,50 +26,112 @@ import { Button } from '@/components/ui/Button';
 import { AuthStackParamList } from '@/navigation/AuthNavigator';
 
 type VerifyEmailNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'VerifyEmail'>;
+type VerifyEmailRouteProp = RouteProp<AuthStackParamList, 'VerifyEmail'>;
 
 const VerifyEmail = () => {
     const navigation = useNavigation<VerifyEmailNavigationProp>();
+    const route = useRoute<VerifyEmailRouteProp>();
+    const { email } = route.params;
     const [otp, setOtp] = useState(['', '', '', '']);
     const [focusedIndex, setFocusedIndex] = useState<number | null>(0);
     const inputRefs = useRef<Array<TextInput | null>>([]);
-    const [timer, setTimer] = useState(55);
 
+    // 5 minutes = 300 seconds
+    const [timer, setTimer] = useState(5 * 60);
+
+    // Countdown timer
     useEffect(() => {
-        let interval: NodeJS.Timeout;
-        if (timer > 0) {
-            interval = setInterval(() => {
-                setTimer((prev) => prev - 1);
-            }, 1000);
-        }
+        const interval = setInterval(() => {
+            setTimer((prev) => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
         return () => clearInterval(interval);
-    }, [timer]);
+    }, []);
+
+    // Format timer as MM:SS
+    const minutes = Math.floor(timer / 60);
+    const seconds = timer % 60;
+    const formattedTime = `${minutes}:${seconds
+        .toString()
+        .padStart(2, '0')}`;
 
     const handleOtpChange = (value: string, index: number) => {
-        // Only take the last character in case of quick typing or auto-fill
+        // Only take the last character
         const newValue = value.slice(-1);
         const newOtp = [...otp];
         newOtp[index] = newValue;
         setOtp(newOtp);
 
         // Auto-advance
-        if (newValue !== '' && index < 3) {
+        if (newValue !== '' && index < otp.length - 1) {
             inputRefs.current[index + 1]?.focus();
         }
     };
 
-    const handleKeyPress = (e: NativeSyntheticEvent<TextInputKeyPressEventData>, index: number) => {
-        if (e.nativeEvent.key === 'Backspace' && otp[index] === '' && index > 0) {
-            // Focus previous input on backspace if current is empty
+    const handleKeyPress = (
+        e: NativeSyntheticEvent<TextInputKeyPressEventData>,
+        index: number
+    ) => {
+        if (
+            e.nativeEvent.key === 'Backspace' &&
+            otp[index] === '' &&
+            index > 0
+        ) {
             inputRefs.current[index - 1]?.focus();
         }
     };
 
+    const verifyMutation = useMutation({
+        mutationFn: verifyRegisterOtp,
+        onSuccess: async (data) => {
+            ToastAndroid.show('Email verified successfully!', ToastAndroid.SHORT);
+            
+            // Save tokens to SecureStore
+            if (data?.tokens?.access && data?.tokens?.refresh) {
+                await SecureStore.setItemAsync('accessToken', data.tokens.access);
+                await SecureStore.setItemAsync('refreshToken', data.tokens.refresh);
+            }
+            
+            navigation.navigate('Personalization');
+        },
+        onError: (error: any) => {
+            const message = error?.response?.data?.detail || 'Verification failed. Please check your OTP.';
+            if (Platform.OS === 'android') {
+                ToastAndroid.show(message, ToastAndroid.LONG);
+            } else {
+                Alert.alert('Error', message);
+            }
+        }
+    });
+
     const handleVerify = () => {
-        navigation.navigate('Personalization');
+        const otpValue = otp.join('');
+        if (otpValue.length < 4) {
+            if (Platform.OS === 'android') {
+                ToastAndroid.show('Please enter the complete 4-digit OTP', ToastAndroid.SHORT);
+            } else {
+                Alert.alert('Validation', 'Please enter the complete 4-digit OTP');
+            }
+            return;
+        }
+        
+        verifyMutation.mutate({
+            email,
+            otp: otpValue
+        });
     };
 
     return (
-        <SafeAreaView style={styles.safeArea} edges={['top', 'bottom', 'left', 'right']}>
+        <SafeAreaView
+            style={styles.safeArea}
+            edges={['top', 'bottom', 'left', 'right']}
+        >
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.keyboardView}
@@ -77,7 +143,9 @@ const VerifyEmail = () => {
                 >
                     {/* Header Section */}
                     <View style={styles.headerContainer}>
-                        <Text style={styles.headingText}>Verify phone number</Text>
+                        <Text style={styles.headingText}>
+                            Verify phone number
+                        </Text>
                         <Text style={styles.subHeadingText}>
                             Which part of country that you call home?
                         </Text>
@@ -88,14 +156,21 @@ const VerifyEmail = () => {
                         {otp.map((digit, index) => (
                             <TextInput
                                 key={index}
-                                ref={(ref) => { inputRefs.current[index] = ref; }}
+                                ref={(ref) => {
+                                    inputRefs.current[index] = ref;
+                                }}
                                 style={[
                                     styles.otpInput,
-                                    focusedIndex === index && styles.otpInputFocused,
+                                    focusedIndex === index &&
+                                    styles.otpInputFocused,
                                 ]}
                                 value={digit}
-                                onChangeText={(value) => handleOtpChange(value, index)}
-                                onKeyPress={(e) => handleKeyPress(e, index)}
+                                onChangeText={(value) =>
+                                    handleOtpChange(value, index)
+                                }
+                                onKeyPress={(e) =>
+                                    handleKeyPress(e, index)
+                                }
                                 keyboardType="number-pad"
                                 maxLength={1}
                                 onFocus={() => setFocusedIndex(index)}
@@ -108,16 +183,24 @@ const VerifyEmail = () => {
                     {/* Resend Timer */}
                     <View style={styles.resendContainer}>
                         <Text style={styles.resendText}>
-                            Resend code in {timer} s
+                            Resend code in {formattedTime}
                         </Text>
                     </View>
 
                     {/* Verify Button */}
                     <View style={styles.buttonContainer}>
-                        <Button
-                            title="verify"
-                            onPress={handleVerify}
-                        />
+                        {verifyMutation.isPending ? (
+                            <Button
+                                title="Verifying..."
+                                onPress={handleVerify}
+                                variant="primary"
+                            />
+                        ) : (
+                            <Button
+                                title="Verify"
+                                onPress={handleVerify}
+                            />
+                        )}
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>

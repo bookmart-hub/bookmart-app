@@ -185,7 +185,7 @@ const PromoBanner: React.FC<PromoBannerProps> = memo(({
         activeIndexRef.current = nextIndex;
         setActiveDot(nextIndex);
       }
-    }, 4000);
+    }, 3000);
   }, [banners.length]);
 
   useEffect(() => {
@@ -266,7 +266,7 @@ const ProgressIndicator = memo(
       if (active) {
         progress.value = 0;
         progress.value = withTiming(1, {
-          duration: 5000,
+          duration: 3000,
         });
       } else {
         progress.value = 0;

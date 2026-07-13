@@ -1,11 +1,18 @@
 import { api } from '@/api/clients';
 
 export const registerUser = async (data: {
-    username: string;
+    full_name: string;
     email: string;
     password: string;
 }) => {
-    const response = await api.post('/auth/users/', data);
+    const response = await api.post('/api/v1/auth/register/', data);
+    return response.data;
+};
 
+export const verifyRegisterOtp = async (data: {
+    email: string;
+    otp: string;
+}) => {
+    const response = await api.post('/api/v1/otp/verify-register-otp/', data);
     return response.data;
 };

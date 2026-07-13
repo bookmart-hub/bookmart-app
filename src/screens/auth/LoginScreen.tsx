@@ -23,6 +23,7 @@ import { AuthStackParamList } from '@/navigation/AuthNavigator';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { rf } from '@/utils/responsive';
+import { StatusBar } from 'expo-status-bar';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -131,6 +132,7 @@ const LoginScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top', 'bottom', 'left', 'right']}>
+            <StatusBar style="dark" />
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.keyboardView}

@@ -26,6 +26,7 @@ import { rf } from '@/utils/responsive';
 
 import { useMutation } from '@tanstack/react-query';
 import { registerUser } from '@/types/auth';
+import { StatusBar } from 'expo-status-bar';
 
 type RegisterScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Register'>;
 
@@ -62,7 +63,7 @@ const FacebookIcon = () => (
 const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<RegisterScreenNavigationProp>();
 
-  const [username, setUsername] = useState('');
+  const [fullname, setFullname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -73,14 +74,14 @@ const RegisterScreen: React.FC = () => {
 
     onSuccess: () => {
       ToastAndroid.show('Account created successfully!', ToastAndroid.SHORT);
-      navigation.navigate('VerifyEmail');
+      navigation.replace('VerifyEmail', { email });
     },
 
     onError: (error: any) => {
       const message =
         error?.response?.data?.detail ||
         error?.response?.data?.email?.[0] ||
-        error?.response?.data?.username?.[0] ||
+        error?.response?.data?.full_name?.[0] ||
         error?.response?.data?.password?.[0] ||
         'Registration failed';
 
@@ -121,12 +122,12 @@ const RegisterScreen: React.FC = () => {
   };
 
   const validateForm = () => {
-    if (!username.trim()) {
-      showToastOrAlert('Username is required');
+    if (!fullname.trim()) {
+      showToastOrAlert('Full name is required');
       return false;
     }
 
-    if (username.trim().length < 3) {
+    if (fullname.trim().length < 3) {
       showToastOrAlert('Username must be at least 3 characters');
       return false;
     }
@@ -160,18 +161,18 @@ const RegisterScreen: React.FC = () => {
   };
 
   const handleSignUp = () => {
-    // if (!validateForm()) return;
+    if (!validateForm()) return;
 
-    // registerMutation.mutate({
-    //   username,
-    //   email,
-    //   password,
-    // });
-    navigation.navigate('VerifyEmail');
+    registerMutation.mutate({
+      full_name: fullname,
+      email,
+      password,
+    });
   };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom', 'left', 'right']}>
+      <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -192,9 +193,9 @@ const RegisterScreen: React.FC = () => {
           {/* Form Fields */}
           <View style={styles.formContainer}>
             <Input
-              placeholder="Username"
-              value={username}
-              onChangeText={setUsername}
+              placeholder="Full name"
+              value={fullname}
+              onChangeText={setFullname}
               autoCapitalize="words"
             />
 

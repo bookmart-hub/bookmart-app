@@ -39,7 +39,10 @@
           "locationAlwaysAndWhenInUsePermission": "Allow Bookmart to access your location to find nearest books.",
           "locationWhenInUsePermission": "Allow Bookmart to access your location to find nearest books."
         }
-      ]
+      ],
+      "expo-image",
+      "expo-status-bar",
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {

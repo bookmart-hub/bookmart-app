@@ -10,7 +10,7 @@ export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
   ForgotPassScreen: undefined;
-  VerifyEmail: undefined;
+  VerifyEmail: { email: string };
   Personalization: undefined;
 };
 
