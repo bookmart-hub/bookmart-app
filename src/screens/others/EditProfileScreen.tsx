@@ -102,10 +102,17 @@ const EditProfileScreen = () => {
         if (!debouncedQuery.trim()) return;
         setIsCreatingCollege(true);
         try {
-            const newCollege = await createCollege(debouncedQuery.trim());
+            const fallbackDistrict = address.trim() || "Unknown";
+            const newCollege = await createCollege(debouncedQuery.trim(), fallbackDistrict, "Other");
             handleCollegeSelect(newCollege);
             ToastAndroid.show('College created successfully', ToastAndroid.SHORT);
-        } catch (error) {
+        } catch (error: any) {
+            const data = error?.response?.data;
+            let msg = 'Failed to create college';
+            if (data) {
+                msg = typeof data === 'object' ? JSON.stringify(data) : data;
+            }
+            Alert.alert("Create College Error", msg);
             ToastAndroid.show('Failed to create college', ToastAndroid.SHORT);
         } finally {
             setIsCreatingCollege(false);

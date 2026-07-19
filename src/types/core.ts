@@ -34,9 +34,9 @@ export const submitOnboarding = async (data: {
     return response.data;
 };
 
-export const createCollege = async (name: string): Promise<College> => {
+export const createCollege = async (name: string, district: string = "Unknown", state: string = "Unknown"): Promise<College> => {
     try {
-        const response = await api.post('/api/v1/core/colleges/', { name });
+        const response = await api.post('/api/v1/core/colleges/', { name, district, state });
         return response.data;
     } catch (error: any) {
         console.log("CREATE COLLEGE API ERROR:", error?.response?.data || error.message);
