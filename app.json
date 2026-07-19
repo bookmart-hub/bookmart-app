@@ -42,7 +42,8 @@
       ],
       "expo-image",
       "expo-status-bar",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-splash-screen"
     ],
     "extra": {
       "eas": {

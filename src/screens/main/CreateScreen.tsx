@@ -49,9 +49,23 @@ const CreateScreen = () => {
     const [condition, setCondition] = useState('good');
     const [notes, setNotes] = useState('');
     const [price, setPrice] = useState('');
+    const [category, setCategory] = useState('');
     const [images, setImages] = useState<(string | null)[]>([null, null, null, null, null, null]);
     const [uploadProgress, setUploadProgress] = useState<number[]>([0, 0, 0, 0, 0, 0]);
     const uploadIntervals = React.useRef<{ [key: number]: NodeJS.Timeout }>({});
+
+    const BOOK_CATEGORIES = [
+        { id: 'science_fiction', label: 'Science Fiction' },
+        { id: 'romance', label: 'Romance' },
+        { id: 'self_help', label: 'Self Help' },
+        { id: 'biography', label: 'Biography' },
+        { id: 'business', label: 'Business' },
+        { id: 'engineering', label: 'Engineering' },
+        { id: 'medical', label: 'Medical' },
+        { id: 'law', label: 'Law' },
+        { id: 'competitive_exams', label: 'Competitive Exams' },
+        { id: 'other', label: 'Other' },
+    ];
 
     React.useEffect(() => {
         return () => {
@@ -256,6 +270,11 @@ const CreateScreen = () => {
     };
 
     const handleFinalSubmit = () => {
+        if (!category) {
+            showToast("Please select a category");
+            return;
+        }
+
         showToast("Book listed successfully");
         // Reset state for future usage
         setTitle('');
@@ -263,6 +282,7 @@ const CreateScreen = () => {
         setCondition('good');
         setNotes('');
         setPrice('');
+        setCategory('');
         setImages([null, null, null, null, null, null]);
         setUploadProgress([0, 0, 0, 0, 0, 0]);
         setDescription('');
@@ -522,11 +542,41 @@ const CreateScreen = () => {
                     </>
                 ) : (
                     <>
-                        {/* Step 3 Section */}
+                        {/* Step 3 Section: Category */}
                         <View style={styles.sectionWrapper}>
                             <View style={styles.sectionHeaderRowWithNumber}>
                                 <View style={styles.numberCircle}>
                                     <Text style={styles.numberText}>3</Text>
+                                </View>
+                                <Text style={styles.sectionTitleBlack}>Category <Text style={styles.asterisk}>*</Text></Text>
+                            </View>
+
+                            <View style={styles.cardContainer}>
+                                <View style={styles.categoryGrid}>
+                                    {BOOK_CATEGORIES.map((item) => {
+                                        const isActive = category === item.id;
+                                        return (
+                                            <TouchableOpacity
+                                                key={item.id}
+                                                style={[styles.categoryPill, isActive && styles.categoryPillActive]}
+                                                onPress={() => setCategory(item.id)}
+                                                activeOpacity={0.8}
+                                            >
+                                                <Text style={[styles.categoryPillText, isActive && styles.categoryPillTextActive]}>
+                                                    {item.label}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* Step 4 Section: Description & Note */}
+                        <View style={styles.sectionWrapper}>
+                            <View style={styles.sectionHeaderRowWithNumber}>
+                                <View style={styles.numberCircle}>
+                                    <Text style={styles.numberText}>4</Text>
                                 </View>
                                 <Text style={styles.sectionTitleBlack}>Description & Note</Text>
                             </View>
@@ -758,8 +808,11 @@ const styles = StyleSheet.create({
         fontFamily: FONTS.manrope.bold,
     },
     progressOverlay: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: COLORS.completeTransparency,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 8,
@@ -1091,7 +1144,11 @@ const styles = StyleSheet.create({
         borderColor: COLORS.grayLight,
     },
     map: {
-        ...StyleSheet.absoluteFillObject,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
     },
     userLocationMarker: {
         width: 36,
@@ -1107,5 +1164,30 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 4,
         elevation: 5,
+    },
+    categoryGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+    },
+    categoryPill: {
+        backgroundColor: COLORS.grayLight,
+        paddingHorizontal: SPACING.md,
+        paddingVertical: 10,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy,
+    },
+    categoryPillActive: {
+        backgroundColor: COLORS.primary,
+        borderColor: COLORS.primary,
+    },
+    categoryPillText: {
+        fontSize: rf(12),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.textMuted,
+    },
+    categoryPillTextActive: {
+        color: COLORS.white,
     },
 });

@@ -324,6 +324,7 @@ const NearestBooksMapScreen = () => {
                     showsMyLocationButton={false}
                     showsCompass={false}
                     mapType="standard"
+                    userInterfaceStyle="light"
                     customMapStyle={[]}
                     showsTraffic={false}
                     showsIndoors={false}
@@ -482,7 +483,11 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.white,
     },
     map: {
-        ...StyleSheet.absoluteFillObject,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
     },
     headerGradient: {
         position: 'absolute',

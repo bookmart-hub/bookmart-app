@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Share, Linking, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Share, Linking, Alert, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, CommonActions } from '@react-navigation/native';
@@ -13,6 +13,7 @@ import { Button, Dialog, Divider, Menu, Portal, Text } from 'react-native-paper'
 import { Image } from 'expo-image';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '@/api/clients';
 
 const { width } = Dimensions.get('window');
@@ -71,6 +72,13 @@ const ProfileScreen = () => {
     const [menuVisible, setMenuVisible] = useState(false);
     const [ispublic, setIsPublic] = useState(true);
     const [logoutVisible, setLogoutVisible] = useState(false);
+    const { data: userProfile, isLoading: isLoadingProfile } = useQuery({
+        queryKey: ['userProfile'],
+        queryFn: async () => {
+            const response = await api.get('/api/v1/core/profile/me/');
+            return response.data;
+        },
+    });
 
     const showLogoutDialog = () => setLogoutVisible(true);
     const hideLogoutDialog = () => setLogoutVisible(false);
@@ -209,30 +217,36 @@ const ProfileScreen = () => {
                 </View>
 
                 {/* Profile Info */}
-                <View style={styles.profileInfoRow}>
-                    <Image
-                        source={{ uri: 'https://media.istockphoto.com/id/2220866251/photo/isolated-generic-gray-human-figure-placeholder.webp?a=1&b=1&s=612x612&w=0&k=20&c=vkqNIInBzzIYcuk-wV5KC28xiXfFfYZmAgVOaYebNEA=' }}
-                        contentFit='fill'
-                        style={styles.avatarPlaceholder}
-                    />
-                    <View style={styles.profileDetails}>
-                        <View style={styles.nameRow}>
-                            <Text style={styles.profileName}>Amit Roy</Text>
-                            <View style={styles.topSellerBadge}>
-                                <Ionicons name="shield-checkmark" size={12} color={COLORS.black} />
-                                <Text style={styles.topSellerText}>Top Seller</Text>
+                {isLoadingProfile ? (
+                    <View style={[styles.profileInfoRow, { justifyContent: 'center', height: 80 }]}>
+                        <ActivityIndicator size="large" color={COLORS.white} />
+                    </View>
+                ) : (
+                    <View style={styles.profileInfoRow}>
+                        <Image
+                            source={{ uri: userProfile?.image || 'https://media.istockphoto.com/id/2220866251/photo/isolated-generic-gray-human-figure-placeholder.webp?a=1&b=1&s=612x612&w=0&k=20&c=vkqNIInBzzIYcuk-wV5KC28xiXfFfYZmAgVOaYebNEA=' }}
+                            contentFit='fill'
+                            style={styles.avatarPlaceholder}
+                        />
+                        <View style={styles.profileDetails}>
+                            <View style={styles.nameRow}>
+                                <Text style={styles.profileName}>{userProfile?.full_name || 'User'}</Text>
+                                <View style={styles.topSellerBadge}>
+                                    <Ionicons name="shield-checkmark" size={12} color={COLORS.black} />
+                                    <Text style={styles.topSellerText}>Top Seller</Text>
+                                </View>
+                            </View>
+                            <View style={styles.infoRow}>
+                                <Ionicons name="school-outline" size={14} color={COLORS.text} />
+                                <Text style={styles.infoText}>{userProfile?.college?.name || 'N/A'}</Text>
+                            </View>
+                            <View style={styles.infoRow}>
+                                <Ionicons name="location-outline" size={14} color={COLORS.text} />
+                                <Text style={styles.infoText}>{userProfile?.city_location || 'N/A'}</Text>
                             </View>
                         </View>
-                        <View style={styles.infoRow}>
-                            <Ionicons name="school-outline" size={14} color={COLORS.text} />
-                            <Text style={styles.infoText}>B.G.C college, B.sc, Computer science</Text>
-                        </View>
-                        <View style={styles.infoRow}>
-                            <Ionicons name="location-outline" size={14} color={COLORS.text} />
-                            <Text style={styles.infoText}>Kolkata, india</Text>
-                        </View>
                     </View>
-                </View>
+                )}
 
                 {/* Stats Block */}
                 <View style={styles.statsBlock}>
@@ -423,8 +437,8 @@ const ProfileScreen = () => {
 
             </ScrollView>
             <Portal>
-                <Dialog 
-                    visible={logoutVisible} 
+                <Dialog
+                    visible={logoutVisible}
                     onDismiss={hideLogoutDialog}
                     style={{ backgroundColor: COLORS.white, borderRadius: 16 }}
                 >
@@ -439,7 +453,7 @@ const ProfileScreen = () => {
                     </Dialog.Content>
 
                     <Dialog.Actions>
-                        <Button 
+                        <Button
                             onPress={hideLogoutDialog}
                             textColor={COLORS.textMuted}
                             labelStyle={{ fontFamily: FONTS.manrope.bold }}
