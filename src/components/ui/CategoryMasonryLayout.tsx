@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback } from 'react';
+import React, { memo, useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,7 +9,7 @@ import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { rf } from '@/utils/responsive';
-import { FeedItem } from '@/data/models';
+import { FeedItem, Book } from '@/data/models';
 import { StatusBar } from 'expo-status-bar';
 import HeartBurst from './HeartBrust';
 
@@ -75,10 +75,20 @@ const MasonryBookCard = memo(
               {showBurst && <HeartBurst />}
             </View>
           </View>
-          {(book.discount || book.stock) && (
+          {(book.discount || book.stock || (book.otherListings && book.otherListings.length > 0)) && (
             <View style={styles.metaRow}>
               {book.discount && <Text style={styles.discountText}>{book.discount}</Text>}
-              {book.stock && <Text style={styles.stockText}>{book.stock}</Text>}
+              {book.otherListings && book.otherListings.length > 0 ? (
+                <TouchableOpacity 
+                  style={styles.moreOptionsBtn} 
+                  onPress={() => navigation.navigate('OtherListings', { book, otherListings: book.otherListings })}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.moreOptionsText}>+{book.otherListings.length} More</Text>
+                </TouchableOpacity>
+              ) : book.stock ? (
+                <Text style={styles.stockText}>{book.stock}</Text>
+              ) : null}
             </View>
           )}
         </View>
@@ -90,6 +100,39 @@ const MasonryBookCard = memo(
 const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({ data }) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+
+  const processedData = useMemo(() => {
+    const groupedBooks = new Map<string, Book[]>();
+    data.forEach((item) => {
+      if (item.type === 'book' && item.book) {
+        if (!groupedBooks.has(item.book.title)) groupedBooks.set(item.book.title, []);
+        groupedBooks.get(item.book.title)!.push(item.book);
+      }
+    });
+
+    const processedTitles = new Set<string>();
+    const result: FeedItem[] = [];
+
+    data.forEach((item) => {
+      if (item.type !== 'book') {
+        result.push(item);
+      } else if (item.book) {
+        if (!processedTitles.has(item.book.title)) {
+          const allListings = groupedBooks.get(item.book.title)!;
+          if (allListings.length > 1) {
+            const lowestPriceBook = allListings.reduce((prev, curr) => (prev.price < curr.price ? prev : curr));
+            const otherListings = allListings.filter((b) => b.id !== lowestPriceBook.id);
+            result.push({ ...item, book: { ...lowestPriceBook, otherListings } });
+          } else {
+            result.push(item);
+          }
+          processedTitles.add(item.book.title);
+        }
+      }
+    });
+
+    return result;
+  }, [data]);
 
   const renderItem = ({ item }: { item: FeedItem }) => {
     const wrapperStyle = {
@@ -155,7 +198,7 @@ const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({ data }) =
       </View>
 
       <FlashList
-        data={data}
+        data={processedData}
         renderItem={renderItem}
         numColumns={2}
         masonry
@@ -298,5 +341,18 @@ const styles = StyleSheet.create({
     fontSize: rf(10),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.red,
+  },
+  moreOptionsBtn: {
+    backgroundColor: COLORS.background,
+    paddingHorizontal: rf(6),
+    paddingVertical: rf(2),
+    borderRadius: rf(4),
+    borderWidth: 1,
+    borderColor: COLORS.grayLight,
+  },
+  moreOptionsText: {
+    fontSize: rf(9),
+    fontFamily: FONTS.manrope.bold,
+    color: COLORS.primary,
   },
 });

@@ -15,12 +15,12 @@ const createMockBook = (id: string, title: string, coverUri: string, price: numb
   title,
   coverUri,
   price,
-  discount,
+  discount: discount || '20% off',
   genre,
   author,
   condition: 'Used • Good',
   ratings: mockRatings,
-  stock: stock || ''
+  stock: stock
 });
 
 export const CATEGORY_DATA: Record<string, MasonryCategoryData> = {
@@ -95,7 +95,7 @@ export const CATEGORY_DATA: Record<string, MasonryCategoryData> = {
       {
         type: 'book',
         id: 'bl_1_Romance',
-        book: createMockBook('r2', 'The Notebook', 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop', 199, 'Romance', 'Nicholas Sparks', '10% off', 'Only 3 Left')
+        book: createMockBook('r2', 'The Notebook', 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop', 199, 'Romance', 'Nicholas Sparks', '10% off')
       },
       {
         type: 'book',
@@ -105,12 +105,37 @@ export const CATEGORY_DATA: Record<string, MasonryCategoryData> = {
       {
         type: 'book',
         id: 'bl_2_Romance',
-        book: createMockBook('r5', 'Jane Eyre', 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop', 220, 'Romance', 'Charlotte Brontë')
+        book: createMockBook('r5_1', 'Jane Eyre', 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop', 220, 'Romance', 'Charlotte Brontë')
       },
       {
         type: 'book',
         id: 'br_2_Romance',
+        book: createMockBook('r5_2', 'Jane Eyre', 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop', 200, 'Romance', 'Charlotte Brontë')
+      },
+      {
+        type: 'book',
+        id: 'bl_2_Romance_extra',
+        book: createMockBook('r5_3', 'Jane Eyre', 'https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop', 190, 'Romance', 'Charlotte Brontë')
+      },
+      {
+        type: 'book',
+        id: 'br_3_Romance',
         book: createMockBook('r6', 'Sense and Sensibility', 'https://images.unsplash.com/photo-1629196914225-eb488db9f0eb?w=400&h=600&fit=crop', 210, 'Romance', 'Jane Austen', '10% off')
+      },
+      {
+        type: 'book',
+        id: 'bl_3_Romance',
+        book: createMockBook('r7', 'The Notebook', 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop', 150, 'Romance', 'Nicholas Sparks')
+      },
+      {
+        type: 'book',
+        id: 'br_3_Romance',
+        book: createMockBook('r8', 'The Notebook', 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop', 175, 'Romance', 'Nicholas Sparks', '15% off')
+      },
+      {
+        type: 'book',
+        id: 'bl_4_Romance',
+        book: createMockBook('r9', 'The Notebook', 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop', 210, 'Romance', 'Nicholas Sparks')
       },
     ]
   },

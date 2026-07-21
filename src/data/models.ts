@@ -34,6 +34,7 @@ export interface Book {
   distance?: string;
   sellerName?: string;
   timeLeft?: string;
+  otherListings?: Book[];
 }
 
 export interface Category {

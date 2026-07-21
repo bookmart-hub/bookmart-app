@@ -2,7 +2,7 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
 export const api = axios.create({
-    baseURL: 'https://bookmart-api.gourabacharjee.website',
+    baseURL: 'https://bookmart-backend-y6of.onrender.com',
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
@@ -32,10 +32,10 @@ api.interceptors.response.use(
     },
     async (error) => {
         const originalRequest = error.config;
-        
+
         // If the error is 401 Unauthorized and we haven't retried yet
         if (error.response?.status === 401 && !originalRequest._retry) {
-            
+
             // Avoid infinite loops if the refresh call itself fails with 401
             if (originalRequest.url?.includes('/api/v1/auth/refresh')) {
                 return Promise.reject(error);
@@ -45,16 +45,16 @@ api.interceptors.response.use(
 
             try {
                 const refreshToken = await SecureStore.getItemAsync('refreshToken');
-                
+
                 if (refreshToken) {
                     // Call refresh endpoint directly with axios (not api client) to avoid interceptor loops
                     const refreshResponse = await axios.post(
-                        'https://bookmart-api.gourabacharjee.website/api/v1/auth/refresh/',
+                        'https://bookmart-backend-y6of.onrender.com/api/v1/auth/refresh/',
                         { refresh: refreshToken }
                     );
 
                     const newAccessToken = refreshResponse.data.access;
-                    
+
                     if (newAccessToken) {
                         // Save the new tokens
                         await SecureStore.setItemAsync('accessToken', newAccessToken);
@@ -76,7 +76,7 @@ api.interceptors.response.use(
                 // Note: AsyncStorage would need to be imported.
             }
         }
-        
+
         return Promise.reject(error);
     }
 );

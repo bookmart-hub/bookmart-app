@@ -16,6 +16,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/clients';
 import { getColleges, createCollege, updateProfile, College } from '@/types/core';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const EditProfileScreen = () => {
     const insets = useSafeAreaInsets();
@@ -35,6 +36,18 @@ const EditProfileScreen = () => {
     const [address, setAddress] = useState('');
     const [avatar, setAvatar] = useState('https://media.istockphoto.com/id/2220866251/photo/isolated-generic-gray-human-figure-placeholder.webp?a=1&b=1&s=612x612&w=0&k=20&c=vkqNIInBzzIYcuk-wV5KC28xiXfFfYZmAgVOaYebNEA=');
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
+    const handleDateChange = (event: any, selectedDate?: Date) => {
+        setShowDatePicker(Platform.OS === 'ios');
+        if (selectedDate) {
+            const year = selectedDate.getFullYear();
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+            const day = String(selectedDate.getDate()).padStart(2, '0');
+            setDob(`${year}-${month}-${day}`);
+            setErrors(prev => ({ ...prev, dob: '' }));
+        }
+    };
 
     // College Search State
     const [collegeQuery, setCollegeQuery] = useState('');
@@ -168,33 +181,40 @@ const EditProfileScreen = () => {
     const validateForm = () => {
         let valid = true;
         let newErrors: Record<string, string> = {};
+        let firstErrorMessage = '';
 
         if (!fullName.trim()) {
             newErrors.fullName = 'Full Name is required';
+            if (!firstErrorMessage) firstErrorMessage = newErrors.fullName;
             valid = false;
         }
         if (!phone.trim()) {
             newErrors.phone = 'Phone Number is required';
+            if (!firstErrorMessage) firstErrorMessage = newErrors.phone;
             valid = false;
         }
         if (!dob.trim()) {
             newErrors.dob = 'Date of Birth is required';
+            if (!firstErrorMessage) firstErrorMessage = newErrors.dob;
             valid = false;
         } else if (!/^\d{4}-\d{2}-\d{2}$/.test(dob.trim())) {
             newErrors.dob = 'Format must be YYYY-MM-DD';
+            if (!firstErrorMessage) firstErrorMessage = newErrors.dob;
             valid = false;
         }
         if (!address.trim()) {
             newErrors.address = 'Location is required';
+            if (!firstErrorMessage) firstErrorMessage = newErrors.address;
             valid = false;
         }
         if (!selectedCollege) {
             newErrors.college = 'College is required';
+            if (!firstErrorMessage) firstErrorMessage = newErrors.college;
             valid = false;
         }
 
         setErrors(newErrors);
-        return valid;
+        return { valid, firstErrorMessage };
     };
 
     const updateMutation = useMutation({
@@ -228,8 +248,9 @@ const EditProfileScreen = () => {
     });
 
     const handleSave = () => {
-        if (!validateForm()) {
-            ToastAndroid.show('Please fix the errors', ToastAndroid.SHORT);
+        const { valid, firstErrorMessage } = validateForm();
+        if (!valid) {
+            ToastAndroid.show(firstErrorMessage || 'Please fix the errors', ToastAndroid.SHORT);
             return;
         }
 
@@ -275,7 +296,7 @@ const EditProfileScreen = () => {
 
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
                 {isProfileLoading ? (
                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -330,14 +351,27 @@ const EditProfileScreen = () => {
                                 error={errors.phone}
                             />
 
-                            <Input
-                                label="Date of Birth"
-                                placeholder="YYYY-MM-DD"
-                                value={dob}
-                                onChangeText={(text) => { setDob(text); setErrors(prev => ({ ...prev, dob: '' })) }}
-                                prefix={renderInputPrefix('calendar')}
-                                error={errors.dob}
-                            />
+                            <TouchableOpacity activeOpacity={0.8} onPress={() => setShowDatePicker(true)}>
+                                <View pointerEvents="none">
+                                    <Input
+                                        label="Date of Birth"
+                                        placeholder="YYYY-MM-DD"
+                                        value={dob}
+                                        onChangeText={() => {}}
+                                        prefix={renderInputPrefix('calendar')}
+                                        error={errors.dob}
+                                    />
+                                </View>
+                            </TouchableOpacity>
+                            {showDatePicker && (
+                                <DateTimePicker
+                                    value={dob && /^\d{4}-\d{2}-\d{2}$/.test(dob) ? new Date(dob) : new Date(2000, 0, 1)}
+                                    mode="date"
+                                    display="default"
+                                    onChange={handleDateChange}
+                                    maximumDate={new Date()}
+                                />
+                            )}
 
                             <Input
                                 label="Bio"
@@ -424,17 +458,17 @@ const EditProfileScreen = () => {
                         </View>
                     </ScrollView>
                 )}
-            </KeyboardAvoidingView>
 
-            {/* Bottom Actions */}
-            <View style={[styles.bottomContainer, { paddingBottom: insets.bottom > 0 ? insets.bottom : SPACING.lg }]}>
-                <Button
-                    title="Save Changes"
-                    onPress={handleSave}
-                    loading={updateMutation.isPending}
-                    icon={<Feather name="check" size={20} color={COLORS.white} style={{ marginRight: 8 }} />}
-                />
-            </View>
+                {/* Bottom Actions */}
+                <View style={[styles.bottomContainer, { paddingBottom: insets.bottom > 0 ? insets.bottom : SPACING.lg }]}>
+                    <Button
+                        title="Save Changes"
+                        onPress={handleSave}
+                        loading={updateMutation.isPending}
+                        icon={<Feather name="check" size={20} color={COLORS.white} style={{ marginRight: 8 }} />}
+                    />
+                </View>
+            </KeyboardAvoidingView>
         </View>
     );
 };

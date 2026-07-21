@@ -217,15 +217,6 @@ export default function PersonalizationScreen() {
         setCollegeError(null);
     };
 
-    const handleLogout = async () => {
-        await SecureStore.deleteItemAsync('accessToken');
-        await SecureStore.deleteItemAsync('refreshToken');
-        await AsyncStorage.removeItem('@bookmart:is_logged_in');
-        navigation.reset({
-            index: 0,
-            routes: [{ name: 'Auth' }],
-        });
-    };
 
     const onboardingMutation = useMutation({
         mutationFn: submitOnboarding,
@@ -260,10 +251,10 @@ export default function PersonalizationScreen() {
         }
 
         // 2. College Selection check (mandatory for student/teacher)
-        if (isCollegeRequired && !selectedCollege) {
-            setCollegeError('Please search and select your college/university.');
-            hasError = true;
-        }
+        // if (isCollegeRequired && !selectedCollege) {
+        //     setCollegeError('Please search and select your college/university.');
+        //     hasError = true;
+        // }
 
         if (hasError) {
             if (Platform.OS === 'android') {
@@ -317,20 +308,6 @@ export default function PersonalizationScreen() {
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.keyboardAvoidingView}
             >
-                {/* Custom Header Nav bar */}
-                <View style={styles.appBar}>
-                    <TouchableOpacity
-                        onPress={handleLogout}
-                        hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-                        style={styles.backBtn}
-                    >
-                        <Ionicons name="log-out-outline" size={24} color={COLORS.red} />
-                    </TouchableOpacity>
-                    <Text style={{ fontFamily: FONTS.manrope.bold, color: COLORS.red, marginLeft: 8 }}>
-                        Logout (Clear Token)
-                    </Text>
-                </View>
-
                 <ScrollView
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.scrollContent}
@@ -410,6 +387,7 @@ export default function PersonalizationScreen() {
                         </View>
 
                         {/* Search college university building search field */}
+                        {false && (
                         <View style={styles.collegeSearchBox}>
                             <Text style={styles.fieldLabel}>
                                 College / University {isCollegeRequired && <Text style={styles.asterisk}>*</Text>}
@@ -461,6 +439,7 @@ export default function PersonalizationScreen() {
                                 You can skip this if you're not a student or teacher.
                             </Text>
                         </View>
+                        )}
                     </View>
 
                     {/* Book Interest Categories Section */}

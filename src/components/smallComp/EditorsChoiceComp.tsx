@@ -6,7 +6,7 @@ import Animated, {
     useAnimatedStyle,
     SharedValue,
 } from 'react-native-reanimated';
-import { ImageBackground } from 'expo-image';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { COLORS } from '@/constants/colors';
@@ -48,22 +48,21 @@ const EditorsChoiceItem = React.memo(({ item, animationValue, onBookPress }: Edi
             style={styles.box}
         >
             <Animated.View
-                style={[StyleSheet.absoluteFillObject, imageStyle]}
+                style={[StyleSheet.absoluteFill, imageStyle]}
             >
-                <ImageBackground
+                <Image
                     source={{ uri: item.coverUri }}
                     style={StyleSheet.absoluteFill}
                     contentFit="cover"
+                />
+                <LinearGradient
+                    colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.8)']}
+                    style={styles.overlay}
                 >
-                    <LinearGradient
-                        colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.8)']}
-                        style={styles.overlay}
-                    >
-                        <Text style={styles.title}>{item.title}</Text>
-                        <Text style={styles.author}>{item.author}</Text>
-                        <Text style={styles.price}>{item.price}</Text>
-                    </LinearGradient>
-                </ImageBackground>
+                    <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
+                    <Text style={styles.author} numberOfLines={1}>{item.author}</Text>
+                    <Text style={styles.price}>₹{item.price}</Text>
+                </LinearGradient>
             </Animated.View>
         </TouchableOpacity>
     );
@@ -125,7 +124,11 @@ const styles = StyleSheet.create({
     },
 
     overlay: {
-        flex: 1,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         justifyContent: 'flex-end',
         padding: 10,
     },

@@ -37,6 +37,7 @@ import TermsConditionsScreen from '@/screens/others/TermsConditionsScreen';
 import HelpSupportScreen from '@/screens/others/HelpSupportScreen';
 import FAQsScreen from '@/screens/others/FAQsScreen';
 import AboutScreen from '@/screens/others/AboutScreen';
+import OtherListingsScreen from '@/screens/others/OtherListingsScreen';
 
 export type AppStackParamList = {
     Business: undefined;
@@ -76,6 +77,7 @@ export type AppStackParamList = {
     HelpSupport: undefined;
     FAQs: undefined;
     About: undefined;
+    OtherListings: { book: any, otherListings: any[] };
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -126,6 +128,7 @@ export default function AppStackNavigator() {
             <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
             <Stack.Screen name="FAQs" component={FAQsScreen} />
             <Stack.Screen name="About" component={AboutScreen} />
+            <Stack.Screen name="OtherListings" component={OtherListingsScreen} />
         </Stack.Navigator>
     );
 }

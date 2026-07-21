@@ -1,1 +1,1 @@
-export const BASE_URL = "https://bookmart-api.gourabacharjee.website"
+export const BASE_URL = "https://bookmart-backend-y6of.onrender.com"

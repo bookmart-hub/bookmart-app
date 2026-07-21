@@ -17,6 +17,7 @@ import { Alert, ToastAndroid } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
 import { verifyRegisterOtp } from '@/types/auth';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
@@ -98,7 +99,13 @@ const VerifyEmail = () => {
                 await SecureStore.setItemAsync('refreshToken', data.tokens.refresh);
             }
             
-            navigation.navigate('Personalization');
+            // Mark user as fully onboarded/logged in
+            await AsyncStorage.setItem('@bookmart:is_logged_in', 'true');
+
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Tab' as never }],
+            });
         },
         onError: (error: any) => {
             const message = error?.response?.data?.detail || 'Verification failed. Please check your OTP.';
