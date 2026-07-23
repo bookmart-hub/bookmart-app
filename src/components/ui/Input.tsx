@@ -12,7 +12,7 @@ import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
 import { Feather } from '@expo/vector-icons';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -67,8 +67,8 @@ export const Input: React.FC<InputProps> = ({
         {prefix}
         <TextInput
           style={[
-            styles.input, 
-            multiline && { textAlignVertical: 'top', paddingTop: 0, paddingBottom: 0 }, 
+            styles.input,
+            multiline && { textAlignVertical: 'top', paddingTop: 0, paddingBottom: 0 },
             style
           ]}
           placeholderTextColor={COLORS.textMuted}
@@ -87,7 +87,7 @@ export const Input: React.FC<InputProps> = ({
             activeOpacity={0.7}
           >
             <Feather
-              name={passwordVisible ? "eye-off" : "eye"}
+              name={passwordVisible ? "eye" : "eye-off"}
               size={20}
               color={COLORS.textMuted}
             />
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     marginVertical: SPACING.sm,
   },
   label: {
-    fontSize: rf(14),
+    fontSize: rem(0.875),
     fontFamily: FONTS.montserrat.semibold,
     color: COLORS.textMuted,
     marginBottom: SPACING.xs,
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: '100%',
     color: COLORS.black,
-    fontSize: rf(16),
+    fontSize: rem(1),
     fontFamily: FONTS.manrope.medium,
   },
   iconContainer: {
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorText: {
-    fontSize: rf(12),
+    fontSize: rem(0.75),
     fontFamily: FONTS.manrope.regular,
     color: COLORS.red,
     marginTop: 4,

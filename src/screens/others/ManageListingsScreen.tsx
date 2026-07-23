@@ -9,7 +9,7 @@ import { Image } from 'expo-image';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { StatusBar } from 'expo-status-bar';
 import Header from '@/components/ui/Header';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     searchInput: {
         flex: 1,
         marginLeft: SPACING.sm,
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
         height: '100%',
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.background,
     },
     sortOptionText: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
     },
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
         borderColor: COLORS.primary,
     },
     filterChipText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.text,
     },
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         marginTop: SPACING.md,
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -460,13 +460,13 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.lg,
     },
     emptyTitle: {
-        fontSize: rf(18),
+        fontSize: rem(1.125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: 8,
     },
     emptyDesc: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         textAlign: 'center',
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
         borderRadius: 25,
     },
     clearFiltersText: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.white,
     },
@@ -516,13 +516,13 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
     },
     bookTitle: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.black,
         marginBottom: 4,
     },
     bookAuthor: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     statusText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.bold,
     },
     statusDot: {
@@ -554,7 +554,7 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     bookStatText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.text,
     },
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     bookPrice: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
     },
@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     actionBtnText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },

@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import Header from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -185,13 +185,13 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.xl,
     },
     mainTitle: {
-        fontSize: rf(20),
+        fontSize: rem(1.25),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: SPACING.sm,
     },
     subTitle: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         fontStyle: 'italic',
@@ -224,18 +224,18 @@ const styles = StyleSheet.create({
         marginRight: SPACING.md,
     },
     cardTitle: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
     },
     inputLabel: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: SPACING.sm,
     },
     inputLabelMuted: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         fontStyle: 'italic',
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.black,
     },
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.primary,
     },
     chipText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.black,
     },
@@ -299,13 +299,13 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.white,
     },
     priceLabel: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.textMuted,
         marginBottom: 4,
     },
     priceInput: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
     },
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
         borderColor: COLORS.grayHeavvy,
         padding: SPACING.md,
         height: 100,
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.black,
     },
@@ -340,6 +340,6 @@ const styles = StyleSheet.create({
     submitBtnText: {
         color: COLORS.white,
         fontFamily: FONTS.montserrat.bold,
-        fontSize: rf(15),
+        fontSize: rem(0.9375),
     },
 });

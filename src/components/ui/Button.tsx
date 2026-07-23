@@ -12,7 +12,7 @@ import {
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { TouchableRipple } from 'react-native-paper';
 
 interface ButtonProps {
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     marginRight: SPACING.sm + 4,
   },
   baseText: {
-    fontSize: rf(16),
+    fontSize: rem(1),
     fontFamily: FONTS.montserrat.semibold,
     textAlign: 'center',
   },

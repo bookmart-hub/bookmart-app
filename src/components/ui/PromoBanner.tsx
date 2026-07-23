@@ -12,7 +12,7 @@ import { Image } from 'expo-image';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
@@ -256,12 +256,12 @@ const PromoBanner: React.FC<PromoBannerProps> = memo(({
 const ProgressIndicator = memo(
   ({ active }: { active: boolean }) => {
     const progress = useSharedValue(active ? 0 : 1);
-    const dotWidth = useSharedValue(active ? rf(30) : rf(10));
+    const dotWidth = useSharedValue(active ? rem(1.875) : rem(0.625));
 
     useEffect(() => {
       cancelAnimation(progress);
       cancelAnimation(dotWidth);
-      dotWidth.value = withTiming(active ? rf(30) : rf(10), { duration: 300 });
+      dotWidth.value = withTiming(active ? rem(1.875) : rem(0.625), { duration: 300 });
 
       if (active) {
         progress.value = 0;
@@ -318,8 +318,8 @@ const styles = StyleSheet.create({
   },
   card: {
     width: CARD_WIDTH,
-    height: rf(150),
-    borderRadius: rf(18),
+    height: rem(9.375),
+    borderRadius: rem(1.125),
     flexDirection: 'row',
     overflow: 'hidden',
     position: 'relative',
@@ -335,8 +335,8 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: '60%',
-    borderTopLeftRadius: rf(20),
-    borderBottomLeftRadius: rf(20),
+    borderTopLeftRadius: rem(1.25),
+    borderBottomLeftRadius: rem(1.25),
   },
   cardContent: {
     flex: 1,
@@ -347,13 +347,13 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   cardTitle: {
-    fontSize: rf(15),
+    fontSize: rem(0.9375),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.text,
-    lineHeight: rf(18),
+    lineHeight: rem(1.125),
   },
   cardSubtitle: {
-    fontSize: rf(11),
+    fontSize: rem(0.6875),
     fontFamily: FONTS.manrope.semibold,
     color: COLORS.textMuted,
     marginTop: 4,
@@ -361,10 +361,10 @@ const styles = StyleSheet.create({
   ctaButton: {
     backgroundColor: COLORS.white,
     alignSelf: 'flex-start',
-    paddingHorizontal: rf(16),
-    paddingVertical: rf(8),
-    borderRadius: rf(24),
-    marginTop: rf(6),
+    paddingHorizontal: rem(1),
+    paddingVertical: rem(0.5),
+    borderRadius: rem(1.5),
+    marginTop: rem(0.375),
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -372,20 +372,20 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   ctaText: {
-    fontSize: rf(12),
+    fontSize: rem(0.75),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
   },
   bookImageContainer: {
-    width: rf(105),
+    width: rem(6.5625),
     justifyContent: 'center',
     alignItems: 'center',
     paddingRight: SPACING.md,
     paddingVertical: SPACING.md,
   },
   bookImage: {
-    width: rf(85),
-    height: rf(115),
+    width: rem(5.3125),
+    height: rem(7.1875),
     borderRadius: 8,
   },
   dotsContainer: {
@@ -399,19 +399,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: rf(10),
+    gap: rem(0.625),
     marginTop: SPACING.md,
   },
   indicatorTrack: {
-    width: rf(100),
-    height: rf(2),
-    borderRadius: rf(3),
+    width: rem(6.25),
+    height: rem(0.125),
+    borderRadius: rem(0.1875),
     overflow: 'hidden',
     backgroundColor: COLORS.grayHeavvy,
   },
   indicatorFill: {
     height: '100%',
-    borderRadius: rf(3),
+    borderRadius: rem(0.1875),
     backgroundColor: COLORS.primary,
   },
 });

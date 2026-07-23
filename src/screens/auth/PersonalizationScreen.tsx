@@ -22,7 +22,7 @@ import * as SecureStore from 'expo-secure-store';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { Button } from '@/components/ui/Button';
 
 import { useEffect } from 'react';
@@ -31,7 +31,7 @@ import { getColleges, submitOnboarding, College } from '@/types/core';
 
 // ── SVG Header Illustration ──────────────────────────────────────────────────
 const OnboardingHeroIllustration = () => (
-    <Svg width={rf(130)} height={rf(105)} viewBox="0 0 180 140">
+    <Svg width={rem(8.125)} height={rem(6.5625)} viewBox="0 0 180 140">
         {/* Soft shadow/backdrop circle */}
         <Ellipse cx="90" cy="115" rx="80" ry="22" fill="#EBF6F6" />
 
@@ -280,7 +280,7 @@ export default function PersonalizationScreen() {
             return (
                 <MaterialCommunityIcons
                     name={role.icon as any}
-                    size={rf(26)}
+                    size={rem(1.625)}
                     color={selectedRole === role.id ? COLORS.white : role.color}
                 />
             );
@@ -288,7 +288,7 @@ export default function PersonalizationScreen() {
         return (
             <Ionicons
                 name={role.icon as any}
-                size={rf(24)}
+                size={rem(1.5)}
                 color={selectedRole === role.id ? COLORS.white : role.color}
             />
         );
@@ -297,9 +297,9 @@ export default function PersonalizationScreen() {
     const renderInterestIcon = (interest: InterestItem, isSelected: boolean) => {
         const color = isSelected ? COLORS.primary : COLORS.text;
         if (interest.iconType === 'MaterialCommunityIcons') {
-            return <MaterialCommunityIcons name={interest.icon as any} size={rf(20)} color={color} />;
+            return <MaterialCommunityIcons name={interest.icon as any} size={rem(1.25)} color={color} />;
         }
-        return <Ionicons name={interest.icon as any} size={rf(18)} color={color} />;
+        return <Ionicons name={interest.icon as any} size={rem(1.125)} color={color} />;
     };
 
     return (
@@ -559,16 +559,16 @@ const styles = StyleSheet.create({
         paddingRight: SPACING.xs,
     },
     heroTitle: {
-        fontSize: rf(21),
+        fontSize: rem(1.3125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
-        lineHeight: rf(26),
+        lineHeight: rem(1.625),
     },
     heroTitleHighlight: {
         color: COLORS.primary,
     },
     heroSubtitle: {
-        fontSize: rf(11.5),
+        fontSize: rem(0.71875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginTop: 6,
@@ -612,12 +612,12 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     cardHeaderTitle: {
-        fontSize: rf(14.5),
+        fontSize: rem(0.90625),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
     },
     cardHeaderSubtitle: {
-        fontSize: rf(10.5),
+        fontSize: rem(0.65625),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginTop: 2,
@@ -655,13 +655,13 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start',
     },
     roleCardTitle: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: 2,
     },
     roleCardSubtitle: {
-        fontSize: rf(9.5),
+        fontSize: rem(0.59375),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
     },
@@ -671,7 +671,7 @@ const styles = StyleSheet.create({
         position: 'relative',
     },
     fieldLabel: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.black,
         marginBottom: 6,
@@ -703,14 +703,14 @@ const styles = StyleSheet.create({
         flex: 1,
         height: '100%',
         color: COLORS.black,
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
     },
     searchRightIcon: {
         marginLeft: 8,
     },
     collegeHelpText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         marginTop: 6,
@@ -744,7 +744,7 @@ const styles = StyleSheet.create({
         borderBottomColor: '#F0F0F0',
     },
     dropdownText: {
-        fontSize: rf(11.5),
+        fontSize: rem(0.71875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
         flex: 1,
@@ -775,7 +775,7 @@ const styles = StyleSheet.create({
         marginRight: 4,
     },
     interestLabel: {
-        fontSize: rf(10.5),
+        fontSize: rem(0.65625),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.black,
         marginLeft: 8,
@@ -798,7 +798,7 @@ const styles = StyleSheet.create({
         marginTop: 6,
     },
     tipsText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
         flex: 1,
@@ -817,12 +817,12 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
     },
     footerText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
     validationErrorText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.red,
         marginBottom: 10,

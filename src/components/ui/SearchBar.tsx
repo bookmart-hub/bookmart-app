@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 
 interface SearchBarProps extends TextInputProps {
   containerStyle?: ViewStyle;
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: '100%',
-    fontSize: rf(14),
+    fontSize: rem(0.875),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.text,
   },

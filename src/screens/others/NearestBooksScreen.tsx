@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { DISTANCE_FILTERS, MOCK_CATEGORIES, MOCK_NEAREST_BOOKS, NearestBook } from '@/data/nearestBooksMockData';
 import Animated, {
     FadeIn,
@@ -273,7 +273,7 @@ const NearestBooksScreen = ({ route }: any) => {
                                 />
                             </View>
 
-                            <Text style={[styles.filterCategoriesText, { fontSize: rf(12) }]}>Price Range</Text>
+                            <Text style={[styles.filterCategoriesText, { fontSize: rem(0.75) }]}>Price Range</Text>
                             <Slider
                                 style={{ width: 320, height: 40, alignSelf: 'center', }}
                                 minimumValue={0}
@@ -293,8 +293,8 @@ const NearestBooksScreen = ({ route }: any) => {
                             </View>
 
                             <View style={styles.filterButtonContainer}>
-                                <Button title='Clear' variant='outline' onPress={() => setShowFilter(false)} style={{ width: '48%' }} textStyle={{ fontSize: rf(15) }} />
-                                <Button title='Apply' onPress={() => setShowFilter(false)} style={{ width: '48%' }} textStyle={{ fontSize: rf(15) }} />
+                                <Button title='Clear' variant='outline' onPress={() => setShowFilter(false)} style={{ width: '48%' }} textStyle={{ fontSize: rem(0.9375) }} />
+                                <Button title='Apply' onPress={() => setShowFilter(false)} style={{ width: '48%' }} textStyle={{ fontSize: rem(0.9375) }} />
                             </View>
                         </View>
                     </Animated.View>
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.black,
     },
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
         borderColor: COLORS.primary,
     },
     filterText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.montserrat.medium,
         color: COLORS.textMuted,
     },
@@ -394,13 +394,13 @@ const styles = StyleSheet.create({
     },
     filterTitle: {
         fontFamily: FONTS.manrope.bold,
-        fontSize: rf(18),
+        fontSize: rem(1.125),
         color: COLORS.black,
         textAlign: 'center'
     },
     filterCategoriesText: {
         fontFamily: FONTS.manrope.medium,
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         color: COLORS.text,
         marginTop: SPACING.md,
     },
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
     },
     priceRangeText: {
         fontFamily: FONTS.manrope.medium,
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         color: COLORS.text,
         textAlign: 'center',
         marginTop: -SPACING.md,
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
     },
     filterCategory: {
         fontFamily: FONTS.montserrat.medium,
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         color: COLORS.text,
         textAlign: 'center',
     },
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
         height: 150,
     },
     bookTitle: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.black,
         marginBottom: SPACING.sm,
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.md, // Leave space for FAB overlapping
     },
     discountText: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.primary,
     },
@@ -507,12 +507,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     currencySymbol: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.primary,
     },
     priceText: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.primary,
     },
@@ -567,7 +567,7 @@ const styles = StyleSheet.create({
     },
     mapToggleText: {
         fontFamily: FONTS.manrope.bold,
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         color: COLORS.white,
     },
     listContainer: {

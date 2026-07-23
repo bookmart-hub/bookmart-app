@@ -17,7 +17,7 @@ import RecentlyAdded from '@/components/smallComp/RecentlyAdded';
 import SponsoredSection from '@/components/smallComp/SponsoredSection';
 import PeopleViewing from '@/components/smallComp/PeopleViewing';
 import EndingSoon from '@/components/smallComp/EndingSoon';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 
 // ── Expanded Mock Datasets ──────────────────────────────────────────────────
 
@@ -228,6 +228,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: rf(120), // room for floating tab bar
+    paddingBottom: rem(7.5), // room for floating tab bar
   },
 });

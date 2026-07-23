@@ -4,7 +4,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@/constants/colors';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { FONTS } from '@/constants/fonts';
 
 const PADDING_HORIZONTAL = SPACING.lg;
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
         paddingVertical: SPACING.lg,
     },
     title: {
-        fontSize: rf(20),
+        fontSize: rem(1.25),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
         textAlign: 'center',

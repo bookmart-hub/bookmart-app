@@ -7,7 +7,7 @@ import { Image } from 'expo-image';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { Book } from '@/data/models';
 import { StatusBar } from 'expo-status-bar';
 
@@ -99,13 +99,13 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
   },
   headerTitle: {
-    fontSize: rf(16),
+    fontSize: rem(1),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
   },
   card: {
     backgroundColor: COLORS.white,
-    borderRadius: rf(12),
+    borderRadius: rem(0.75),
     overflow: 'hidden',
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 4 },
@@ -117,20 +117,20 @@ const styles = StyleSheet.create({
   },
   bookImage: {
     width: '100%',
-    height: rf(130),
+    height: rem(8.125),
   },
   cardContent: {
-    padding: rf(9),
+    padding: rem(0.5625),
   },
   author: {
-    fontSize: rf(10.5),
+    fontSize: rem(0.65625),
     color: COLORS.text,
-    marginTop: rf(3),
-    marginBottom: rf(5),
+    marginTop: rem(0.1875),
+    marginBottom: rem(0.3125),
   },
   cardTitle: {
-    fontSize: rf(12.5),
-    lineHeight: rf(16),
+    fontSize: rem(0.78125),
+    lineHeight: rem(1),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
   },
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   priceText: {
-    fontSize: rf(12.5),
+    fontSize: rem(0.78125),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
   },
@@ -148,15 +148,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: rf(6),
+    marginTop: rem(0.375),
   },
   discountText: {
-    fontSize: rf(10),
+    fontSize: rem(0.625),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.primary,
   },
   stockText: {
-    fontSize: rf(10),
+    fontSize: rem(0.625),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.red,
   },

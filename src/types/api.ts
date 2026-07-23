@@ -1,1 +1,3 @@
-export const BASE_URL = "https://bookmart-backend-y6of.onrender.com"
+import { getApiUrl } from '@/utils/env';
+
+export const BASE_URL = getApiUrl();

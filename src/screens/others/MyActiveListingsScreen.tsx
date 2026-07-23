@@ -9,7 +9,7 @@ import { Image } from 'expo-image';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { StatusBar } from 'expo-status-bar';
 import Header from '@/components/ui/Header';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     headerTitle: {
-        fontSize: rf(18),
+        fontSize: rem(1.125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
     },
@@ -232,13 +232,13 @@ const styles = StyleSheet.create({
         paddingBottom: SPACING.md,
     },
     summaryTitle: {
-        fontSize: rf(18),
+        fontSize: rem(1.125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: 2,
     },
     summarySubtitle: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         marginBottom: SPACING.md,
@@ -272,13 +272,13 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     statLabel: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginBottom: 4,
     },
     statValue: {
-        fontSize: rf(18),
+        fontSize: rem(1.125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
     },
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
         borderColor: COLORS.primary,
     },
     filterChipText: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.text,
     },
@@ -345,13 +345,13 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
     },
     bookTitle: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.black,
         marginBottom: 2,
     },
     bookAuthor: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
     },
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     statusText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.green,
     },
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     bookStatText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
     },
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     bookPrice: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
     },
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     actionBtnText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.primary,
     },
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     promoTitle: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginRight: 8,
@@ -462,12 +462,12 @@ const styles = StyleSheet.create({
         borderRadius: 4,
     },
     proBadgeText: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
     },
     promoDesc: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.black,
         lineHeight: 16,
@@ -477,10 +477,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         paddingVertical: 8,
         borderRadius: 8,
-        top: rf(13),
+        top: rem(0.8125),
     },
     boostBtnText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.white,
     },
@@ -491,9 +491,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     fab: {
-        width: rf(60),
-        height: rf(60),
-        borderRadius: rf(30),
+        width: rem(3.75),
+        height: rem(3.75),
+        borderRadius: rem(1.875),
         backgroundColor: COLORS.primary,
         alignItems: 'center',
         justifyContent: 'center',

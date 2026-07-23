@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import Header from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import HorizontalBookList from '@/components/ui/HorizontalBookList';
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     ratingContainer: {
         flex: 1,
         flexDirection: 'row',
-        gap: rf(10),
+        gap: rem(0.625),
     },
     scrollContent: {
         paddingTop: SPACING.md,
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
     },
     nameText: {
-        fontSize: rf(18),
+        fontSize: rem(1.125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
     },
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
         gap: 2,
     },
     badgeText: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.black,
     },
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     infoText: {
-        fontSize: rf(11.5),
+        fontSize: rem(0.71875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         flexShrink: 1,
@@ -416,13 +416,13 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     trustedTitle: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
         lineHeight: 14,
     },
     trustedSub: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
     },
@@ -442,19 +442,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     statNumber: {
-        fontSize: rf(18),
+        fontSize: rem(1.125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
         marginBottom: 2,
     },
     statLabel: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
         textAlign: 'center',
     },
     statSub: {
-        fontSize: rf(9.5),
+        fontSize: rem(0.59375),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         textAlign: 'center',
@@ -484,11 +484,11 @@ const styles = StyleSheet.create({
         height: 40,
     },
     actionBtnTextWhite: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         color: COLORS.white,
     },
     actionBtnTextPrimary: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         color: COLORS.primary,
     },
     aboutContainer: {
@@ -505,12 +505,12 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     aboutTitle: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     aboutText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         lineHeight: 18,
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     collegeCardTitle: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
         flex: 1,
@@ -551,13 +551,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     collegeStatNumber: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
         marginBottom: 2,
     },
     collegeStatLabel: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -584,7 +584,7 @@ const styles = StyleSheet.create({
         marginTop: SPACING.xs,
     },
     ratingScore: {
-        fontSize: rf(26),
+        fontSize: rem(1.625),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
     },
@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
         marginVertical: 4,
     },
     reviewCount: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
     },
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     quoteText: {
-        fontSize: rf(9.5),
+        fontSize: rem(0.59375),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         fontStyle: 'italic',
@@ -626,7 +626,7 @@ const styles = StyleSheet.create({
         elevation: 10,
     },
     contactBtn: {
-        height: rf(48),
+        height: rem(3),
         backgroundColor: COLORS.primary,
     }
 });

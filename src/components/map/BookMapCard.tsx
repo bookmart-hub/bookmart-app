@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import Animated, { useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { NearestBook } from '@/data/nearestBooksMockData';
 import { SPACING } from '@/constants/spacings';
 
@@ -190,14 +190,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     title: {
-        fontSize: rf(15),
+        fontSize: rem(0.9375),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.black,
         flex: 1,
         marginRight: SPACING.sm,
     },
     genreText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginTop: 2,
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     },
     priceText: {
         fontFamily: FONTS.manrope.extraBold,
-        fontSize: rf(16),
+        fontSize: rem(1),
         color: COLORS.primary,
     },
     distanceBadge: {
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     distanceText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.text,
         marginLeft: 4,
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     detailLabel: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginLeft: 6,
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
         color: COLORS.black,
     },
     descriptionText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.text,
         lineHeight: 18,
@@ -276,6 +276,6 @@ const styles = StyleSheet.create({
     viewDetailsText: {
         color: COLORS.white,
         fontFamily: FONTS.manrope.bold,
-        fontSize: rf(14),
+        fontSize: rem(0.875),
     },
 });

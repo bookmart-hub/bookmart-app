@@ -24,7 +24,7 @@ import { SPACING } from '@/constants/spacings';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { CATEGORIES_LIST, CategoryItem } from '@/data/categoryMockData';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import * as Haptics from 'expo-haptics';
 
 const ITEM_WIDTH = 50;
@@ -352,27 +352,27 @@ export default CategorySection;
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: rf(5)
+        marginTop: rem(0.3125)
     },
     header: {
         paddingHorizontal: SPACING.lg,
         marginBottom: 10,
     },
     subtitle: {
-        fontSize: rf(20),
+        fontSize: rem(1.25),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     title: {
         position: 'absolute',
         top: 0,
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.textMuted,
         width: ITEM_WIDTH * 1.5,
         textAlign: 'center',
         zIndex: 10,
-        lineHeight: rf(11),
+        lineHeight: rem(0.6875),
     },
     itemWrapper: {
         width: SNAP_SIZE,
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 6,
         marginBottom: 8,
-        marginTop: rf(12),
+        marginTop: rem(0.75),
     },
     image: {
         width: '100%',

@@ -26,4 +26,16 @@ export const rf = (size: number, factor: number = 0.5): number => {
   return Math.round(PixelRatio.roundToNearestPixel(scaledSize));
 };
 
+/**
+ * Alternative to CSS rem in web.
+ * 1 rem typically equals 16px.
+ * This function scales 16px * value dynamically using our responsive font scaling (rf).
+ * 
+ * @param value The rem value (e.g. 1, 1.5, 0.875)
+ * @returns The scaled pixel value
+ */
+export const rem = (value: number, factor?: number): number => {
+  return rf(value * 16, factor);
+};
+
 export default rf;

@@ -8,7 +8,7 @@ import StarRating from 'react-native-star-rating-widget';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { Author } from '@/data/authorMockData';
 import Header from '@/components/ui/Header';
 
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
         width: 40,
     },
     headerTitle: {
-        fontSize: rf(20),
+        fontSize: rem(1.25),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
     },
@@ -169,13 +169,13 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     category: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginBottom: SPACING.sm,
     },
     name: {
-        fontSize: rf(20),
+        fontSize: rem(1.25),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: SPACING.sm,
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     ratingText: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
         marginLeft: SPACING.sm,
@@ -196,13 +196,13 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.xl,
     },
     sectionTitle: {
-        fontSize: rf(18),
+        fontSize: rem(1.125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: SPACING.md,
     },
     bioText: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         lineHeight: 22,
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.grayLight,
     },
     bookTitle: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.black,
         marginBottom: 2,
@@ -247,17 +247,17 @@ const styles = StyleSheet.create({
         marginRight: 4,
     },
     currencySymbol: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.white,
     },
     bookPrice: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
     },
     errorText: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.medium,
         color: COLORS.text,
     },

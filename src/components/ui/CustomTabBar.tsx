@@ -4,7 +4,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -36,7 +36,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
   // Otherwise, we use a fallback margin of 20dp to float above the physical edge of the screen.
   const bottomMargin = insets.bottom > 0
     ? insets.bottom + 0
-    : rf(3);
+    : rem(0.1875);
 
   return (
     <View style={[styles.wrapper, { bottom: bottomMargin }]}>
@@ -96,7 +96,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
               ]}
             >
               <View style={iconStyle}>
-                {renderIcon && renderIcon({ focused: isFocused, color, size: rf(22) })}
+                {renderIcon && renderIcon({ focused: isFocused, color, size: rem(1.375) })}
               </View>
               {showLabel && (
                 typeof label === 'string' ? (
@@ -143,9 +143,9 @@ const styles = StyleSheet.create({
   leftPill: {
     flex: 5,
     flexDirection: 'row',
-    height: rf(60),
+    height: rem(3.75),
     backgroundColor: COLORS.white,
-    borderRadius: rf(32),
+    borderRadius: rem(2),
     alignItems: 'center',
     justifyContent: 'space-around',
     paddingHorizontal: 8,
@@ -159,8 +159,8 @@ const styles = StyleSheet.create({
   },
   rightPill: {
     flex: 1.2,
-    height: rf(60),
-    borderRadius: rf(32),
+    height: rem(3.75),
+    borderRadius: rem(2),
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 12,
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   tabLabel: {
-    fontSize: rf(10),
+    fontSize: rem(0.625),
     fontFamily: FONTS?.montserrat?.medium || Platform.select({ ios: 'System', android: 'sans-serif-medium' }),
     marginTop: 2,
   },
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     marginBottom: 1,
   },
   newModeText: {
-    fontSize: rf(11),
+    fontSize: rem(0.6875),
     fontFamily: FONTS?.montserrat?.bold || Platform.select({ ios: 'System', android: 'sans-serif-bold' }),
     textAlign: 'center',
   },

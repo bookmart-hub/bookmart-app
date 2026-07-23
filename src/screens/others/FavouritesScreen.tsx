@@ -7,7 +7,7 @@ import { Image } from 'expo-image';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import Header from '@/components/ui/Header';
 import { StatusBar } from 'expo-status-bar';
 
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     },
     bookTitle: {
         flex: 1,
-        fontSize: rf(15),
+        fontSize: rem(0.9375),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginRight: SPACING.xs,
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
         padding: 2,
     },
     authorText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginBottom: SPACING.xs,
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     tagText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
     },
     priceText: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
     },
@@ -203,14 +203,14 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.xl,
     },
     emptyTitle: {
-        fontSize: rf(18),
+        fontSize: rem(1.125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: SPACING.sm,
         textAlign: 'center',
     },
     emptySubtitle: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         textAlign: 'center',
@@ -228,6 +228,6 @@ const styles = StyleSheet.create({
     exploreBtnText: {
         color: COLORS.white,
         fontFamily: FONTS.montserrat.bold,
-        fontSize: rf(14),
+        fontSize: rem(0.875),
     },
 });

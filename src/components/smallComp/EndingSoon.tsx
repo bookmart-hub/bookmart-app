@@ -10,7 +10,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { LinearGradient } from 'expo-linear-gradient';
 import { NearestBookItem } from '../ui/NearestBooks';
 import { SPACING } from '@/constants/spacings';
@@ -122,12 +122,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     headerTitle: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
         gap: 2,
     },
     titleText: {
-        fontSize: rf(10.5),
+        fontSize: rem(0.65625),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
     },
@@ -183,12 +183,12 @@ const styles = StyleSheet.create({
         gap: 2,
     },
     timerText: {
-        fontSize: rf(7.5),
+        fontSize: rem(0.46875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.red,
     },
     priceText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
     },

@@ -7,7 +7,7 @@ import { Image } from 'expo-image';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import Header from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
     warningText: {
         flex: 1,
         marginLeft: SPACING.sm,
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: '#92400E', // Dark amber text
         lineHeight: 18,
@@ -546,7 +546,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.primary,
     },
     tabText: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.textMuted,
     },
@@ -577,13 +577,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     itemTitle: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: 2,
     },
     itemSubtitle: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginBottom: 4,
@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     badgeText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
@@ -611,7 +611,7 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     changeBtnText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.textMuted,
     },
@@ -646,7 +646,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.primary,
     },
     stepNumber: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.textMuted,
     },
@@ -654,7 +654,7 @@ const styles = StyleSheet.create({
         color: COLORS.white,
     },
     stepLabel: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.textMuted,
         textAlign: 'center',
@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
         marginTop: SPACING.md,
     },
     stepHeader: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.bold,
         color: '#6B7280', // grayish blue text
         marginBottom: SPACING.md,
@@ -715,13 +715,13 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.md,
     },
     gridCardTitle: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: 4,
     },
     gridCardSubtitle: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -757,7 +757,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.primary,
     },
     radioText: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
     },

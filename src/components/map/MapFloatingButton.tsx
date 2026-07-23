@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { SPACING } from '@/constants/spacings';
 import { useNavigation } from '@react-navigation/native';
 
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     },
     text: {
         fontFamily: FONTS.manrope.bold,
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         color: COLORS.black,
     },
 });

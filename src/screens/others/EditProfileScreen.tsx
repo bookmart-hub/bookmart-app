@@ -7,7 +7,7 @@ import { Image } from 'expo-image';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import Header from '@/components/ui/Header';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -151,7 +151,7 @@ const EditProfileScreen = () => {
             return;
         }
         const result = await ImagePicker.launchCameraAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             aspect: [1, 1],
             quality: 0.5,
@@ -168,7 +168,7 @@ const EditProfileScreen = () => {
             return;
         }
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             aspect: [1, 1],
             quality: 0.5,
@@ -357,7 +357,7 @@ const EditProfileScreen = () => {
                                         label="Date of Birth"
                                         placeholder="YYYY-MM-DD"
                                         value={dob}
-                                        onChangeText={() => {}}
+                                        onChangeText={() => { }}
                                         prefix={renderInputPrefix('calendar')}
                                         error={errors.dob}
                                     />
@@ -405,7 +405,7 @@ const EditProfileScreen = () => {
                                     />
                                     <Ionicons name="search" size={18} color={COLORS.textMuted} style={styles.searchRightIcon} />
                                 </View>
-                                {errors.college && <Text style={{ color: COLORS.red, fontSize: rf(11), marginTop: 4 }}>{errors.college}</Text>}
+                                {errors.college && <Text style={{ color: COLORS.red, fontSize: rem(0.6875), marginTop: 4 }}>{errors.college}</Text>}
 
                                 {/* Dropdown search suggestions */}
                                 {collegeDropdownVisible && (
@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
         borderColor: COLORS.background,
     },
     changePhotoText: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
@@ -548,7 +548,7 @@ const styles = StyleSheet.create({
         position: 'relative',
     },
     fieldLabel: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.black,
         marginBottom: 6,
@@ -577,7 +577,7 @@ const styles = StyleSheet.create({
         flex: 1,
         height: '100%',
         color: COLORS.black,
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
     },
     searchRightIcon: {
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
         borderBottomColor: '#F0F0F0',
     },
     dropdownText: {
-        fontSize: rf(11.5),
+        fontSize: rem(0.71875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
         flex: 1,
@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
         marginLeft: 8,
     },
     badgeText: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     }

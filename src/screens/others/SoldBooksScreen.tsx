@@ -9,7 +9,7 @@ import { Menu } from 'react-native-paper';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { StatusBar } from 'expo-status-bar';
 
 type NavigationProp = NativeStackNavigationProp<AppStackParamList>;
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     headerTitle: {
-        fontSize: rf(18),
+        fontSize: rem(1.125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text
     },
@@ -272,12 +272,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     summaryLabel: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted
     },
     summaryValue: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
         marginTop: 2
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text
     },
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between'
     },
     title: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.text,
         marginBottom: 4
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
         marginBottom: 8
     },
     buyerText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted
     },
@@ -374,12 +374,12 @@ const styles = StyleSheet.create({
         gap: SPACING.xl
     },
     priceLabel: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted
     },
     priceValue: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.text,
         marginTop: 2
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
         paddingLeft: SPACING.md
     },
     dateValue: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.textMuted,
         marginTop: 2
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
         borderTopColor: COLORS.grayHeavvy
     },
     dateText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted
     },
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
         borderRadius: 12
     },
     statusText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.bold
     },
 
@@ -425,14 +425,14 @@ const styles = StyleSheet.create({
         paddingVertical: SPACING.xl
     },
     emptyTitle: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
         marginTop: SPACING.md,
         marginBottom: SPACING.xs
     },
     emptySubtitle: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         textAlign: 'center',

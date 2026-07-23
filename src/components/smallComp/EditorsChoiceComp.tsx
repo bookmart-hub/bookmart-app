@@ -11,10 +11,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 
-const CARD_WIDTH = rf(170);
-const CARD_HEIGHT = rf(200);
+const CARD_WIDTH = rem(10.625);
+const CARD_HEIGHT = rem(12.5);
 
 interface EditorsChoiceCompProps {
     item: any[];
@@ -106,12 +106,12 @@ export default EditorsChoiceComp;
 
 const styles = StyleSheet.create({
     sectionContainer: {
-        marginTop: rf(12),
-        marginBottom: rf(10),
-        paddingHorizontal: rf(20),
+        marginTop: rem(0.75),
+        marginBottom: rem(0.625),
+        paddingHorizontal: rem(1.25),
     },
     headerTitle: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text
     },
@@ -133,18 +133,18 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     title: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         color: COLORS.white,
         fontFamily: FONTS.montserrat.bold,
     },
     author: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         color: COLORS.white,
         fontFamily: FONTS.manrope.medium,
         opacity: 0.9,
     },
     price: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         color: COLORS.white,
         fontFamily: FONTS.montserrat.bold,
         marginTop: 4,

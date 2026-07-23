@@ -8,7 +8,7 @@ import { FlashList } from '@shopify/flash-list';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { FeedItem, Book } from '@/data/models';
 import { StatusBar } from 'expo-status-bar';
 import HeartBurst from './HeartBrust';
@@ -68,7 +68,7 @@ const MasonryBookCard = memo(
               >
                 <Ionicons
                   name={isLiked ? 'heart' : 'heart-outline'}
-                  size={rf(15)}
+                  size={rem(0.9375)}
                   color={isLiked ? COLORS.primary : COLORS.textMuted}
                 />
               </TouchableOpacity>
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: COLORS.white,
-    borderRadius: rf(12),
+    borderRadius: rem(0.75),
     overflow: 'hidden',
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 4 },
@@ -232,20 +232,20 @@ const styles = StyleSheet.create({
   },
   bookImage: {
     width: '100%',
-    height: rf(130),
+    height: rem(8.125),
   },
   cardContent: {
-    padding: rf(9),
+    padding: rem(0.5625),
   },
   author: {
-    fontSize: rf(10.5),
+    fontSize: rem(0.65625),
     color: COLORS.text,
-    marginTop: rf(3),
-    marginBottom: rf(5),
+    marginTop: rem(0.1875),
+    marginBottom: rem(0.3125),
   },
   cardTitle: {
-    fontSize: rf(12.5),
-    lineHeight: rf(16),
+    fontSize: rem(0.78125),
+    lineHeight: rem(1),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
   },
@@ -259,21 +259,21 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   headerTitle: {
-    fontSize: rf(32),
+    fontSize: rem(2),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
-    marginBottom: rf(5),
+    marginBottom: rem(0.3125),
   },
   headerSubtitle: {
-    fontSize: rf(14),
+    fontSize: rem(0.875),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.black,
-    lineHeight: rf(18),
+    lineHeight: rem(1.125),
   },
   adCard: {
-    borderRadius: rf(15),
+    borderRadius: rem(0.9375),
     overflow: 'hidden',
-    height: rf(140),
+    height: rem(8.75),
     backgroundColor: COLORS.grayLight,
     position: 'relative',
     justifyContent: 'center',
@@ -291,14 +291,14 @@ const styles = StyleSheet.create({
   },
   adOverlay: {
     backgroundColor: 'rgba(0,0,0,0.4)',
-    paddingHorizontal: rf(12),
-    paddingVertical: rf(6),
-    borderRadius: rf(8),
+    paddingHorizontal: rem(0.75),
+    paddingVertical: rem(0.375),
+    borderRadius: rem(0.5),
   },
   adText: {
     color: COLORS.white,
     fontFamily: FONTS.montserrat.bold,
-    fontSize: rf(14),
+    fontSize: rem(0.875),
   },
   priceRow: {
     flexDirection: 'row',
@@ -306,52 +306,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   priceText: {
-    fontSize: rf(12.5),
+    fontSize: rem(0.78125),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
   },
   addButton: {
-    width: rf(22),
-    height: rf(22),
-    borderRadius: rf(11),
+    width: rem(1.375),
+    height: rem(1.375),
+    borderRadius: rem(0.6875),
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   heartContainer: {
-    width: rf(28),
-    height: rf(28),
+    width: rem(1.75),
+    height: rem(1.75),
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    marginRight: -rf(4),
+    marginRight: -rem(0.25),
   },
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: rf(6),
+    marginTop: rem(0.375),
   },
   discountText: {
-    fontSize: rf(10),
+    fontSize: rem(0.625),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.primary,
   },
   stockText: {
-    fontSize: rf(10),
+    fontSize: rem(0.625),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.red,
   },
   moreOptionsBtn: {
     backgroundColor: COLORS.background,
-    paddingHorizontal: rf(6),
-    paddingVertical: rf(2),
-    borderRadius: rf(4),
+    paddingHorizontal: rem(0.375),
+    paddingVertical: rem(0.125),
+    borderRadius: rem(0.25),
     borderWidth: 1,
     borderColor: COLORS.grayLight,
   },
   moreOptionsText: {
-    fontSize: rf(9),
+    fontSize: rem(0.5625),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.primary,
   },

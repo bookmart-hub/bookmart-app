@@ -18,7 +18,7 @@ const { width, height } = Dimensions.get('window');
 
 import { TextInput } from 'react-native';
 import HeartBurst from '@/components/ui/HeartBrust';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
 
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.background,
     },
     errorText: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.medium,
         color: COLORS.text,
     },
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
     },
     title: {
         flex: 1,
-        fontSize: rf(24),
+        fontSize: rem(1.5),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginRight: SPACING.md,
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.xl,
     },
     authorName: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.text,
     },
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.xl,
     },
     reasonsHeader: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         textDecorationLine: 'underline',
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
         gap: SPACING.sm,
     },
     reasonItem: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted, // lighter gray matching the design's textMuted
         lineHeight: 22,
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.xl,
     },
     sectionTitle: {
-        fontSize: rf(18),
+        fontSize: rem(1.125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: SPACING.sm,
@@ -488,14 +488,14 @@ const styles = StyleSheet.create({
         borderColor: COLORS.grayHeavvy,
     },
     genreText: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
     bookMetaCard: {
         backgroundColor: COLORS.white,
         marginTop: -SPACING.lg,
-        borderRadius: rf(16),
+        borderRadius: rem(1),
         paddingHorizontal: SPACING.lg,
         paddingVertical: SPACING.md,
         marginBottom: SPACING.md,
@@ -514,13 +514,13 @@ const styles = StyleSheet.create({
     },
 
     priceLabel: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         color: COLORS.textMuted,
         fontFamily: FONTS.manrope.medium,
     },
 
     priceValue: {
-        fontSize: rf(17),
+        fontSize: rem(1.0625),
         color: COLORS.primary,
         fontFamily: FONTS.montserrat.bold,
     },
@@ -536,13 +536,13 @@ const styles = StyleSheet.create({
     },
 
     conditionValue: {
-        fontSize: rf(15),
+        fontSize: rem(0.9375),
         color: COLORS.black,
         fontFamily: FONTS.montserrat.semibold,
     },
 
     conditionNote: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         lineHeight: 20,
         color: COLORS.textMuted,
         fontFamily: FONTS.manrope.medium,
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     primaryButtonText: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.white,
     },
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
         borderColor: COLORS.grayHeavvy,
     },
     reviewHeaderTitle: {
-        fontSize: rf(20),
+        fontSize: rem(1.25),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: SPACING.md,
@@ -611,13 +611,13 @@ const styles = StyleSheet.create({
         marginRight: SPACING.lg,
     },
     averageRatingText: {
-        fontSize: rf(36),
+        fontSize: rem(2.25),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: 4,
     },
     totalReviewsText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginTop: 6,
@@ -632,7 +632,7 @@ const styles = StyleSheet.create({
     },
     starLabel: {
         width: 12,
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
         marginRight: 8,
@@ -666,17 +666,17 @@ const styles = StyleSheet.create({
         marginBottom: 6,
     },
     reviewerName: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.black,
     },
     reviewDate: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
     reviewComment: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
         marginTop: 8,
@@ -690,7 +690,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     emptyReviewsText: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -701,7 +701,7 @@ const styles = StyleSheet.create({
         borderTopColor: COLORS.grayLight,
     },
     addReviewTitle: {
-        fontSize: rf(18),
+        fontSize: rem(1.125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: SPACING.sm,
@@ -710,7 +710,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.grayLight,
         borderRadius: 12,
         padding: SPACING.md,
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.black,
         minHeight: 100,
@@ -722,24 +722,24 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: rf(50)
+        marginBottom: rem(3.125)
     },
     submitReviewBtnDisabled: {
         backgroundColor: COLORS.grayHeavvy,
     },
     submitReviewText: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.white,
     },
     secondaryButtonText: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
     sellerDetailsCard: {
         backgroundColor: COLORS.white,
-        borderRadius: rf(16),
+        borderRadius: rem(1),
         borderWidth: 1,
         borderColor: COLORS.grayLight || '#F9FAFB',
         padding: SPACING.md,
@@ -748,10 +748,10 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.04,
         shadowRadius: 8,
         elevation: 2,
-        marginBottom: rf(16),
+        marginBottom: rem(1),
     },
     sellerCardTitle: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: 10,
@@ -772,12 +772,12 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     sellerDetailLabel: {
-        fontSize: rf(8.5),
+        fontSize: rem(0.53125),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
     sellerDetailVal: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
         marginTop: 1,

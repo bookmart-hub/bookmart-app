@@ -13,7 +13,7 @@ import MapMarker from '@/components/map/MapMarker';
 import * as Location from 'expo-location';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { FONTS } from '@/constants/fonts';
 
 // React Error Boundary for catching map rendering crashes
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
     searchInput: {
         flex: 1,
         fontFamily: FONTS.manrope.medium,
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         color: COLORS.black,
     },
     categoriesRow: {
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
     },
     categoryText: {
         fontFamily: FONTS.manrope.bold,
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         color: COLORS.black,
     },
     categoryTextActive: {
@@ -601,7 +601,7 @@ const styles = StyleSheet.create({
     },
     listToggleText: {
         fontFamily: FONTS.manrope.bold,
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         color: COLORS.white,
     },
     userLocationMarker: {
@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
     },
     routeBadgeText: {
         fontFamily: FONTS.manrope.bold,
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         color: COLORS.white,
     },
     centerContent: {
@@ -645,7 +645,7 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         fontFamily: FONTS.manrope.bold,
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         color: COLORS.primary,
     },
     errorContainer: {
@@ -656,7 +656,7 @@ const styles = StyleSheet.create({
     },
     errorText: {
         fontFamily: FONTS.manrope.semibold,
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         color: COLORS.black,
         marginTop: SPACING.md,
         marginBottom: SPACING.lg,
@@ -670,7 +670,7 @@ const styles = StyleSheet.create({
     },
     retryButtonText: {
         fontFamily: FONTS.manrope.bold,
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         color: COLORS.white,
     },
     warningBanner: {
@@ -691,7 +691,7 @@ const styles = StyleSheet.create({
     warningBannerText: {
         flex: 1,
         fontFamily: FONTS.manrope.semibold,
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         color: COLORS.white,
     },
     warningBannerAction: {
@@ -702,7 +702,7 @@ const styles = StyleSheet.create({
     },
     warningBannerActionText: {
         fontFamily: FONTS.manrope.bold,
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         color: 'rgb(239, 68, 68)',
     },
 });

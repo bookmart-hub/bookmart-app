@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -33,10 +33,10 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.background },
     header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, borderBottomWidth: 1, borderBottomColor: COLORS.grayLight },
     backButton: { padding: SPACING.xs, marginRight: SPACING.sm },
-    headerTitle: { fontSize: rf(18), fontFamily: FONTS.montserrat.bold, color: COLORS.black },
+    headerTitle: { fontSize: rem(1.125), fontFamily: FONTS.montserrat.bold, color: COLORS.black },
     content: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.lg },
-    title: { fontSize: rf(20), fontFamily: FONTS.montserrat.bold, color: COLORS.black, marginBottom: SPACING.xs },
-    subtitle: { fontSize: rf(14), fontFamily: FONTS.manrope.medium, color: COLORS.textMuted, textAlign: 'center' },
+    title: { fontSize: rem(1.25), fontFamily: FONTS.montserrat.bold, color: COLORS.black, marginBottom: SPACING.xs },
+    subtitle: { fontSize: rem(0.875), fontFamily: FONTS.manrope.medium, color: COLORS.textMuted, textAlign: 'center' },
 });
 
 export default HelpSupportScreen;

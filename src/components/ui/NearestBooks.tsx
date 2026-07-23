@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import HeartBurst from './HeartBrust';
 import * as Haptics from 'expo-haptics';
 
@@ -159,12 +159,12 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     headerTitle: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
         gap: 2,
     },
     distanceText: {
-        fontSize: rf(8),
+        fontSize: rem(0.5),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
@@ -218,12 +218,12 @@ const styles = StyleSheet.create({
         gap: 1,
     },
     titleText: {
-        fontSize: rf(10.5),
+        fontSize: rem(0.65625),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
     },
     authorText: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
     priceText: {
-        fontSize: rf(11.5),
+        fontSize: rem(0.71875),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
     },

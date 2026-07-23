@@ -1,4 +1,6 @@
+import { getApiUrl } from '@/utils/env';
+
 export const CONFIG = {
     APP_NAME: 'Bookmart',
-    API_URL: 'https://bookmart-backend-y6of.onrender.com/docs/swagger/',
+    API_URL: `${getApiUrl()}/docs/swagger/`,
 };

@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { AUTHOR_CATEGORIES, MOCK_AUTHORS, Author } from '@/data/authorMockData';
 import Header from '@/components/ui/Header';
 
@@ -123,13 +123,13 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.lg,
     },
     titlePrefix: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginBottom: 2,
     },
     titleMain: {
-        fontSize: rf(28),
+        fontSize: rem(1.75),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
     },
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
         paddingBottom: 4,
     },
     tabText: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -179,13 +179,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     authorName: {
-        fontSize: rf(15),
+        fontSize: rem(0.9375),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
         marginBottom: 4,
     },
     authorBio: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.light,
         color: COLORS.textMuted,
         lineHeight: 20,

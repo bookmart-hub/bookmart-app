@@ -18,7 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { Button } from '@/components/ui/Button';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -27,7 +27,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Slide 1: Buy & Sell Locally
 const IllustrationBuySell = () => (
-    <Svg width={rf(180)} height={rf(140)} viewBox="0 0 180 140">
+    <Svg width={rem(11.25)} height={rem(8.75)} viewBox="0 0 180 140">
         <Ellipse cx="90" cy="115" rx="75" ry="18" fill="#E8F4F4" />
 
         {/* Books Stack */}
@@ -63,7 +63,7 @@ const IllustrationBuySell = () => (
 
 // Slide 2: Request & Share Resources
 const IllustrationRequestShare = () => (
-    <Svg width={rf(180)} height={rf(140)} viewBox="0 0 180 140">
+    <Svg width={rem(11.25)} height={rem(8.75)} viewBox="0 0 180 140">
         <Ellipse cx="90" cy="115" rx="75" ry="18" fill="#FBF7E7" />
 
         {/* Paper Plane representing request dispatch */}
@@ -90,7 +90,7 @@ const IllustrationRequestShare = () => (
 
 // Slide 3: Live Map Navigation
 const IllustrationMapNavigation = () => (
-    <Svg width={rf(180)} height={rf(140)} viewBox="0 0 180 140">
+    <Svg width={rem(11.25)} height={rem(8.75)} viewBox="0 0 180 140">
         {/* Map grid representation */}
         <Rect x="15" y="15" width="150" height="110" rx="12" fill="#E8F4F4" stroke="#008080" strokeWidth="1.5" />
 
@@ -248,7 +248,7 @@ export default function OnboardingScreen() {
                                 onPress={handleNext}
                                 activeOpacity={0.8}
                             >
-                                <Ionicons name="arrow-forward" size={rf(22)} color={COLORS.white} />
+                                <Ionicons name="arrow-forward" size={rem(1.375)} color={COLORS.white} />
                             </TouchableOpacity>
                         </>
                     ) : (
@@ -285,10 +285,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: SPACING.xl,
     },
     illustrationWrapper: {
-        width: rf(220),
-        height: rf(220),
+        width: rem(13.75),
+        height: rem(13.75),
         backgroundColor: COLORS.white,
-        borderRadius: rf(110),
+        borderRadius: rem(6.875),
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: SPACING.xl,
@@ -303,18 +303,18 @@ const styles = StyleSheet.create({
         paddingHorizontal: SPACING.md,
     },
     title: {
-        fontSize: rf(22),
+        fontSize: rem(1.375),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         textAlign: 'center',
         marginBottom: SPACING.md,
     },
     description: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.light,
         color: COLORS.text,
         textAlign: 'center',
-        lineHeight: rf(20),
+        lineHeight: rem(1.25),
         paddingHorizontal: SPACING.xs,
     },
     controlsContainer: {
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: SPACING.md,
     },
     skipText: {
-        fontSize: rf(15),
+        fontSize: rem(0.9375),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.textMuted,
     },

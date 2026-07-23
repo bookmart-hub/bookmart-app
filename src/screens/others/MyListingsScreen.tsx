@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import Header from '@/components/ui/Header';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -133,7 +133,7 @@ const MyListingsScreen = () => {
             return;
         }
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             aspect: [3, 4],
             quality: 0.6,
@@ -232,7 +232,7 @@ const MyListingsScreen = () => {
                                 <MaterialCommunityIcons name="camera-plus" size={32} color={COLORS.white} />
                             </View>
                             <Text style={styles.captureText}>Upload Cover Image</Text>
-                            <Text style={{ fontSize: rf(11), fontFamily: FONTS.manrope.medium, color: COLORS.textMuted, marginTop: 4 }}>
+                            <Text style={{ fontSize: rem(0.6875), fontFamily: FONTS.manrope.medium, color: COLORS.textMuted, marginTop: 4 }}>
                                 Tap to add Front Cover & start upload flow
                             </Text>
                         </TouchableOpacity>
@@ -546,7 +546,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.background,
     },
     previewText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: SPACING.xs,
     },
     sectionTitle: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.black,
         marginLeft: SPACING.sm,
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
     },
     gridSlot: {
         width: '31%',
-        height: rf(110),
+        height: rem(6.875),
         borderRadius: 12,
         borderWidth: 1.5,
         borderColor: COLORS.grayHeavvy,
@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
         padding: 4,
     },
     slotLabel: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
         textAlign: 'center',
@@ -623,7 +623,7 @@ const styles = StyleSheet.create({
         color: COLORS.black,
     },
     slotRequiredIndicator: {
-        fontSize: rf(8),
+        fontSize: rem(0.5),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         marginTop: 2,
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
     },
     slotBadgeText: {
         color: COLORS.white,
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.manrope.bold,
     },
     progressOverlay: {
@@ -672,7 +672,7 @@ const styles = StyleSheet.create({
     },
     progressText: {
         color: COLORS.white,
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.bold,
     },
     removeSlotBtn: {
@@ -690,7 +690,7 @@ const styles = StyleSheet.create({
         borderColor: COLORS.grayLight,
     },
     checklistTitle: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.black,
         marginBottom: 8,
@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     checklistText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginLeft: 4,
@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     captureText: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.black,
     },
@@ -799,7 +799,7 @@ const styles = StyleSheet.create({
         borderColor: COLORS.primary,
     },
     conditionText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
     },
@@ -816,7 +816,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: -20,
         right: 0,
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
     },
@@ -848,7 +848,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.primary,
     },
     radioLabel: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
     },
@@ -869,13 +869,13 @@ const styles = StyleSheet.create({
         paddingRight: SPACING.sm,
     },
     collegeName: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
         flexShrink: 1,
     },
     changeText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
@@ -890,13 +890,13 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     perfValue: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
         marginTop: 4,
     },
     perfLabel: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         textAlign: 'center',
@@ -907,7 +907,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.grayHeavvy,
     },
     listedDate: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginTop: SPACING.md,
@@ -917,18 +917,18 @@ const styles = StyleSheet.create({
         marginTop: SPACING.xs,
     },
     boostSub: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
     boostPosition: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
         marginVertical: 4,
     },
     boostDesc: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
         marginBottom: SPACING.md,
@@ -937,7 +937,7 @@ const styles = StyleSheet.create({
         height: 40,
     },
     boostBtnText: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
     },
     dangerSection: {
         backgroundColor: COLORS.redLight,
@@ -966,12 +966,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     dangerTitle: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.red,
     },
     dangerSub: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -983,7 +983,7 @@ const styles = StyleSheet.create({
     },
     deleteBtnText: {
         color: COLORS.red,
-        fontSize: rf(12),
+        fontSize: rem(0.75),
     },
     bottomBar: {
         position: 'absolute',
@@ -1007,10 +1007,10 @@ const styles = StyleSheet.create({
     },
     cancelBtn: {
         flex: 1,
-        height: rf(50),
+        height: rem(3.125),
     },
     saveBtn: {
         flex: 1,
-        height: rf(50),
+        height: rem(3.125),
     }
 });

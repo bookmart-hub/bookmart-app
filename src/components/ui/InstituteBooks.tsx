@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import HeartBurst from './HeartBrust';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -175,12 +175,12 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     headerTitle: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
@@ -213,19 +213,19 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     titleText: {
-        fontSize: rf(11.5),
+        fontSize: rem(0.71875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
         marginBottom: 1,
     },
     authorText: {
-        fontSize: rf(9.5),
+        fontSize: rem(0.59375),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.textMuted,
         marginBottom: 2,
     },
     descText: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         lineHeight: 12,
@@ -253,12 +253,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     sellerAvatarInitial: {
-        fontSize: rf(8),
+        fontSize: rem(0.5),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.white,
     },
     sellerName: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     priceText: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
     },
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
     },
     actionBtnText: {
-        fontSize: rf(9.5),
+        fontSize: rem(0.59375),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.white,
     },

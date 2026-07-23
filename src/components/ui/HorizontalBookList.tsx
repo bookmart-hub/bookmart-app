@@ -20,7 +20,7 @@ import Animated, {
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { NearestBookItem } from './NearestBooks'; // Reusing type for simplicity
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -318,12 +318,12 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     headerTitle: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
         borderRadius: 4
     },
     horizontalBadgeText: {
-        fontSize: rf(8.5),
+        fontSize: rem(0.53125),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.blue
     },
@@ -458,19 +458,19 @@ const styles = StyleSheet.create({
         bottom: 0, left: 0, right: 0, padding: 10
     },
     featuredTitle: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.white,
         marginBottom: 2
     },
     featuredAuthor: {
-        fontSize: rf(10.5),
+        fontSize: rem(0.65625),
         fontFamily: FONTS.manrope.medium,
         color: 'rgba(255,255,255,0.8)',
         marginBottom: 6
     },
     featuredPrice: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.white
     },
@@ -481,19 +481,19 @@ const styles = StyleSheet.create({
         height: '100%'
     },
     titleText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
         marginBottom: 2
     },
     authorText: {
-        fontSize: rf(9.5),
+        fontSize: rem(0.59375),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginBottom: 4
     },
     priceText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary
     },

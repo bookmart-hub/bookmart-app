@@ -23,7 +23,7 @@ import Animated, {
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -116,9 +116,9 @@ const DEFAULT_AUTHORS: AuthorItem[] = [
 
 // ── Layout constants ──────────────────────────────────────────────────────────
 
-const HORIZONTAL_PADDING = rf(20); // 16
-const COLLAPSED_WIDTH = rf(80);
-const ITEM_GAP = rf(5);
+const HORIZONTAL_PADDING = rem(1.25); // 16
+const COLLAPSED_WIDTH = rem(5);
+const ITEM_GAP = rem(0.3125);
 
 const SNAP_INTERVAL = SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - COLLAPSED_WIDTH;
 const EXPANDED_WIDTH = SNAP_INTERVAL - ITEM_GAP;
@@ -451,12 +451,12 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     headerTitle: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     headerLink: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
@@ -503,13 +503,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     authorName: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.white,
         marginBottom: 6,
     },
     authorBio: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.light,
         color: 'rgba(255,255,255,0.78)',
         lineHeight: 14,
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     star: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
     },
     starFilled: {
         color: COLORS.yellow,

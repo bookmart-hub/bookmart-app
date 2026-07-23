@@ -3,7 +3,7 @@ import { Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 
 type Props = {
@@ -19,8 +19,8 @@ const SearchChip = ({ title, onPress }: Props) => {
             onPress={onPress}
         >
             <Text style={styles.text}>{title}</Text>
-            <TouchableOpacity style={{ marginTop: rf(2) }}>
-                <Ionicons name="close" size={rf(15)} color={COLORS.text} />
+            <TouchableOpacity style={{ marginTop: rem(0.125) }}>
+                <Ionicons name="close" size={rem(0.9375)} color={COLORS.text} />
             </TouchableOpacity>
         </TouchableOpacity>
     );
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
         gap: SPACING.xs,
     },
     text: {
-        fontSize: rf(15),
+        fontSize: rem(0.9375),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
     },

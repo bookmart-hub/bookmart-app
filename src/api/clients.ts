@@ -1,8 +1,9 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { getApiUrl } from '@/utils/env';
 
 export const api = axios.create({
-    baseURL: 'https://bookmart-backend-y6of.onrender.com',
+    baseURL: getApiUrl(),
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
@@ -49,7 +50,7 @@ api.interceptors.response.use(
                 if (refreshToken) {
                     // Call refresh endpoint directly with axios (not api client) to avoid interceptor loops
                     const refreshResponse = await axios.post(
-                        'https://bookmart-backend-y6of.onrender.com/api/v1/auth/refresh/',
+                        `${getApiUrl()}/api/v1/auth/refresh/`,
                         { refresh: refreshToken }
                     );
 

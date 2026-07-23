@@ -8,7 +8,7 @@ import { LineChart } from 'react-native-gifted-charts';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { MOCK_ANALYTICS_DATA, MOCK_TOP_BOOKS, TopBook } from '@/data/analyticsMockData';
 import Header from '@/components/ui/Header';
 
@@ -71,7 +71,7 @@ const AnalyticsScreen = () => {
     };
 
     const chartWidth = width - (SPACING.lg * 4);
-    const chartHeight = rf(120);
+    const chartHeight = rem(7.5);
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
         paddingBottom: SPACING.sm,
     },
     headerTitle: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         textAlign: 'center',
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     },
     headerSubtitle: {
         paddingHorizontal: SPACING.lg,
-        fontSize: rf(18),
+        fontSize: rem(1.125),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.black,
     },
@@ -335,18 +335,18 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     trendText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
     summaryCardValue: {
-        fontSize: rf(20),
+        fontSize: rem(1.25),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: 2,
     },
     summaryCardLabel: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -372,12 +372,12 @@ const styles = StyleSheet.create({
         marginLeft: -SPACING.sm
     },
     sectionTitle: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
     },
     performanceSubtitle: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginTop: 4,
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.primary,
     },
     segmentText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.textMuted,
     },
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     },
     axisText: {
         color: COLORS.textMuted,
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.medium,
     },
     chartLegend: {
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
         marginRight: 6,
     },
     legendText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.black,
     },
@@ -467,12 +467,12 @@ const styles = StyleSheet.create({
         marginRight: SPACING.md,
     },
     activeListingsTitle: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
     },
     activeListingsSub: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginTop: 2,
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
         alignItems: 'baseline',
     },
     activeListingsCount: {
-        fontSize: rf(28),
+        fontSize: rem(1.75),
         fontFamily: FONTS.montserrat.medium,
         color: COLORS.primary,
         marginRight: 4,
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     seeAllText: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
     bookRank: {
         width: 24,
         textAlign: 'center',
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
     },
@@ -537,13 +537,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     bookTitle: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.black,
         marginBottom: 2,
     },
     bookAuthor: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginBottom: 8,
@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     bookStatText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
         paddingRight: SPACING.sm,
     },
     earningsText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.black,
         marginBottom: 4,
@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
         gap: 2,
     },
     trendLabel: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.bold,
     },
 });

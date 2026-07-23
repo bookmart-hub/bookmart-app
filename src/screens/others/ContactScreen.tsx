@@ -21,7 +21,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 
 import Header from '@/components/ui/Header';
 import SearchBar from '@/components/ui/SearchBar';
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.background,
     },
     sectionHeaderTitle: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.textMuted,
         letterSpacing: 1.2,
@@ -406,14 +406,14 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     contactName: {
-        fontSize: rf(15),
+        fontSize: rem(0.9375),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         flex: 1,
         marginRight: SPACING.sm,
     },
     timestamp: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
         maxWidth: '100%',
     },
     bookBadgeText: {
-        fontSize: rf(9.5),
+        fontSize: rem(0.59375),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     lastMessage: {
-        fontSize: rf(12.5),
+        fontSize: rem(0.78125),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         flex: 1,
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     },
     unreadBadgeText: {
         color: COLORS.white,
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.manrope.bold,
     },
     whatsappIconWrapper: {
@@ -503,14 +503,14 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.lg,
     },
     emptyTitle: {
-        fontSize: rf(17),
+        fontSize: rem(1.0625),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: SPACING.sm,
         textAlign: 'center',
     },
     emptySubtitle: {
-        fontSize: rf(12.5),
+        fontSize: rem(0.78125),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         textAlign: 'center',

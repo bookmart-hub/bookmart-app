@@ -7,7 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rf, rem } from '@/utils/responsive';
 import { StatusBar } from 'expo-status-bar';
 import { Button, Dialog, Divider, Menu, Portal, Text } from 'react-native-paper';
 import { Image } from 'expo-image';
@@ -442,12 +442,12 @@ const ProfileScreen = () => {
                     onDismiss={hideLogoutDialog}
                     style={{ backgroundColor: COLORS.white, borderRadius: 16 }}
                 >
-                    <Dialog.Title style={{ fontFamily: FONTS.montserrat.bold, color: COLORS.black, fontSize: rf(18) }}>
+                    <Dialog.Title style={{ fontFamily: FONTS.montserrat.bold, color: COLORS.black, fontSize: rem(1.125) }}>
                         Logout
                     </Dialog.Title>
 
                     <Dialog.Content>
-                        <Text style={{ fontFamily: FONTS.manrope.medium, color: COLORS.textMuted, fontSize: rf(14) }}>
+                        <Text style={{ fontFamily: FONTS.manrope.medium, color: COLORS.textMuted, fontSize: rem(0.875) }}>
                             Are you sure you want to log out?
                         </Text>
                     </Dialog.Content>
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.lg,
     },
     headerTitle: {
-        fontSize: rf(20),
+        fontSize: rem(1.25),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
         marginBottom: 6,
     },
     profileName: {
-        fontSize: rf(20),
+        fontSize: rem(1.25),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
         marginRight: 8,
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
         gap: 2,
     },
     topSellerText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.black,
     },
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     infoText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
         flexShrink: 1,
@@ -596,13 +596,13 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.15)',
     },
     statValue: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.white,
         marginBottom: 2,
     },
     statLabel: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.regular,
         color: 'rgba(255, 255, 255, 0.8)',
     },
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.xl,
     },
     sectionTitle: {
-        fontSize: rf(15),
+        fontSize: rem(0.9375),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
         marginBottom: SPACING.md,
@@ -650,7 +650,7 @@ const styles = StyleSheet.create({
         marginBottom: 6,
     },
     quickActionText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.black,
         textAlign: 'center',
@@ -680,13 +680,13 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     toolTitle: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.black,
         marginBottom: 2,
     },
     toolSubtitle: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -697,7 +697,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     proBadgeText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
     },
@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     seeAllText: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
@@ -737,13 +737,13 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     activityTitle: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.black,
         marginBottom: 4,
     },
     activityTime: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },

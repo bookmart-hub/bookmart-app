@@ -9,7 +9,7 @@ import { Image } from 'expo-image';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { StatusBar } from 'expo-status-bar';
 import Header from '@/components/ui/Header';
 
@@ -304,13 +304,13 @@ const styles = StyleSheet.create({
         paddingRight: SPACING.md,
     },
     heroTitle: {
-        fontSize: rf(22),
+        fontSize: rem(1.375),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
         marginBottom: SPACING.xs,
     },
     heroSubtitle: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.black,
         lineHeight: 20,
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     },
     infoText: {
         flex: 1,
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.text,
         lineHeight: 18,
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.xl,
     },
     sectionTitle: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: SPACING.md,
@@ -383,10 +383,10 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         alignItems: 'center',
         marginBottom: SPACING.sm,
-        minHeight: rf(24),
+        minHeight: rem(1.5),
     },
     planName: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.montserrat.bold,
     },
     popularBadge: {
@@ -397,24 +397,24 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
     },
     popularBadgeText: {
-        fontSize: rf(8),
+        fontSize: rem(0.5),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.white,
     },
     planBooksText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.text,
         textAlign: 'center',
     },
     planPrice: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginTop: SPACING.md,
     },
     planPriceSuffix: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
     },
@@ -443,12 +443,12 @@ const styles = StyleSheet.create({
         marginRight: SPACING.sm,
     },
     currentPlanTitle: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
     },
     currentPlanSubtitle: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         marginTop: 2,
@@ -456,10 +456,10 @@ const styles = StyleSheet.create({
     managePlanBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: rf(5),
+        paddingVertical: rem(0.3125),
     },
     managePlanText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
         marginRight: 2,
@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.sm,
     },
     usageCountText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
     },
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
         borderRadius: 4,
     },
     usageSubText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         textAlign: 'center',
@@ -518,19 +518,19 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     bookTitle: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.black,
         marginBottom: 2,
     },
     bookAuthor: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         marginBottom: SPACING.xs,
     },
     bookPrice: {
-        fontSize: rf(15),
+        fontSize: rem(0.9375),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
     },
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
         marginTop: SPACING.sm,
     },
     boostedBadgeText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
         marginLeft: 2,
@@ -583,13 +583,13 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     addMoreText: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.primary,
         marginLeft: 4,
     },
     addMoreSub: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
     },
@@ -617,13 +617,13 @@ const styles = StyleSheet.create({
         paddingRight: SPACING.md,
     },
     selectedCountText: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: 4,
     },
     bottomBarSub: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         lineHeight: 16,
@@ -639,7 +639,7 @@ const styles = StyleSheet.create({
         marginBottom: 6,
     },
     boostNowText: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.white,
     },
@@ -654,7 +654,7 @@ const styles = StyleSheet.create({
         marginRight: 4,
     },
     coinText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
     },

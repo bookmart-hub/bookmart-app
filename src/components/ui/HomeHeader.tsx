@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rf, rem } from '@/utils/responsive';
 import { StatusBar } from 'expo-status-bar';
 import { BookMartLogo } from '@/constants/svgs';
 
@@ -26,7 +26,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = memo(({
     <View style={styles.container}>
       <StatusBar style='dark' />
       {/* Brand Logo */}
-      <BookMartLogo width={rf(140)} height={rf(45)} style={{ marginLeft: rf(-10) }} />
+      <BookMartLogo width={rem(8.75)} height={rem(2.8125)} style={{ marginLeft: rf(-10) }} />
 
       {/* Right Actions */}
       <View style={styles.rightSection}>
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.sm,
   },
   brandLogo: {
-    fontSize: rf(22),
+    fontSize: rem(1.375),
     fontFamily: FONTS.montserrat.regular,
     color: COLORS.primary,
     lineHeight: 28,
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: COLORS.white,
-    fontSize: rf(8),
+    fontSize: rem(0.5),
     fontFamily: FONTS.montserrat.bold,
     lineHeight: 12,
   },

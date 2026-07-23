@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@/constants/colors';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 
 const { width } = Dimensions.get('window');
 
@@ -235,21 +235,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   logo: {
-    width: rf(110),
-    height: rf(110),
+    width: rem(6.875),
+    height: rem(6.875),
     marginBottom: 20,
   },
   textWrapper: {
     alignItems: 'center',
   },
   title: {
-    fontSize: rf(26),
+    fontSize: rem(1.625),
     color: COLORS.primary,
     fontWeight: '700',
     letterSpacing: 1.5,
   },
   subtitle: {
-    fontSize: rf(12),
+    fontSize: rem(0.75),
     color: COLORS.textMuted,
     marginTop: 6,
     letterSpacing: 0.5,

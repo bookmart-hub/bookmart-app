@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import Header from '@/components/ui/Header';
 import { Button } from '@/components/ui/Button';
 import { StatusBar } from 'expo-status-bar';
@@ -275,13 +275,13 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.xl,
     },
     sectionTitle: {
-        fontSize: rf(16),
+        fontSize: rem(1),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         marginBottom: 4,
     },
     sectionSub: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginBottom: SPACING.md,
@@ -316,12 +316,12 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     collegeName: {
-        fontSize: rf(11.5),
+        fontSize: rem(0.71875),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     collegeUniv: {
-        fontSize: rf(9.5),
+        fontSize: rem(0.59375),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginTop: 2,
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
     },
     changeCollegeText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
@@ -360,19 +360,19 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     statNum: {
-        fontSize: rf(18),
+        fontSize: rem(1.125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
         marginBottom: 4,
     },
     statTitle: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.text,
         textAlign: 'center',
     },
     statDesc: {
-        fontSize: rf(8),
+        fontSize: rem(0.5),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
         textAlign: 'center',
@@ -386,12 +386,12 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.md,
     },
     sectionTitleSmall: {
-        fontSize: rf(14),
+        fontSize: rem(0.875),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
     },
     sectionSubSmall: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginTop: 2,
@@ -407,12 +407,12 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     filterText: {
-        fontSize: rf(10),
+        fontSize: rem(0.625),
         fontFamily: FONTS.manrope.semibold,
         color: COLORS.text,
     },
     axisText: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
     },
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
         height: 2,
     },
     legendText: {
-        fontSize: rf(9.5),
+        fontSize: rem(0.59375),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     viewAllText: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.primary,
     },
@@ -501,19 +501,19 @@ const styles = StyleSheet.create({
         zIndex: 1,
     },
     bookTitle: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.text,
         marginBottom: 2,
     },
     bookAuthor: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         marginBottom: 4,
     },
     bookPrice: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
     },
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     metricText: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.manrope.regular,
         color: COLORS.textMuted,
     },
@@ -546,7 +546,7 @@ const styles = StyleSheet.create({
         borderBottomColor: COLORS.grayHeavvy,
     },
     rankText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
         width: 20,
@@ -571,13 +571,13 @@ const styles = StyleSheet.create({
         paddingRight: SPACING.sm,
     },
     leaderboardName: {
-        fontSize: rf(11),
+        fontSize: rem(0.6875),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
         marginBottom: 2,
     },
     leaderboardUniv: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
     },
@@ -585,12 +585,12 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
     },
     leaderboardBooks: {
-        fontSize: rf(13),
+        fontSize: rem(0.8125),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.primary,
     },
     leaderboardBooksLabel: {
-        fontSize: rf(9),
+        fontSize: rem(0.5625),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.primary,
     },
@@ -618,25 +618,25 @@ const styles = StyleSheet.create({
         marginRight: SPACING.sm,
     },
     inviteTitle: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.text,
         marginBottom: 4,
     },
     inviteDesc: {
-        fontSize: rf(9.5),
+        fontSize: rem(0.59375),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.textMuted,
         lineHeight: 14,
     },
     inviteBtn: {
-        height: rf(32),
-        width: rf(70),
+        height: rem(2),
+        width: rem(4.375),
         alignItems: 'center',
         justifyContent: 'center',
     },
     inviteBtnText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
     },
 });

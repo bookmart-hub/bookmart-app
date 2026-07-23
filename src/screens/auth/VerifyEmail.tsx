@@ -22,7 +22,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '@/constants/colors';
 import { FONTS } from '@/constants/fonts';
 import { SPACING } from '@/constants/spacings';
-import { rf } from '@/utils/responsive';
+import { rem } from '@/utils/responsive';
 import { Button } from '@/components/ui/Button';
 import { AuthStackParamList } from '@/navigation/AuthNavigator';
 
@@ -235,14 +235,14 @@ const styles = StyleSheet.create({
         marginBottom: 40,
     },
     headingText: {
-        fontSize: rf(25),
+        fontSize: rem(1.5625),
         fontFamily: FONTS.montserrat.bold,
         color: COLORS.black,
         lineHeight: 34,
         marginBottom: SPACING.sm,
     },
     subHeadingText: {
-        fontSize: rf(12),
+        fontSize: rem(0.75),
         fontFamily: FONTS.manrope.medium,
         color: COLORS.completeTransparency,
         lineHeight: 20,
@@ -254,14 +254,14 @@ const styles = StyleSheet.create({
         marginBottom: 40,
     },
     otpInput: {
-        width: rf(64),
-        height: rf(68),
+        width: rem(4),
+        height: rem(4.25),
         borderRadius: 16,
         borderWidth: 1,
         borderColor: 'transparent',
         backgroundColor: COLORS.white,
         textAlign: 'center',
-        fontSize: rf(24),
+        fontSize: rem(1.5),
         fontFamily: FONTS.montserrat.semibold,
         color: COLORS.black,
         // Soft shadow for inputs
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
         marginBottom: 30,
     },
     resendText: {
-        fontSize: rf(15),
+        fontSize: rem(0.9375),
         fontFamily: FONTS.manrope.bold,
         color: COLORS.black,
     },
