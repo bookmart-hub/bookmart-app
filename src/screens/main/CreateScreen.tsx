@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, ToastAndroid, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Dimensions, ToastAndroid, Alert, Platform, Modal, ActivityIndicator } from 'react-native';
+import { api } from '@/api/clients';
 
 const showToast = (message: string) => {
     if (Platform.OS === 'android') {
@@ -52,7 +53,17 @@ const CreateScreen = () => {
     const [category, setCategory] = useState('');
     const [images, setImages] = useState<(string | null)[]>([null, null, null, null, null, null]);
     const [uploadProgress, setUploadProgress] = useState<number[]>([0, 0, 0, 0, 0, 0]);
-    const uploadIntervals = React.useRef<{ [key: number]: NodeJS.Timeout }>({});
+    const uploadIntervals = React.useRef<{ [key: number]: any }>({});
+
+    const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
+    const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
+    const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
+    const [selectedSuggestion, setSelectedSuggestion] = useState<any | null>(null);
+    const [selectedChipCategory, setSelectedChipCategory] = useState('');
+    const [manualCategory, setManualCategory] = useState('');
+    const [bookId, setBookId] = useState<number | null>(null);
+    const [showSuggestions, setShowSuggestions] = useState(false);
 
     const BOOK_CATEGORIES = [
         { id: 'science_fiction', label: 'Science Fiction' },
@@ -72,6 +83,116 @@ const CreateScreen = () => {
             Object.values(uploadIntervals.current).forEach(clearInterval);
         };
     }, []);
+
+    React.useEffect(() => {
+        if (!showSuggestions || title.trim().length < 2) {
+            setSearchSuggestions([]);
+            return;
+        }
+
+        setIsLoadingSuggestions(true);
+        const delayDebounceFn = setTimeout(async () => {
+            try {
+                const response = await api.get('/api/v1/book/search/', {
+                    params: { q: title }
+                });
+                setSearchSuggestions(response.data || []);
+            } catch (err) {
+                console.error("Error searching books:", err);
+            } finally {
+                setIsLoadingSuggestions(false);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [title, showSuggestions]);
+
+    const handleSelectSuggestion = (suggestion: any) => {
+        setSelectedSuggestion(suggestion);
+        setSelectedChipCategory('');
+        setManualCategory('');
+        setShowSuggestions(false);
+        setIsCategoryModalVisible(true);
+    };
+
+    const handleImportBook = async () => {
+        if (!selectedSuggestion) return;
+        const finalCategory = selectedChipCategory || manualCategory.trim();
+        
+        setIsImporting(true);
+        try {
+            const response = await api.post('/api/v1/book/import-openlibrary/', {
+                openlibrary_key: selectedSuggestion.openlibrary_key,
+                category: finalCategory || null
+            });
+            
+            const importedBook = response.data;
+            setTitle(importedBook.title || '');
+            setAuthor(importedBook.authors?.join(', ') || '');
+            setBookId(importedBook.book_id || null);
+            
+            if (importedBook.categories && importedBook.categories.length > 0) {
+                const matchedCategory = BOOK_CATEGORIES.find(c =>
+                    importedBook.categories.some((rc: string) => 
+                        rc.toLowerCase().replace(/[^a-z0-9]/g, '') === c.label.toLowerCase().replace(/[^a-z0-9]/g, '')
+                    )
+                );
+                if (matchedCategory) {
+                    setCategory(matchedCategory.id);
+                } else {
+                    setCategory('other');
+                }
+            } else {
+                setCategory('other');
+            }
+
+            showToast("Book imported successfully");
+            setIsCategoryModalVisible(false);
+        } catch (err: any) {
+            console.error("Error importing book:", err);
+            showToast(err.response?.data?.detail || "Failed to import book.");
+        } finally {
+            setIsImporting(false);
+        }
+    };
+
+    const handleManualInsert = async () => {
+        setShowSuggestions(false);
+        setIsImporting(true);
+        try {
+            const response = await api.post('/api/v1/book/manual/', {
+                title: title,
+                author: author || "Unknown"
+            });
+
+            const manualBook = response.data;
+            setTitle(manualBook.title || '');
+            setAuthor(manualBook.authors?.join(', ') || '');
+            setBookId(manualBook.book_id || null);
+            
+            if (manualBook.categories && manualBook.categories.length > 0) {
+                const matchedCategory = BOOK_CATEGORIES.find(c =>
+                    manualBook.categories.some((rc: string) => 
+                        rc.toLowerCase().replace(/[^a-z0-9]/g, '') === c.label.toLowerCase().replace(/[^a-z0-9]/g, '')
+                    )
+                );
+                if (matchedCategory) {
+                    setCategory(matchedCategory.id);
+                } else {
+                    setCategory('other');
+                }
+            } else {
+                setCategory('other');
+            }
+
+            showToast("Manual book entry created");
+        } catch (err: any) {
+            console.error("Error creating book manually:", err);
+            showToast(err.response?.data?.detail || "Failed to create manual book.");
+        } finally {
+            setIsImporting(false);
+        }
+    };
 
     const simulateUpload = (index: number) => {
         if (uploadIntervals.current[index]) {
@@ -445,9 +566,62 @@ const CreateScreen = () => {
                                     <Input
                                         placeholder="Book Title"
                                         value={title}
-                                        onChangeText={setTitle}
+                                        onChangeText={(text) => {
+                                            setTitle(text);
+                                            setShowSuggestions(true);
+                                        }}
                                         autoCapitalize="words"
                                     />
+                                    {showSuggestions && (title.trim().length >= 2) && (
+                                        <View style={styles.suggestionsContainer}>
+                                            {isLoadingSuggestions ? (
+                                                <View style={styles.suggestionsLoading}>
+                                                    <ActivityIndicator size="small" color={COLORS.primary} />
+                                                    <Text style={styles.suggestionsLoadingText}>Loading suggestions...</Text>
+                                                </View>
+                                            ) : (
+                                                <ScrollView style={{ maxHeight: rem(12.5) }} keyboardShouldPersistTaps="handled">
+                                                    {searchSuggestions.map((item, index) => (
+                                                        <TouchableOpacity
+                                                            key={item.id || item.openlibrary_key || index}
+                                                            style={styles.suggestionItem}
+                                                            onPress={() => handleSelectSuggestion(item)}
+                                                        >
+                                                            <View style={styles.suggestionIconWrapper}>
+                                                                <Ionicons name="book-outline" size={18} color={COLORS.primary} />
+                                                            </View>
+                                                            <View style={styles.suggestionTextContainer}>
+                                                                <Text style={styles.suggestionTitleText} numberOfLines={1}>
+                                                                    {item.title}
+                                                                </Text>
+                                                                <Text style={styles.suggestionAuthorText} numberOfLines={1}>
+                                                                    by {item.authors?.join(', ') || 'Unknown Author'}
+                                                                </Text>
+                                                            </View>
+                                                        </TouchableOpacity>
+                                                    ))}
+                                                    
+                                                    {/* Manual insertion option */}
+                                                    <TouchableOpacity
+                                                        style={styles.manualSuggestionItem}
+                                                        onPress={handleManualInsert}
+                                                    >
+                                                        <View style={styles.manualSuggestionIconWrapper}>
+                                                            <Ionicons name="create-outline" size={18} color={COLORS.blue} />
+                                                        </View>
+                                                        <View style={styles.suggestionTextContainer}>
+                                                            <Text style={styles.manualSuggestionTitleText} numberOfLines={1}>
+                                                                Add "{title}" manually
+                                                            </Text>
+                                                            <Text style={styles.manualSuggestionSubText}>
+                                                                Not found in search? Insert details manually.
+                                                            </Text>
+                                                        </View>
+                                                    </TouchableOpacity>
+                                                </ScrollView>
+                                            )}
+                                        </View>
+                                    )}
                                 </View>
                                 <View style={styles.inputGroup}>
                                     <Text style={styles.inputLabel}>Author<Text style={styles.asterisk}>*</Text></Text>
@@ -670,6 +844,89 @@ const CreateScreen = () => {
                     </>
                 )}
             </ScrollView>
+
+            <Modal
+                visible={isCategoryModalVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setIsCategoryModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Select Category</Text>
+                        <Text style={styles.modalSubtitle}>
+                            Assign a category for "{selectedSuggestion?.title}" to import it.
+                        </Text>
+
+                        {/* Chips container */}
+                        <Text style={styles.modalSectionLabel}>Suggested Categories:</Text>
+                        {selectedSuggestion?.categories && selectedSuggestion.categories.length > 0 ? (
+                            <View style={styles.modalChipsContainer}>
+                                {selectedSuggestion.categories.map((cat: string, index: number) => {
+                                    const isSelected = selectedChipCategory === cat;
+                                    return (
+                                        <TouchableOpacity
+                                            key={index}
+                                            style={[
+                                                styles.categoryChip,
+                                                isSelected && styles.categoryChipActive
+                                            ]}
+                                            onPress={() => {
+                                                setSelectedChipCategory(cat);
+                                                setManualCategory('');
+                                            }}
+                                        >
+                                            <Text style={[
+                                                styles.categoryChipText,
+                                                isSelected && styles.categoryChipTextActive
+                                            ]}>
+                                                {cat}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        ) : (
+                            <Text style={styles.noCategoriesText}>No suggested categories found for this book.</Text>
+                        )}
+
+                        {/* Manual entry */}
+                        <Text style={styles.modalSectionLabel}>Or Enter Custom Category:</Text>
+                        <Input
+                            placeholder="e.g. Science, Fiction, History"
+                            value={manualCategory}
+                            onChangeText={(text) => {
+                                setManualCategory(text);
+                                setSelectedChipCategory('');
+                            }}
+                        />
+
+                        {/* Action buttons */}
+                        <View style={styles.modalButtonsRow}>
+                            <TouchableOpacity
+                                style={styles.modalCancelButton}
+                                onPress={() => setIsCategoryModalVisible(false)}
+                            >
+                                <Text style={styles.modalCancelButtonText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[
+                                    styles.modalSubmitButton,
+                                    isImporting && styles.modalSubmitButtonDisabled
+                                ]}
+                                onPress={handleImportBook}
+                                disabled={isImporting}
+                            >
+                                {isImporting ? (
+                                    <ActivityIndicator size="small" color={COLORS.white} />
+                                ) : (
+                                    <Text style={styles.modalSubmitButtonText}>Import Book</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
 
         </View>
     );
@@ -1189,5 +1446,195 @@ const styles = StyleSheet.create({
     },
     categoryPillTextActive: {
         color: COLORS.white,
+    },
+    suggestionsContainer: {
+        position: 'absolute',
+        top: 85,
+        left: 0,
+        right: 0,
+        backgroundColor: COLORS.white,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy,
+        zIndex: 1000,
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 10,
+        elevation: 5,
+        overflow: 'hidden',
+    },
+    suggestionsLoading: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: SPACING.md,
+        justifyContent: 'center',
+    },
+    suggestionsLoadingText: {
+        marginLeft: 8,
+        fontSize: rem(0.8125),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
+    },
+    suggestionItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: SPACING.md,
+        borderBottomWidth: 1,
+        borderBottomColor: COLORS.grayLight,
+    },
+    suggestionIconWrapper: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: COLORS.secondary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 12,
+    },
+    suggestionTextContainer: {
+        flex: 1,
+    },
+    suggestionTitleText: {
+        fontSize: rem(0.875),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.black,
+    },
+    suggestionAuthorText: {
+        fontSize: rem(0.75),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
+        marginTop: 2,
+    },
+    manualSuggestionItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: SPACING.md,
+        backgroundColor: '#F5F9FF',
+    },
+    manualSuggestionIconWrapper: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#E6F0FF',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 12,
+    },
+    manualSuggestionTitleText: {
+        fontSize: rem(0.875),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.blue,
+    },
+    manualSuggestionSubText: {
+        fontSize: rem(0.75),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
+        marginTop: 2,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        width: '85%',
+        backgroundColor: COLORS.white,
+        borderRadius: 20,
+        padding: 20,
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+        elevation: 10,
+    },
+    modalTitle: {
+        fontSize: rem(1.125),
+        fontFamily: FONTS.montserrat.bold,
+        color: COLORS.black,
+        marginBottom: 8,
+    },
+    modalSubtitle: {
+        fontSize: rem(0.8125),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
+        marginBottom: 16,
+    },
+    modalSectionLabel: {
+        fontSize: rem(0.8125),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.black,
+        marginTop: 8,
+        marginBottom: 8,
+    },
+    modalChipsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginBottom: 12,
+    },
+    categoryChip: {
+        backgroundColor: COLORS.grayLight,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: COLORS.grayHeavvy,
+    },
+    categoryChipActive: {
+        backgroundColor: COLORS.primary,
+        borderColor: COLORS.primary,
+    },
+    categoryChipText: {
+        fontSize: rem(0.75),
+        fontFamily: FONTS.manrope.bold,
+        color: COLORS.textMuted,
+    },
+    categoryChipTextActive: {
+        color: COLORS.white,
+    },
+    noCategoriesText: {
+        fontSize: rem(0.75),
+        fontFamily: FONTS.manrope.medium,
+        color: COLORS.textMuted,
+        marginBottom: 12,
+    },
+    modalButtonsRow: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        gap: 12,
+        marginTop: 20,
+    },
+    modalCancelButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalCancelButtonText: {
+        color: COLORS.textMuted,
+        fontFamily: FONTS.manrope.bold,
+        fontSize: rem(0.875),
+    },
+    modalSubmitButton: {
+        backgroundColor: COLORS.primary,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+        minWidth: 100,
+    },
+    modalSubmitButtonDisabled: {
+        backgroundColor: COLORS.grayHeavvy,
+    },
+    modalSubmitButtonText: {
+        color: COLORS.white,
+        fontFamily: FONTS.manrope.bold,
+        fontSize: rem(0.875),
     },
 });
