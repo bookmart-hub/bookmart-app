@@ -1,42 +1,58 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '@/constants/colors';
-import { FONTS } from '@/constants/fonts';
-import { SPACING } from '@/constants/spacings';
-import { rem } from '@/utils/responsive';
-import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { COLORS } from "@/constants/colors";
+import { FONTS } from "@/constants/fonts";
+import { SPACING } from "@/constants/spacings";
+import { rem } from "@/utils/responsive";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const SavedAddressesScreen = () => {
-    const navigation = useNavigation<any>();
+  const navigation = useNavigation<any>();
 
-    return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color={COLORS.black} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>S av ed Ad dr es se s</Text>
-            </View>
-            <View style={styles.content}>
-                <Ionicons name="construct-outline" size={64} color={COLORS.grayLight} style={{marginBottom: 16}} />
-                <Text style={styles.title}>Coming Soon</Text>
-                <Text style={styles.subtitle}>We're working hard to bring you this feature.</Text>
-            </View>
-        </SafeAreaView>
-    );
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={COLORS.black} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>S av ed Ad dr es se s</Text>
+      </View>
+      <View style={styles.content}>
+        <Ionicons name="construct-outline" size={64} color={COLORS.grayLight} style={{ marginBottom: 16 }} />
+        <Text style={styles.title}>Coming Soon</Text>
+        <Text style={styles.subtitle}>We're working hard to bring you this feature.</Text>
+      </View>
+    </SafeAreaView>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.background },
-    header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, borderBottomWidth: 1, borderBottomColor: COLORS.grayLight },
-    backButton: { padding: SPACING.xs, marginRight: SPACING.sm },
-    headerTitle: { fontSize: rem(1.125), fontFamily: FONTS.montserrat.bold, color: COLORS.black },
-    content: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.lg },
-    title: { fontSize: rem(1.25), fontFamily: FONTS.montserrat.bold, color: COLORS.black, marginBottom: SPACING.xs },
-    subtitle: { fontSize: rem(0.875), fontFamily: FONTS.manrope.medium, color: COLORS.textMuted, textAlign: 'center' },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.grayLight,
+  },
+  backButton: { padding: SPACING.xs, marginRight: SPACING.sm },
+  headerTitle: { fontSize: rem(1.125), fontFamily: FONTS.montserrat.bold, color: COLORS.black },
+  content: { flex: 1, justifyContent: "center", alignItems: "center", padding: SPACING.lg },
+  title: {
+    fontSize: rem(1.25),
+    fontFamily: FONTS.montserrat.bold,
+    color: COLORS.black,
+    marginBottom: SPACING.xs,
+  },
+  subtitle: {
+    fontSize: rem(0.875),
+    fontFamily: FONTS.manrope.medium,
+    color: COLORS.textMuted,
+    textAlign: "center",
+  },
 });
 
 export default SavedAddressesScreen;

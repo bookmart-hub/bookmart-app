@@ -1,18 +1,10 @@
-import React, { useState } from 'react';
-import {
-  StyleSheet,
-  TextInput,
-  View,
-  Text,
-  TouchableOpacity,
-  ViewStyle,
-  TextInputProps
-} from 'react-native';
-import { COLORS } from '@/constants/colors';
-import { FONTS } from '@/constants/fonts';
-import { SPACING } from '@/constants/spacings';
-import { Feather } from '@expo/vector-icons';
-import { rem } from '@/utils/responsive';
+import { COLORS } from "@/constants/colors";
+import { FONTS } from "@/constants/fonts";
+import { SPACING } from "@/constants/spacings";
+import { rem } from "@/utils/responsive";
+import { Feather } from "@expo/vector-icons";
+import React, { useState } from "react";
+import { StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, View, ViewStyle } from "react-native";
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -59,18 +51,19 @@ export const Input: React.FC<InputProps> = ({
       <View
         style={[
           styles.inputContainer,
-          multiline && { height: undefined, minHeight: 100, paddingVertical: 12, alignItems: 'flex-start' },
+          multiline && {
+            height: undefined,
+            minHeight: 100,
+            paddingVertical: 12,
+            alignItems: "flex-start",
+          },
           isFocused && styles.focusedInput,
           !!error && styles.errorInput,
         ]}
       >
         {prefix}
         <TextInput
-          style={[
-            styles.input,
-            multiline && { textAlignVertical: 'top', paddingTop: 0, paddingBottom: 0 },
-            style
-          ]}
+          style={[styles.input, multiline && { textAlignVertical: "top", paddingTop: 0, paddingBottom: 0 }, style]}
           placeholderTextColor={COLORS.textMuted}
           secureTextEntry={isSecure}
           onFocus={handleFocus}
@@ -86,11 +79,7 @@ export const Input: React.FC<InputProps> = ({
             onPress={() => setPasswordVisible(!passwordVisible)}
             activeOpacity={0.7}
           >
-            <Feather
-              name={passwordVisible ? "eye" : "eye-off"}
-              size={20}
-              color={COLORS.textMuted}
-            />
+            <Feather name={passwordVisible ? "eye" : "eye-off"} size={20} color={COLORS.textMuted} />
           </TouchableOpacity>
         )}
       </View>
@@ -101,7 +90,7 @@ export const Input: React.FC<InputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
+    width: "100%",
     marginVertical: SPACING.sm,
   },
   label: {
@@ -111,8 +100,8 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     height: 56,
     borderWidth: 1,
     borderColor: COLORS.grayHeavvy, // light gray border
@@ -128,15 +117,15 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    height: '100%',
+    height: "100%",
     color: COLORS.black,
     fontSize: rem(1),
     fontFamily: FONTS.manrope.medium,
   },
   iconContainer: {
     padding: SPACING.xs,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   errorText: {
     fontSize: rem(0.75),

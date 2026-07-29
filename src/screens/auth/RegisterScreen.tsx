@@ -1,34 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
-  Alert,
-  ToastAndroid,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import Svg, { Path } from 'react-native-svg';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import React, { useEffect, useState } from "react";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, ToastAndroid, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
 
-import { COLORS } from '@/constants/colors';
-import { FONTS } from '@/constants/fonts';
-import { SPACING } from '@/constants/spacings';
-import { AuthStackParamList } from '@/navigation/AuthNavigator';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Checkbox } from '@/components/ui/Checkbox';
-import { rem } from '@/utils/responsive';
+import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Input } from "@/components/ui/Input";
+import { COLORS } from "@/constants/colors";
+import { FONTS } from "@/constants/fonts";
+import { SPACING } from "@/constants/spacings";
+import { AuthStackParamList } from "@/navigation/AuthNavigator";
+import { rem } from "@/utils/responsive";
 
-import { useMutation } from '@tanstack/react-query';
-import { registerUser } from '@/types/auth';
-import { StatusBar } from 'expo-status-bar';
+import { registerUser } from "@/types/auth";
+import { useMutation } from "@tanstack/react-query";
+import { StatusBar } from "expo-status-bar";
 
-type RegisterScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Register'>;
+type RegisterScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, "Register">;
 
 // Google multi-colored G SVG icon component
 const GoogleIcon = () => (
@@ -59,22 +50,21 @@ const FacebookIcon = () => (
   </View>
 );
 
-
 const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<RegisterScreenNavigationProp>();
 
-  const [fullname, setFullname] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [fullname, setFullname] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [loadingText, setLoadingText] = useState('Signing up');
+  const [loadingText, setLoadingText] = useState("Signing up");
 
   const registerMutation = useMutation({
     mutationFn: registerUser,
 
     onSuccess: () => {
-      ToastAndroid.show('Account created successfully!', ToastAndroid.SHORT);
-      navigation.replace('VerifyEmail', { email });
+      ToastAndroid.show("Account created successfully!", ToastAndroid.SHORT);
+      navigation.replace("VerifyEmail", { email });
     },
 
     onError: (error: any) => {
@@ -83,12 +73,12 @@ const RegisterScreen: React.FC = () => {
         error?.response?.data?.email?.[0] ||
         error?.response?.data?.full_name?.[0] ||
         error?.response?.data?.password?.[0] ||
-        'Registration failed';
+        "Registration failed";
 
-      if (Platform.OS === 'android') {
+      if (Platform.OS === "android") {
         ToastAndroid.show(message, ToastAndroid.LONG);
       } else {
-        Alert.alert('Error', message);
+        Alert.alert("Error", message);
       }
     },
   });
@@ -100,7 +90,7 @@ const RegisterScreen: React.FC = () => {
 
     const interval = setInterval(() => {
       count = (count + 1) % 4;
-      setLoadingText(`Signing up${'.'.repeat(count)}`);
+      setLoadingText(`Signing up${".".repeat(count)}`);
     }, 400);
 
     return () => clearInterval(interval);
@@ -108,52 +98,46 @@ const RegisterScreen: React.FC = () => {
 
   // Helper function to trigger platform-appropriate notifications
   const showToastOrAlert = (message: string) => {
-    if (Platform.OS === 'android') {
-      ToastAndroid.showWithGravityAndOffset(
-        message,
-        ToastAndroid.LONG,
-        ToastAndroid.BOTTOM,
-        25,
-        50
-      );
+    if (Platform.OS === "android") {
+      ToastAndroid.showWithGravityAndOffset(message, ToastAndroid.LONG, ToastAndroid.BOTTOM, 25, 50);
     } else {
-      Alert.alert('Validation Error', message);
+      Alert.alert("Validation Error", message);
     }
   };
 
   const validateForm = () => {
     if (!fullname.trim()) {
-      showToastOrAlert('Full name is required');
+      showToastOrAlert("Full name is required");
       return false;
     }
 
     if (fullname.trim().length < 3) {
-      showToastOrAlert('Username must be at least 3 characters');
+      showToastOrAlert("Username must be at least 3 characters");
       return false;
     }
 
     if (!email.trim()) {
-      showToastOrAlert('Email is required');
+      showToastOrAlert("Email is required");
       return false;
     }
 
     if (!/\S+@\S+\.\S+/.test(email)) {
-      showToastOrAlert('Please enter a valid email address');
+      showToastOrAlert("Please enter a valid email address");
       return false;
     }
 
     if (!password) {
-      showToastOrAlert('Password is required');
+      showToastOrAlert("Password is required");
       return false;
     }
 
     if (password.length < 6) {
-      showToastOrAlert('Password must be at least 6 characters');
+      showToastOrAlert("Password must be at least 6 characters");
       return false;
     }
 
     if (!acceptedTerms) {
-      showToastOrAlert('You must accept the Terms & Privacy Policy to create an account');
+      showToastOrAlert("You must accept the Terms & Privacy Policy to create an account");
       return false;
     }
 
@@ -171,12 +155,9 @@ const RegisterScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom', 'left', 'right']}>
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom", "left", "right"]}>
       <StatusBar style="dark" />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardView}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -185,19 +166,12 @@ const RegisterScreen: React.FC = () => {
           {/* Header Section */}
           <View style={styles.headerContainer}>
             <Text style={styles.headingText}>Create Your Account</Text>
-            <Text style={styles.subHeadingText}>
-              Which part of country that you call home?
-            </Text>
+            <Text style={styles.subHeadingText}>Which part of country that you call home?</Text>
           </View>
 
           {/* Form Fields */}
           <View style={styles.formContainer}>
-            <Input
-              placeholder="Full name"
-              value={fullname}
-              onChangeText={setFullname}
-              autoCapitalize="words"
-            />
+            <Input placeholder="Full name" value={fullname} onChangeText={setFullname} autoCapitalize="words" />
 
             <Input
               placeholder="Email"
@@ -244,38 +218,23 @@ const RegisterScreen: React.FC = () => {
               style={styles.socialButton}
             />
 
-            <Button
-              title="Continue with Google"
-              variant="outline"
-              icon={<GoogleIcon />}
-              style={styles.socialButton}
-            />
+            <Button title="Continue with Google" variant="outline" icon={<GoogleIcon />} style={styles.socialButton} />
           </View>
 
           {/* Action Button */}
           <View style={styles.buttonContainer}>
             {registerMutation.isPending ? (
-              <Button
-                title={loadingText}
-                onPress={handleSignUp}
-                variant="primary"
-              />
+              <Button title={loadingText} onPress={handleSignUp} variant="primary" />
             ) : (
-              <Button
-                title="Sign Up"
-                onPress={handleSignUp}
-              />
+              <Button title="Sign Up" onPress={handleSignUp} />
             )}
           </View>
 
           {/* Bottom Sign In Link */}
           <View style={styles.footerContainer}>
             <Text style={styles.footerText}>
-              Already have an account ?{' '}
-              <Text
-                style={styles.signInLink}
-                onPress={() => navigation.navigate('Login')}
-              >
+              Already have an account ?{" "}
+              <Text style={styles.signInLink} onPress={() => navigation.navigate("Login")}>
                 Sign In
               </Text>
             </Text>
@@ -300,10 +259,10 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: SPACING.lg,
     paddingBottom: SPACING.lg,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   headerContainer: {
-    marginTop: Platform.OS === 'ios' ? 20 : 40,
+    marginTop: Platform.OS === "ios" ? 20 : 40,
     marginBottom: 30,
   },
   headingText: {
@@ -320,7 +279,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   formContainer: {
-    width: '100%',
+    width: "100%",
     marginBottom: SPACING.xs,
   },
   checkbox: {
@@ -329,8 +288,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     height: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: COLORS.primary,
     borderRadius: 28,
   },
@@ -349,14 +308,14 @@ const styles = StyleSheet.create({
     color: COLORS.black,
   },
   buttonContainer: {
-    width: '100%',
+    width: "100%",
     marginTop: SPACING.xs,
     marginBottom: SPACING.lg,
   },
   dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
     marginVertical: SPACING.md,
   },
   dividerLine: {
@@ -371,7 +330,7 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
   },
   socialContainer: {
-    width: '100%',
+    width: "100%",
     gap: SPACING.sm,
     marginBottom: SPACING.md,
   },
@@ -384,13 +343,13 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   footerContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 'auto',
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: "auto",
     paddingVertical: SPACING.md,
   },
   footerText: {

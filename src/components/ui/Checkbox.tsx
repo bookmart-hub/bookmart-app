@@ -1,9 +1,8 @@
-import React from 'react';
-import { StyleSheet, TouchableOpacity, View, Text, ViewStyle } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { COLORS } from '@/constants/colors';
-import { FONTS } from '@/constants/fonts';
-import { SPACING } from '@/constants/spacings';
+import { COLORS } from "@/constants/colors";
+import { SPACING } from "@/constants/spacings";
+import { Feather } from "@expo/vector-icons";
+import React from "react";
+import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 
 interface CheckboxProps {
   checked: boolean;
@@ -12,22 +11,11 @@ interface CheckboxProps {
   style?: ViewStyle;
 }
 
-export const Checkbox: React.FC<CheckboxProps> = ({
-  checked,
-  onPress,
-  labelComponent,
-  style,
-}) => {
+export const Checkbox: React.FC<CheckboxProps> = ({ checked, onPress, labelComponent, style }) => {
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.7}
-      style={[styles.container, style]}
-    >
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={[styles.container, style]}>
       <View style={[styles.box, checked && styles.boxChecked]}>
-        {checked && (
-          <Feather name="check" size={14} color={COLORS.white} />
-        )}
+        {checked && <Feather name="check" size={14} color={COLORS.white} />}
       </View>
       {labelComponent && <View style={styles.labelContainer}>{labelComponent}</View>}
     </TouchableOpacity>
@@ -36,8 +24,8 @@ export const Checkbox: React.FC<CheckboxProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginVertical: SPACING.xs,
   },
   box: {
@@ -46,8 +34,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLORS.textMuted,
     borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: COLORS.white,
   },
   boxChecked: {

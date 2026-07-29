@@ -1,17 +1,10 @@
-import React, { memo } from 'react';
-import {
-  StyleSheet,
-  TextInput,
-  View,
-  ViewStyle,
-  TextInputProps,
-  TouchableOpacity,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '@/constants/colors';
-import { FONTS } from '@/constants/fonts';
-import { SPACING } from '@/constants/spacings';
-import { rem } from '@/utils/responsive';
+import { COLORS } from "@/constants/colors";
+import { FONTS } from "@/constants/fonts";
+import { SPACING } from "@/constants/spacings";
+import { rem } from "@/utils/responsive";
+import { Ionicons } from "@expo/vector-icons";
+import React, { memo } from "react";
+import { StyleSheet, TextInput, TextInputProps, TouchableOpacity, View, ViewStyle } from "react-native";
 
 interface SearchBarProps extends TextInputProps {
   containerStyle?: ViewStyle;
@@ -19,43 +12,31 @@ interface SearchBarProps extends TextInputProps {
   onClearPress?: () => void;
 }
 
-const SearchBar: React.FC<SearchBarProps> = memo(({
-  containerStyle,
-  placeholder = 'Search Books...',
-  onPress,
-  onClearPress,
-  ...props
-}) => {
-  return (
-    <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[styles.container, containerStyle]}>
-      <View style={styles.inputWrapper}>
-        <Ionicons
-          name="search-outline"
-          size={20}
-          color={COLORS.textMuted}
-          style={styles.icon}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder={placeholder}
-          placeholderTextColor={COLORS.textMuted}
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType="search"
-          {...props}
-        />
-        {props.value ? (
-          <TouchableOpacity
-            onPress={onClearPress}
-            style={styles.clearIconWrapper}
-          >
-            <Ionicons name="close-circle" size={20} color={COLORS.textMuted} />
-          </TouchableOpacity>
-        ) : null}
-      </View>
-    </TouchableOpacity>
-  );
-});
+const SearchBar: React.FC<SearchBarProps> = memo(
+  ({ containerStyle, placeholder = "Search Books...", onPress, onClearPress, ...props }) => {
+    return (
+      <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[styles.container, containerStyle]}>
+        <View style={styles.inputWrapper}>
+          <Ionicons name="search-outline" size={20} color={COLORS.textMuted} style={styles.icon} />
+          <TextInput
+            style={styles.input}
+            placeholder={placeholder}
+            placeholderTextColor={COLORS.textMuted}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="search"
+            {...props}
+          />
+          {props.value ? (
+            <TouchableOpacity onPress={onClearPress} style={styles.clearIconWrapper}>
+              <Ionicons name="close-circle" size={20} color={COLORS.textMuted} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      </TouchableOpacity>
+    );
+  }
+);
 
 export default SearchBar;
 
@@ -65,8 +46,8 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     height: 48,
     backgroundColor: COLORS.white,
     borderRadius: 24,
@@ -83,7 +64,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    height: '100%',
+    height: "100%",
     fontSize: rem(0.875),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.text,

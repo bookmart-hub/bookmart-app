@@ -18,17 +18,17 @@
     "@tanstack/react-query": "^5.100.14",
     "axios": "^1.16.1",
     "babel-preset-expo": "~57.0.0",
-    "expo": "^57.0.4",
-    "expo-dev-client": "~57.0.5",
-    "expo-font": "~57.0.0",
-    "expo-haptics": "~57.0.0",
-    "expo-image": "~57.0.0",
-    "expo-image-picker": "~57.0.2",
-    "expo-linear-gradient": "~57.0.0",
-    "expo-location": "~57.0.2",
-    "expo-secure-store": "~57.0.0",
-    "expo-splash-screen": "~57.0.2",
-    "expo-status-bar": "~57.0.0",
+    "expo": "~57.0.8",
+    "expo-dev-client": "~57.0.9",
+    "expo-font": "~57.0.1",
+    "expo-haptics": "~57.0.1",
+    "expo-image": "~57.0.1",
+    "expo-image-picker": "~57.0.6",
+    "expo-linear-gradient": "~57.0.1",
+    "expo-location": "~57.0.6",
+    "expo-secure-store": "~57.0.1",
+    "expo-splash-screen": "~57.0.5",
+    "expo-status-bar": "~57.0.1",
     "lottie-react-native": "~7.3.4",
     "react": "19.2.3",
     "react-hook-form": "^7.76.1",
@@ -42,7 +42,7 @@
     "react-native-reanimated": "4.5.0",
     "react-native-reanimated-carousel": "^4.0.3",
     "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "4.25.2",
+    "react-native-screens": "~4.26.0",
     "react-native-star-rating-widget": "^1.11.0",
     "react-native-svg": "15.15.4",
     "react-native-worklets": "0.10.0",
@@ -54,13 +54,16 @@
     "@types/react-native-dotenv": "^0.2.2",
     "babel-plugin-module-resolver": "^5.0.3",
     "react-native-svg-transformer": "^1.5.3",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "prettier": "^3.2.5"
   },
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "format": "prettier --write ."
   },
-  "private": true
+  "private": true,
+  "packageManager": "pnpm@11.17.0+sha512.cca3cea332ad254bb84145f966d19f4879615210346fc92c79a047f23a0d7b3cca3c3792f0076ba1f1831d277efbcf0a9119b31a9a60eca7fb3d6231f331ef72"
 }

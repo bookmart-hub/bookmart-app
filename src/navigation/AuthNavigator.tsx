@@ -1,10 +1,10 @@
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import LoginScreen from '../screens/auth/LoginScreen';
-import RegisterScreen from '../screens/auth/RegisterScreen';
-import ForgotPassScreen from '@/screens/auth/ForgotPassScreen';
-import PersonalizationScreen from '@/screens/auth/PersonalizationScreen';
-import VerifyEmail from '@/screens/auth/VerifyEmail';
+import LoginScreen from "../screens/auth/LoginScreen";
+import RegisterScreen from "../screens/auth/RegisterScreen";
+import ForgotPassScreen from "@/screens/auth/ForgotPassScreen";
+import PersonalizationScreen from "@/screens/auth/PersonalizationScreen";
+import VerifyEmail from "@/screens/auth/VerifyEmail";
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -21,30 +21,15 @@ export default function AuthNavigator() {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        animation: 'slide_from_right',
+        animation: "slide_from_right",
       }}
     >
-      <Stack.Screen
-        name="Login"
-        component={LoginScreen}
-      />
+      <Stack.Screen name="Login" component={LoginScreen} />
 
-      <Stack.Screen
-        name="Register"
-        component={RegisterScreen}
-      />
-      <Stack.Screen
-        name="ForgotPassScreen"
-        component={ForgotPassScreen}
-      />
-      <Stack.Screen
-        name="VerifyEmail"
-        component={VerifyEmail}
-      />
-      <Stack.Screen
-        name="Personalization"
-        component={PersonalizationScreen}
-      />
+      <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="ForgotPassScreen" component={ForgotPassScreen} />
+      <Stack.Screen name="VerifyEmail" component={VerifyEmail} />
+      <Stack.Screen name="Personalization" component={PersonalizationScreen} />
     </Stack.Navigator>
   );
 }

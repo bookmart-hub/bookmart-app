@@ -1,6 +1,6 @@
-import React from 'react';
-import Svg, { Path, SvgProps } from 'react-native-svg';
-import { COLORS } from './colors';
+import React from "react";
+import Svg, { Path, SvgProps } from "react-native-svg";
+import { COLORS } from "./colors";
 
 // Example SVG Icon Template
 // You can copy-paste your SVG code here. Make sure to replace regular HTML SVG tags

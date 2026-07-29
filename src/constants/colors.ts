@@ -1,39 +1,39 @@
 export const COLORS = {
-  primary: '#008080',
-  secondary: '#00968814',
-  darkerTeal: '#00968826',
+  primary: "#008080",
+  secondary: "#00968814",
+  darkerTeal: "#00968826",
 
-  background: '#F4F9F9',
+  background: "#F4F9F9",
 
-  black: '#06202B',
-  white: '#FFFFFF',
+  black: "#06202B",
+  white: "#FFFFFF",
 
-  text: '#333333',
-  textMuted: '#8a8a8aff',
+  text: "#333333",
+  textMuted: "#8a8a8aff",
 
-  grayLight: '#F9FAFB',
-  grayHeavvy: '#CECECE',
+  grayLight: "#F9FAFB",
+  grayHeavvy: "#CECECE",
 
-  green: '#10B981',
-  greenlight: '#10b9811a',
+  green: "#10B981",
+  greenlight: "#10b9811a",
 
-  yellow: '#F5C518',
-  yellowlight: '#f59e0b1a',
+  yellow: "#F5C518",
+  yellowlight: "#f59e0b1a",
 
-  blue: '#1877F2',
-  blueLight: '#001aff23',
+  blue: "#1877F2",
+  blueLight: "#001aff23",
 
-  pink: '#D52DC2',
-  pinklight: '#FCE7F3',
+  pink: "#D52DC2",
+  pinklight: "#FCE7F3",
 
-  purple: '#AA5AF8',
-  purplelight: '#F4EAFE',
+  purple: "#AA5AF8",
+  purplelight: "#F4EAFE",
 
-  red: '#EF4545',
-  redLight: '#ef44441a',
+  red: "#EF4545",
+  redLight: "#ef44441a",
 
-  completeTransparency: '#00000080',
-  lessTransparency: '#00000018',
+  completeTransparency: "#00000080",
+  lessTransparency: "#00000018",
 };
 
 // export const COLORS = {

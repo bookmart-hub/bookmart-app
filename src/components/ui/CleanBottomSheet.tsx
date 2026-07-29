@@ -1,24 +1,18 @@
-import {
-  View,
-  StyleSheet,
-  BackHandler,
-  Dimensions,
-  Pressable,
-} from 'react-native';
-import React, { useEffect } from 'react';
+import { COLORS } from "@/constants/colors";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect } from "react";
+import { BackHandler, Dimensions, Pressable, StyleSheet, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+  Easing,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
   withTiming,
-  runOnJS,
-  Easing,
-} from 'react-native-reanimated';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '@/constants/colors';
+} from "react-native-reanimated";
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface CleanBottomSheetProps {
   visible: boolean;
@@ -60,13 +54,13 @@ const CleanBottomSheet: React.FC<CleanBottomSheetProps> = ({
     .onStart(() => {
       startY.value = sv.value;
     })
-    .onUpdate(e => {
+    .onUpdate((e) => {
       const newValue = startY.value + e.translationY;
       if (newValue >= MAX_OFFSET) {
         sv.value = newValue;
       }
     })
-    .onEnd(e => {
+    .onEnd((e) => {
       const currentPos = sv.value;
       const targets = [MAX_OFFSET, MID_OFFSET, MIN_OFFSET, CLOSED_OFFSET];
       let target = CLOSED_OFFSET;
@@ -128,7 +122,7 @@ const CleanBottomSheet: React.FC<CleanBottomSheetProps> = ({
       return true;
     };
 
-    const subs = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    const subs = BackHandler.addEventListener("hardwareBackPress", onBackPress);
 
     return () => {
       subs.remove();
@@ -147,15 +141,15 @@ const CleanBottomSheet: React.FC<CleanBottomSheetProps> = ({
     <View
       style={{
         ...StyleSheet.absoluteFillObject,
-        position: 'absolute',
+        position: "absolute",
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
         zIndex: 1000,
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        backgroundColor: COLORS.lessTransparency
+        alignItems: "center",
+        justifyContent: "flex-end",
+        backgroundColor: COLORS.lessTransparency,
       }}
       pointerEvents="box-none"
     >
@@ -163,14 +157,14 @@ const CleanBottomSheet: React.FC<CleanBottomSheetProps> = ({
       <Animated.View
         style={[
           {
-            position: 'relative',
+            position: "relative",
             height: maxHeight,
-            width: '100%',
+            width: "100%",
             backgroundColor,
             borderTopRightRadius: borderRadius,
             borderTopLeftRadius: borderRadius,
             // Premium shadow to stand out from the map background
-            shadowColor: '#000',
+            shadowColor: "#000",
             shadowOffset: { width: 0, height: -4 },
             shadowOpacity: 0.1,
             shadowRadius: 10,
@@ -184,17 +178,17 @@ const CleanBottomSheet: React.FC<CleanBottomSheetProps> = ({
           <View
             style={{
               height: 40,
-              width: '100%',
-              alignItems: 'center',
-              justifyContent: 'center',
+              width: "100%",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             {showCross && (
               <Pressable
                 style={{
-                  position: 'absolute',
+                  position: "absolute",
                   top: -50,
-                  left: '50%',
+                  left: "50%",
                   transform: [{ translateX: -15 }],
                   zIndex: 10,
                 }}
@@ -205,7 +199,7 @@ const CleanBottomSheet: React.FC<CleanBottomSheetProps> = ({
                   size={35}
                   color={COLORS.completeTransparency}
                   style={{
-                    alignSelf: 'center',
+                    alignSelf: "center",
                     marginTop: 10,
                   }}
                 />
@@ -217,7 +211,7 @@ const CleanBottomSheet: React.FC<CleanBottomSheetProps> = ({
                 width: 40,
                 height: 5,
                 borderRadius: 2.5,
-                backgroundColor: '#ccc',
+                backgroundColor: "#ccc",
                 marginTop: 30,
               }}
             />
@@ -231,4 +225,3 @@ const CleanBottomSheet: React.FC<CleanBottomSheetProps> = ({
 };
 
 export default CleanBottomSheet;
-

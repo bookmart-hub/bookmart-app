@@ -1,1 +1,1 @@
-export * from '../utils/responsive';
+export * from "../utils/responsive";

@@ -1,379 +1,357 @@
-import React, { useEffect, useState } from 'react';
+import { loginUser } from "@/types/auth";
+import { FontAwesome } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useMutation } from "@tanstack/react-query";
+import * as SecureStore from "expo-secure-store";
+import React, { useEffect, useState } from "react";
 import {
-    StyleSheet,
-    Text,
-    View,
-    KeyboardAvoidingView,
-    ScrollView,
-    Platform,
-    Alert,
-    TouchableOpacity,
-    ToastAndroid, // 1. Imported ToastAndroid
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as SecureStore from 'expo-secure-store';
-import { useMutation } from '@tanstack/react-query';
-import { loginUser } from '@/types/auth';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import Svg, { Path } from 'react-native-svg';
-import { FontAwesome } from '@expo/vector-icons';
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
 
-import { COLORS } from '@/constants/colors';
-import { FONTS } from '@/constants/fonts';
-import { SPACING } from '@/constants/spacings';
-import { AuthStackParamList } from '@/navigation/AuthNavigator';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { rem } from '@/utils/responsive';
-import { StatusBar } from 'expo-status-bar';
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { COLORS } from "@/constants/colors";
+import { FONTS } from "@/constants/fonts";
+import { SPACING } from "@/constants/spacings";
+import { AuthStackParamList } from "@/navigation/AuthNavigator";
+import { rem } from "@/utils/responsive";
+import { StatusBar } from "expo-status-bar";
 
-type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
+type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, "Login">;
 
 const GoogleIcon = () => (
-    <Svg viewBox="0 0 24 24" width={20} height={20}>
-        <Path
-            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-            fill="#4285F4"
-        />
-        <Path
-            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            fill="#34A853"
-        />
-        <Path
-            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-            fill="#FBBC05"
-        />
-        <Path
-            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-            fill="#EA4335"
-        />
-    </Svg>
+  <Svg viewBox="0 0 24 24" width={20} height={20}>
+    <Path
+      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+      fill="#4285F4"
+    />
+    <Path
+      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+      fill="#34A853"
+    />
+    <Path
+      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+      fill="#FBBC05"
+    />
+    <Path
+      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+      fill="#EA4335"
+    />
+  </Svg>
 );
 
 const FacebookIcon = () => (
-    <View style={styles.facebookIconContainer}>
-        <FontAwesome name="facebook" size={14} color={COLORS.white} />
-    </View>
+  <View style={styles.facebookIconContainer}>
+    <FontAwesome name="facebook" size={14} color={COLORS.white} />
+  </View>
 );
 
 const LoginScreen: React.FC = () => {
-    const navigation = useNavigation<LoginScreenNavigationProp>();
+  const navigation = useNavigation<LoginScreenNavigationProp>();
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [loadingText, setLoadingText] = useState('Signing in');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("Signing in");
 
-    useEffect(() => {
-        if (!isLoading) return;
+  useEffect(() => {
+    if (!isLoading) return;
 
-        let count = 0;
+    let count = 0;
 
-        const interval = setInterval(() => {
-            count = (count + 1) % 4;
+    const interval = setInterval(() => {
+      count = (count + 1) % 4;
 
-            setLoadingText(`Signing in${'.'.repeat(count)}`);
-        }, 400);
+      setLoadingText(`Signing in${".".repeat(count)}`);
+    }, 400);
 
-        return () => {
-            clearInterval(interval)
-            setEmail("")
-            setPassword("")
-        };
-    }, [isLoading]);
-
-    // Helper function to trigger platform-appropriate notifications
-    const showToastOrAlert = (message: string) => {
-        if (Platform.OS === 'android') {
-            ToastAndroid.showWithGravityAndOffset(
-                message,
-                ToastAndroid.LONG,
-                ToastAndroid.BOTTOM,
-                25,
-                50
-            );
-        } else {
-            Alert.alert('Validation Error', message);
-        }
+    return () => {
+      clearInterval(interval);
+      setEmail("");
+      setPassword("");
     };
+  }, [isLoading]);
 
-    const validateForm = () => {
-        if (!email.trim()) {
-            showToastOrAlert('Email is required');
-            return false;
-        }
+  // Helper function to trigger platform-appropriate notifications
+  const showToastOrAlert = (message: string) => {
+    if (Platform.OS === "android") {
+      ToastAndroid.showWithGravityAndOffset(message, ToastAndroid.LONG, ToastAndroid.BOTTOM, 25, 50);
+    } else {
+      Alert.alert("Validation Error", message);
+    }
+  };
 
-        if (!/\S+@\S+\.\S+/.test(email)) {
-            showToastOrAlert('Please enter a valid email address');
-            return false;
-        }
+  const validateForm = () => {
+    if (!email.trim()) {
+      showToastOrAlert("Email is required");
+      return false;
+    }
 
-        if (!password) {
-            showToastOrAlert('Password is required');
-            return false;
-        }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      showToastOrAlert("Please enter a valid email address");
+      return false;
+    }
 
-        if (password.length < 6) {
-            showToastOrAlert('Password must be at least 6 characters');
-            return false;
-        }
+    if (!password) {
+      showToastOrAlert("Password is required");
+      return false;
+    }
 
-        return true;
-    };
+    if (password.length < 6) {
+      showToastOrAlert("Password must be at least 6 characters");
+      return false;
+    }
 
-    const loginMutation = useMutation({
-        mutationFn: loginUser,
-        onSuccess: async (data) => {
-            // Check if tokens are returned in data or data.tokens
-            const accessToken = data?.tokens?.access || data?.access;
-            const refreshToken = data?.tokens?.refresh || data?.refresh;
-            
-            if (accessToken) {
-                await SecureStore.setItemAsync('accessToken', accessToken);
-            }
-            if (refreshToken) {
-                await SecureStore.setItemAsync('refreshToken', refreshToken);
-            }
-            
-            await AsyncStorage.setItem('@bookmart:is_logged_in', 'true');
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'Tab' as any }],
-            });
-        },
-        onError: (error: any) => {
-            setIsLoading(false);
-            const message = error?.response?.data?.detail || 'Invalid email or password';
-            showToastOrAlert(message);
-        }
-    });
+    return true;
+  };
 
-    const handleSignIn = () => {
-        if (!validateForm()) return;
+  const loginMutation = useMutation({
+    mutationFn: loginUser,
+    onSuccess: async (data) => {
+      // Check if tokens are returned in data or data.tokens
+      const accessToken = data?.tokens?.access || data?.access;
+      const refreshToken = data?.tokens?.refresh || data?.refresh;
 
-        setIsLoading(true);
-        loginMutation.mutate({ email, password });
-    };
+      if (accessToken) {
+        await SecureStore.setItemAsync("accessToken", accessToken);
+      }
+      if (refreshToken) {
+        await SecureStore.setItemAsync("refreshToken", refreshToken);
+      }
 
-    return (
-        <SafeAreaView style={styles.safeArea} edges={['top', 'bottom', 'left', 'right']}>
-            <StatusBar style="dark" />
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.keyboardView}
+      await AsyncStorage.setItem("@bookmart:is_logged_in", "true");
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Tab" as any }],
+      });
+    },
+    onError: (error: any) => {
+      setIsLoading(false);
+      const message = error?.response?.data?.detail || "Invalid email or password";
+      showToastOrAlert(message);
+    },
+  });
+
+  const handleSignIn = () => {
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    loginMutation.mutate({ email, password });
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom", "left", "right"]}>
+      <StatusBar style="dark" />
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardView}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header Section */}
+          <View style={styles.headerContainer}>
+            <Text style={styles.welcomeText}>Welcome back!</Text>
+            <Text style={styles.signInText}>Sign In</Text>
+          </View>
+
+          {/* Form Fields */}
+          <View style={styles.formContainer}>
+            <Input
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoComplete="email"
+            />
+
+            <Input
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              isPassword={true}
+              autoComplete="password"
+            />
+
+            {/* Forget Password */}
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate("ForgotPassScreen" as any);
+              }}
+              activeOpacity={0.7}
+              style={styles.forgotPasswordContainer}
             >
-                <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
-                >
-                    {/* Header Section */}
-                    <View style={styles.headerContainer}>
-                        <Text style={styles.welcomeText}>Welcome back!</Text>
-                        <Text style={styles.signInText}>Sign In</Text>
-                    </View>
+              <Text style={styles.forgotPasswordText}>Forget Password?</Text>
+            </TouchableOpacity>
+          </View>
 
-                    {/* Form Fields */}
-                    <View style={styles.formContainer}>
-                        <Input
-                            placeholder="Email"
-                            value={email}
-                            onChangeText={setEmail}
-                            keyboardType="email-address"
-                            autoComplete="email"
-                        />
+          <View style={styles.buttonContainer}>
+            {isLoading || loginMutation.isPending ? (
+              <Button title={loadingText} onPress={handleSignIn} variant="primary" />
+            ) : (
+              <Button title="Sign In" onPress={handleSignIn} />
+            )}
+          </View>
 
-                        <Input
-                            placeholder="Password"
-                            value={password}
-                            onChangeText={setPassword}
-                            isPassword={true}
-                            autoComplete="password"
-                        />
+          {/* OR Divider */}
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.dividerLine} />
+          </View>
 
-                        {/* Forget Password */}
-                        <TouchableOpacity
-                            onPress={() => { navigation.navigate('ForgotPassScreen' as any) }}
-                            activeOpacity={0.7}
-                            style={styles.forgotPasswordContainer}
-                        >
-                            <Text style={styles.forgotPasswordText}>Forget Password?</Text>
-                        </TouchableOpacity>
-                    </View>
+          {/* Social Sign Ins */}
+          <View style={styles.socialContainer}>
+            <Button
+              title="Continue with facebook"
+              variant="outline"
+              icon={<FacebookIcon />}
+              style={styles.socialButton}
+            />
 
-                    <View style={styles.buttonContainer}>
-                        {isLoading || loginMutation.isPending ? (
-                            <Button
-                                title={loadingText}
-                                onPress={handleSignIn}
-                                variant='primary'
-                            />
-                        ) : (
-                            <Button
-                                title="Sign In"
-                                onPress={handleSignIn}
-                            />
-                        )}
-                    </View>
+            <Button title="Continue with Google" variant="outline" icon={<GoogleIcon />} style={styles.socialButton} />
+          </View>
 
-                    {/* OR Divider */}
-                    <View style={styles.dividerContainer}>
-                        <View style={styles.dividerLine} />
-                        <Text style={styles.dividerText}>OR</Text>
-                        <View style={styles.dividerLine} />
-                    </View>
-
-                    {/* Social Sign Ins */}
-                    <View style={styles.socialContainer}>
-                        <Button
-                            title="Continue with facebook"
-                            variant="outline"
-                            icon={<FacebookIcon />}
-                            style={styles.socialButton}
-                        />
-
-                        <Button
-                            title="Continue with Google"
-                            variant="outline"
-                            icon={<GoogleIcon />}
-                            style={styles.socialButton}
-                        />
-                    </View>
-
-                    {/* Bottom Sign Up Link */}
-                    <View style={styles.footerContainer}>
-                        <Text style={styles.footerText}>
-                            Don’t have an account ?{' '}
-                            <Text
-                                style={styles.signUpLink}
-                                onPress={() => navigation.navigate('Register')}
-                            >
-                                Sign Up
-                            </Text>
-                        </Text>
-                    </View>
-                </ScrollView>
-            </KeyboardAvoidingView>
-        </SafeAreaView>
-    );
+          {/* Bottom Sign Up Link */}
+          <View style={styles.footerContainer}>
+            <Text style={styles.footerText}>
+              Don’t have an account ?{" "}
+              <Text style={styles.signUpLink} onPress={() => navigation.navigate("Register")}>
+                Sign Up
+              </Text>
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
 };
 
 export default LoginScreen;
 
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-    },
-    keyboardView: {
-        flex: 1,
-    },
-    scrollContent: {
-        flexGrow: 1,
-        paddingHorizontal: SPACING.lg,
-        paddingBottom: SPACING.lg,
-        justifyContent: 'center',
-    },
-    headerContainer: {
-        marginTop: Platform.OS === 'ios' ? 20 : 40,
-        marginBottom: 40,
-    },
-    welcomeText: {
-        fontSize: rem(2.125),
-        fontFamily: FONTS.montserrat.bold,
-        color: COLORS.black,
-        lineHeight: 40,
-    },
-    signInText: {
-        fontSize: rem(2.125),
-        fontFamily: FONTS.montserrat.bold,
-        color: COLORS.black,
-        lineHeight: 40,
-        marginTop: 4,
-    },
-    formContainer: {
-        width: '100%',
-        marginBottom: SPACING.md,
-    },
-    forgotPasswordContainer: {
-        alignSelf: 'flex-end',
-        marginTop: SPACING.xs,
-        paddingVertical: SPACING.xs,
-    },
-    forgotPasswordText: {
-        fontSize: rem(0.875),
-        fontFamily: FONTS.manrope.semibold,
-        color: COLORS.black,
-        textDecorationLine: 'underline',
-    },
-    buttonContainer: {
-        width: '100%',
-        marginTop: SPACING.md,
-        marginBottom: SPACING.lg,
-    },
-    dividerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: '100%',
-        marginVertical: SPACING.md,
-    },
-    dividerLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: COLORS.grayLight,
-    },
-    dividerText: {
-        marginHorizontal: SPACING.md,
-        fontSize: rem(0.875),
-        fontFamily: FONTS.montserrat.medium,
-        color: COLORS.textMuted,
-    },
-    socialContainer: {
-        width: '100%',
-        gap: SPACING.sm,
-        marginBottom: 40,
-    },
-    socialButton: {
-        height: 56,
-        borderRadius: 28,
-    },
-    facebookIconContainer: {
-        backgroundColor: COLORS.blue,
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    loadingContainer: {
-        height: 56,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: COLORS.white,
-        borderRadius: 28,
-        borderWidth: 1,
-        borderColor: COLORS.grayHeavvy,
-    },
-    loadingText: {
-        fontSize: rem(1),
-        fontFamily: FONTS.manrope.bold,
-        color: COLORS.primary,
-    },
-    footerContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 'auto',
-        paddingVertical: SPACING.md,
-    },
-    footerText: {
-        fontSize: rem(0.875),
-        fontFamily: FONTS.manrope.semibold,
-        color: COLORS.textMuted,
-    },
-    signUpLink: {
-        color: COLORS.primary,
-        fontFamily: FONTS.manrope.bold,
-    },
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.lg,
+    justifyContent: "center",
+  },
+  headerContainer: {
+    marginTop: Platform.OS === "ios" ? 20 : 40,
+    marginBottom: 40,
+  },
+  welcomeText: {
+    fontSize: rem(2.125),
+    fontFamily: FONTS.montserrat.bold,
+    color: COLORS.black,
+    lineHeight: 40,
+  },
+  signInText: {
+    fontSize: rem(2.125),
+    fontFamily: FONTS.montserrat.bold,
+    color: COLORS.black,
+    lineHeight: 40,
+    marginTop: 4,
+  },
+  formContainer: {
+    width: "100%",
+    marginBottom: SPACING.md,
+  },
+  forgotPasswordContainer: {
+    alignSelf: "flex-end",
+    marginTop: SPACING.xs,
+    paddingVertical: SPACING.xs,
+  },
+  forgotPasswordText: {
+    fontSize: rem(0.875),
+    fontFamily: FONTS.manrope.semibold,
+    color: COLORS.black,
+    textDecorationLine: "underline",
+  },
+  buttonContainer: {
+    width: "100%",
+    marginTop: SPACING.md,
+    marginBottom: SPACING.lg,
+  },
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    marginVertical: SPACING.md,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.grayLight,
+  },
+  dividerText: {
+    marginHorizontal: SPACING.md,
+    fontSize: rem(0.875),
+    fontFamily: FONTS.montserrat.medium,
+    color: COLORS.textMuted,
+  },
+  socialContainer: {
+    width: "100%",
+    gap: SPACING.sm,
+    marginBottom: 40,
+  },
+  socialButton: {
+    height: 56,
+    borderRadius: 28,
+  },
+  facebookIconContainer: {
+    backgroundColor: COLORS.blue,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingContainer: {
+    height: 56,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: COLORS.white,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: COLORS.grayHeavvy,
+  },
+  loadingText: {
+    fontSize: rem(1),
+    fontFamily: FONTS.manrope.bold,
+    color: COLORS.primary,
+  },
+  footerContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: "auto",
+    paddingVertical: SPACING.md,
+  },
+  footerText: {
+    fontSize: rem(0.875),
+    fontFamily: FONTS.manrope.semibold,
+    color: COLORS.textMuted,
+  },
+  signUpLink: {
+    color: COLORS.primary,
+    fontFamily: FONTS.manrope.bold,
+  },
 });

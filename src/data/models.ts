@@ -45,7 +45,7 @@ export interface Category {
   books?: Book[]; // we can structure books either in left/right arrays or just one array and we split them.
 }
 
-export type FeedItemType = 'header' | 'book' | 'ad';
+export type FeedItemType = "header" | "book" | "ad";
 
 export interface BaseFeedItem {
   type: FeedItemType;
@@ -53,18 +53,18 @@ export interface BaseFeedItem {
 }
 
 export interface HeaderFeedItem extends BaseFeedItem {
-  type: 'header';
+  type: "header";
   title: string;
   subtitle: string;
 }
 
 export interface BookFeedItem extends BaseFeedItem {
-  type: 'book';
+  type: "book";
   book: Book;
 }
 
 export interface AdFeedItem extends BaseFeedItem {
-  type: 'ad';
+  type: "ad";
   imageUrl?: string;
   text?: string;
   link?: string;

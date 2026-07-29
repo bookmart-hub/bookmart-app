@@ -1,12 +1,12 @@
-import React, { useEffect, useRef } from 'react';
-import { StyleSheet, View, Animated, Dimensions, ActivityIndicator, Text, Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as SecureStore from 'expo-secure-store';
-import { useNavigation } from '@react-navigation/native';
-import { COLORS } from '@/constants/colors';
-import { rem } from '@/utils/responsive';
+import { COLORS } from "@/constants/colors";
+import { rem } from "@/utils/responsive";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import * as SecureStore from "expo-secure-store";
+import React, { useEffect, useRef } from "react";
+import { ActivityIndicator, Animated, Dimensions, Platform, StyleSheet, Text, View } from "react-native";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 interface SplashScreenProps {
   isLoadingFonts?: boolean;
@@ -58,41 +58,41 @@ export default function SplashScreen({ isLoadingFonts = false }: SplashScreenPro
     if (!isLoadingFonts) {
       const initializeApp = async () => {
         try {
-          const isLoggedIn = await AsyncStorage.getItem('@bookmart:is_logged_in');
-          const token = await SecureStore.getItemAsync('accessToken');
+          const isLoggedIn = await AsyncStorage.getItem("@bookmart:is_logged_in");
+          const token = await SecureStore.getItemAsync("accessToken");
 
           // Ensure a minimum splash screen duration of 1800ms for smooth/premium branding
           setTimeout(() => {
-            if (isLoggedIn === 'true') {
+            if (isLoggedIn === "true") {
               navigation.reset({
                 index: 0,
-                routes: [{ name: 'Tab' }],
+                routes: [{ name: "Tab" }],
               });
             } else if (token) {
               // Token exists, but not fully onboarded/logged in. Go to Personalization.
               navigation.reset({
                 index: 0,
                 routes: [
-                  { 
-                    name: 'Auth', 
-                    state: { routes: [{ name: 'Personalization' }] } 
-                  }
+                  {
+                    name: "Auth",
+                    state: { routes: [{ name: "Personalization" }] },
+                  },
                 ],
               });
             } else {
               // Not logged in and no token
               navigation.reset({
                 index: 0,
-                routes: [{ name: 'Auth' }],
+                routes: [{ name: "Auth" }],
               });
             }
           }, 1800);
         } catch (e) {
-          console.error('Splash initialization error:', e);
+          console.error("Splash initialization error:", e);
           setTimeout(() => {
             navigation.reset({
               index: 0,
-              routes: [{ name: 'Auth' }],
+              routes: [{ name: "Auth" }],
             });
           }, 1800);
         }
@@ -104,17 +104,15 @@ export default function SplashScreen({ isLoadingFonts = false }: SplashScreenPro
 
   // Safe font declarations during initial boot (before Montserrat/Manrope fonts are loaded)
   const titleFont = isLoadingFonts
-    ? Platform.select({ ios: 'System', android: 'sans-serif-medium' })
-    : 'Montserrat-Bold';
-  const tagFont = isLoadingFonts
-    ? Platform.select({ ios: 'System', android: 'sans-serif' })
-    : 'Manrope-Medium';
+    ? Platform.select({ ios: "System", android: "sans-serif-medium" })
+    : "Montserrat-Bold";
+  const tagFont = isLoadingFonts ? Platform.select({ ios: "System", android: "sans-serif" }) : "Manrope-Medium";
 
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         <Animated.Image
-          source={require('../../../assets/icon.png')}
+          source={require("../../../assets/icon.png")}
           style={[
             styles.logo,
             {
@@ -185,14 +183,14 @@ export function StaticSplashScreen() {
     ]).start();
   }, []);
 
-  const titleFont = Platform.select({ ios: 'System', android: 'sans-serif-medium' });
-  const tagFont = Platform.select({ ios: 'System', android: 'sans-serif' });
+  const titleFont = Platform.select({ ios: "System", android: "sans-serif-medium" });
+  const tagFont = Platform.select({ ios: "System", android: "sans-serif" });
 
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         <Animated.Image
-          source={require('../../../assets/icon.png')}
+          source={require("../../../assets/icon.png")}
           style={[
             styles.logo,
             {
@@ -226,12 +224,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   content: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     flex: 1,
   },
   logo: {
@@ -240,12 +238,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   textWrapper: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   title: {
     fontSize: rem(1.625),
     color: COLORS.primary,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 1.5,
   },
   subtitle: {
@@ -255,7 +253,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   loaderContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 50,
   },
   loader: {

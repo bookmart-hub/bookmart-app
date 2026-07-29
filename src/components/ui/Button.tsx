@@ -1,24 +1,15 @@
-import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  Pressable,
-  Platform,
-  ActivityIndicator,
-  View,
-  ViewStyle,
-  TextStyle
-} from 'react-native';
-import { COLORS } from '@/constants/colors';
-import { FONTS } from '@/constants/fonts';
-import { SPACING } from '@/constants/spacings';
-import { rem } from '@/utils/responsive';
-import { TouchableRipple } from 'react-native-paper';
+import { COLORS } from "@/constants/colors";
+import { FONTS } from "@/constants/fonts";
+import { SPACING } from "@/constants/spacings";
+import { rem } from "@/utils/responsive";
+import React from "react";
+import { ActivityIndicator, StyleSheet, Text, TextStyle, View, ViewStyle } from "react-native";
+import { TouchableRipple } from "react-native-paper";
 
 interface ButtonProps {
   title?: string;
   onPress?: () => void;
-  variant?: 'primary' | 'outline' | 'text';
+  variant?: "primary" | "outline" | "text";
   icon?: React.ReactNode;
   loading?: boolean;
   disabled?: boolean;
@@ -29,16 +20,16 @@ interface ButtonProps {
 export const Button: React.FC<ButtonProps> = ({
   title,
   onPress,
-  variant = 'primary',
+  variant = "primary",
   icon,
   loading = false,
   disabled = false,
   style,
   textStyle,
 }) => {
-  const isPrimary = variant === 'primary';
-  const isOutline = variant === 'outline';
-  const isText = variant === 'text';
+  const isPrimary = variant === "primary";
+  const isOutline = variant === "outline";
+  const isText = variant === "text";
 
   const containerStyles = [
     styles.baseContainer,
@@ -62,19 +53,13 @@ export const Button: React.FC<ButtonProps> = ({
     <TouchableRipple
       onPress={onPress}
       disabled={disabled || loading}
-      rippleColor={
-        isPrimary
-          ? COLORS.background
-          : COLORS.completeTransparency
-      }
+      rippleColor={isPrimary ? COLORS.background : COLORS.completeTransparency}
       borderless={false}
       style={containerStyles}
     >
       <View style={styles.contentContainer}>
         {loading ? (
-          <ActivityIndicator
-            color={isPrimary ? COLORS.white : COLORS.primary}
-          />
+          <ActivityIndicator color={isPrimary ? COLORS.white : COLORS.primary} />
         ) : (
           <>
             {icon && <View style={styles.iconContainer}>{icon}</View>}
@@ -90,8 +75,8 @@ const styles = StyleSheet.create({
   baseContainer: {
     height: 56,
     borderRadius: 28,
-    overflow: 'hidden', // Required for ripple to stay inside rounded corners
-    width: '100%',
+    overflow: "hidden", // Required for ripple to stay inside rounded corners
+    width: "100%",
     marginVertical: SPACING.xs,
   },
   primaryContainer: {
@@ -103,9 +88,9 @@ const styles = StyleSheet.create({
     borderColor: COLORS.grayHeavvy,
   },
   textContainer: {
-    backgroundColor: 'transparent',
-    height: 'auto',
-    width: 'auto',
+    backgroundColor: "transparent",
+    height: "auto",
+    width: "auto",
     borderRadius: 0,
     padding: SPACING.xs,
   },
@@ -114,11 +99,11 @@ const styles = StyleSheet.create({
     borderColor: COLORS.grayHeavvy,
   },
   contentContainer: {
-    width: '100%',
-    height: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: "100%",
+    height: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   iconContainer: {
     marginRight: SPACING.sm + 4,
@@ -126,7 +111,7 @@ const styles = StyleSheet.create({
   baseText: {
     fontSize: rem(1),
     fontFamily: FONTS.montserrat.semibold,
-    textAlign: 'center',
+    textAlign: "center",
   },
   primaryText: {
     color: COLORS.white,

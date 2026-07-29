@@ -1,27 +1,14 @@
-import React, { useCallback, useEffect, useRef, useState, memo } from 'react';
-import {
-  Dimensions,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewToken,
-} from 'react-native';
-import { Image } from 'expo-image';
-import { COLORS } from '@/constants/colors';
-import { FONTS } from '@/constants/fonts';
-import { SPACING } from '@/constants/spacings';
-import { rem } from '@/utils/responsive';
-import { LinearGradient } from 'expo-linear-gradient';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  cancelAnimation,
-} from 'react-native-reanimated';
+import { COLORS } from "@/constants/colors";
+import { FONTS } from "@/constants/fonts";
+import { SPACING } from "@/constants/spacings";
+import { rem } from "@/utils/responsive";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { memo, useCallback, useEffect, useRef, useState } from "react";
+import { Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View, ViewToken } from "react-native";
+import Animated, { cancelAnimation, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_HORIZONTAL_PADDING = SPACING.lg;
 const CARD_WIDTH = SCREEN_WIDTH - CARD_HORIZONTAL_PADDING * 2;
 
@@ -37,34 +24,31 @@ export interface PromoBannerItem {
 
 const DEFAULT_BANNERS: PromoBannerItem[] = [
   {
-    id: '1',
-    title: 'New Exploration on Non-Fiction',
-    subtitle: 'Discount 50% for first transaction',
-    cta: 'Explore now',
-    bookImageUri:
-      'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=300&fit=crop',
-    bgColor: '#C5D5C0',
-    bgColorLight: '#DDE8D8',
+    id: "1",
+    title: "New Exploration on Non-Fiction",
+    subtitle: "Discount 50% for first transaction",
+    cta: "Explore now",
+    bookImageUri: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=300&fit=crop",
+    bgColor: "#C5D5C0",
+    bgColorLight: "#DDE8D8",
   },
   {
-    id: '2',
-    title: 'Best Sellers This Week - Fiction & Thrillers',
-    subtitle: 'Up to 40% off on top picks',
-    cta: 'Browse now',
-    bookImageUri:
-      'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=200&h=300&fit=crop',
-    bgColor: '#B8C8D8',
-    bgColorLight: '#D4E0EC',
+    id: "2",
+    title: "Best Sellers This Week - Fiction & Thrillers",
+    subtitle: "Up to 40% off on top picks",
+    cta: "Browse now",
+    bookImageUri: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=200&h=300&fit=crop",
+    bgColor: "#B8C8D8",
+    bgColorLight: "#D4E0EC",
   },
   {
-    id: '3',
-    title: 'Pre-owned Books at Unbeatable Prices',
-    subtitle: 'Flat ₹99 on selected titles',
-    cta: 'Shop now',
-    bookImageUri:
-      'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=200&h=300&fit=crop',
-    bgColor: '#D4C5B8',
-    bgColorLight: '#E8DDD4',
+    id: "3",
+    title: "Pre-owned Books at Unbeatable Prices",
+    subtitle: "Flat ₹99 on selected titles",
+    cta: "Shop now",
+    bookImageUri: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=200&h=300&fit=crop",
+    bgColor: "#D4C5B8",
+    bgColorLight: "#E8DDD4",
   },
 ];
 
@@ -88,7 +72,7 @@ const PromoCard: React.FC<PromoCardProps> = memo(({ item, onCtaPress }) => {
       ]}
     >
       <LinearGradient
-        colors={[item.bgColorLight + '11', item.bgColorLight + '00']}
+        colors={[item.bgColorLight + "11", item.bgColorLight + "00"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.cardOverlay}
@@ -103,11 +87,7 @@ const PromoCard: React.FC<PromoCardProps> = memo(({ item, onCtaPress }) => {
           {item.subtitle}
         </Text>
 
-        <TouchableOpacity
-          style={styles.ctaButton}
-          activeOpacity={0.8}
-          onPress={handlePress}
-        >
+        <TouchableOpacity style={styles.ctaButton} activeOpacity={0.8} onPress={handlePress}>
           <Text style={styles.ctaText}>{item.cta}</Text>
         </TouchableOpacity>
       </View>
@@ -131,10 +111,7 @@ interface PromoBannerProps {
   onCtaPress?: (banner: PromoBannerItem) => void;
 }
 
-const PromoBanner: React.FC<PromoBannerProps> = memo(({
-  banners = DEFAULT_BANNERS,
-  onCtaPress,
-}) => {
+const PromoBanner: React.FC<PromoBannerProps> = memo(({ banners = DEFAULT_BANNERS, onCtaPress }) => {
   const activeIndexRef = useRef(0);
   const [activeDot, setActiveDot] = useState(0);
 
@@ -146,23 +123,17 @@ const PromoBanner: React.FC<PromoBannerProps> = memo(({
     viewAreaCoveragePercentThreshold: 50,
   }).current;
 
-  const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      if (
-        viewableItems.length > 0 &&
-        viewableItems[0]?.index !== null &&
-        viewableItems[0]?.index !== undefined
-      ) {
-        const index = viewableItems[0].index;
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    if (viewableItems.length > 0 && viewableItems[0]?.index !== null && viewableItems[0]?.index !== undefined) {
+      const index = viewableItems[0].index;
 
-        currentIndexRef.current = index;
-        if (activeIndexRef.current !== index) {
-          activeIndexRef.current = index;
-          setActiveDot(index);
-        }
+      currentIndexRef.current = index;
+      if (activeIndexRef.current !== index) {
+        activeIndexRef.current = index;
+        setActiveDot(index);
       }
     }
-  ).current;
+  }).current;
 
   const startAutoSlide = useCallback(() => {
     if (banners.length <= 1) return;
@@ -172,8 +143,7 @@ const PromoBanner: React.FC<PromoBannerProps> = memo(({
     }
 
     autoSlideRef.current = setInterval(() => {
-      const nextIndex =
-        (currentIndexRef.current + 1) % banners.length;
+      const nextIndex = (currentIndexRef.current + 1) % banners.length;
 
       flatListRef.current?.scrollToIndex({
         index: nextIndex,
@@ -199,19 +169,20 @@ const PromoBanner: React.FC<PromoBannerProps> = memo(({
   }, [startAutoSlide]);
 
   const renderCard = useCallback(
-    ({ item }: { item: PromoBannerItem }) => (
-      <PromoCard item={item} onCtaPress={onCtaPress} />
-    ),
+    ({ item }: { item: PromoBannerItem }) => <PromoCard item={item} onCtaPress={onCtaPress} />,
     [onCtaPress]
   );
 
   const keyExtractor = useCallback((item: PromoBannerItem) => item.id, []);
 
-  const getItemLayout = useCallback((_: any, index: number) => ({
-    length: CARD_WIDTH + SPACING.md,
-    offset: (CARD_WIDTH + SPACING.md) * index,
-    index,
-  }), []);
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: CARD_WIDTH + SPACING.md,
+      offset: (CARD_WIDTH + SPACING.md) * index,
+      index,
+    }),
+    []
+  );
 
   return (
     <View style={styles.container}>
@@ -244,67 +215,53 @@ const PromoBanner: React.FC<PromoBannerProps> = memo(({
         onMomentumScrollEnd={startAutoSlide}
       />
 
-      {banners.length > 1 && (
-        <PaginationDots
-          count={banners.length}
-          activeIndex={activeDot}
-        />
-      )}
+      {banners.length > 1 && <PaginationDots count={banners.length} activeIndex={activeDot} />}
     </View>
   );
 });
-const ProgressIndicator = memo(
-  ({ active }: { active: boolean }) => {
-    const progress = useSharedValue(active ? 0 : 1);
-    const dotWidth = useSharedValue(active ? rem(1.875) : rem(0.625));
+const ProgressIndicator = memo(({ active }: { active: boolean }) => {
+  const progress = useSharedValue(active ? 0 : 1);
+  const dotWidth = useSharedValue(active ? rem(1.875) : rem(0.625));
 
-    useEffect(() => {
-      cancelAnimation(progress);
-      cancelAnimation(dotWidth);
-      dotWidth.value = withTiming(active ? rem(1.875) : rem(0.625), { duration: 300 });
+  useEffect(() => {
+    cancelAnimation(progress);
+    cancelAnimation(dotWidth);
+    dotWidth.value = withTiming(active ? rem(1.875) : rem(0.625), { duration: 300 });
 
-      if (active) {
-        progress.value = 0;
-        progress.value = withTiming(1, {
-          duration: 3000,
-        });
-      } else {
-        progress.value = 0;
-      }
-    }, [active]);
+    if (active) {
+      progress.value = 0;
+      progress.value = withTiming(1, {
+        duration: 3000,
+      });
+    } else {
+      progress.value = 0;
+    }
+  }, [active]);
 
-    const trackAnimatedStyle = useAnimatedStyle(() => ({
-      width: dotWidth.value,
-    }));
+  const trackAnimatedStyle = useAnimatedStyle(() => ({
+    width: dotWidth.value,
+  }));
 
-    const fillAnimatedStyle = useAnimatedStyle(() => ({
-      width: `${progress.value * 100}%`,
-    }));
+  const fillAnimatedStyle = useAnimatedStyle(() => ({
+    width: `${progress.value * 100}%`,
+  }));
 
-    return (
-      <Animated.View style={[styles.indicatorTrack, trackAnimatedStyle]}>
-        <Animated.View
-          style={[styles.indicatorFill, fillAnimatedStyle]}
-        />
-      </Animated.View>
-    );
-  }
-);
+  return (
+    <Animated.View style={[styles.indicatorTrack, trackAnimatedStyle]}>
+      <Animated.View style={[styles.indicatorFill, fillAnimatedStyle]} />
+    </Animated.View>
+  );
+});
 
-const PaginationDots = memo(
-  ({ count, activeIndex }: { count: number; activeIndex: number }) => {
-    return (
-      <View style={styles.indicatorContainer}>
-        {Array.from({ length: count }).map((_, index) => (
-          <ProgressIndicator
-            key={index}
-            active={index === activeIndex}
-          />
-        ))}
-      </View>
-    );
-  }
-);
+const PaginationDots = memo(({ count, activeIndex }: { count: number; activeIndex: number }) => {
+  return (
+    <View style={styles.indicatorContainer}>
+      {Array.from({ length: count }).map((_, index) => (
+        <ProgressIndicator key={index} active={index === activeIndex} />
+      ))}
+    </View>
+  );
+});
 
 export default PromoBanner;
 
@@ -320,9 +277,9 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
     height: rem(9.375),
     borderRadius: rem(1.125),
-    flexDirection: 'row',
-    overflow: 'hidden',
-    position: 'relative',
+    flexDirection: "row",
+    overflow: "hidden",
+    position: "relative",
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.1,
@@ -330,11 +287,11 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   cardOverlay: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     top: 0,
     bottom: 0,
-    width: '60%',
+    width: "60%",
     borderTopLeftRadius: rem(1.25),
     borderBottomLeftRadius: rem(1.25),
   },
@@ -343,7 +300,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.lg - 4,
     paddingLeft: SPACING.lg,
     paddingRight: SPACING.sm,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
     zIndex: 1,
   },
   cardTitle: {
@@ -360,7 +317,7 @@ const styles = StyleSheet.create({
   },
   ctaButton: {
     backgroundColor: COLORS.white,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     paddingHorizontal: rem(1),
     paddingVertical: rem(0.5),
     borderRadius: rem(1.5),
@@ -378,8 +335,8 @@ const styles = StyleSheet.create({
   },
   bookImageContainer: {
     width: rem(6.5625),
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingRight: SPACING.md,
     paddingVertical: SPACING.md,
   },
@@ -389,16 +346,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   dotsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: SPACING.md,
     gap: SPACING.sm,
   },
   indicatorContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     gap: rem(0.625),
     marginTop: SPACING.md,
   },
@@ -406,11 +363,11 @@ const styles = StyleSheet.create({
     width: rem(6.25),
     height: rem(0.125),
     borderRadius: rem(0.1875),
-    overflow: 'hidden',
+    overflow: "hidden",
     backgroundColor: COLORS.grayHeavvy,
   },
   indicatorFill: {
-    height: '100%',
+    height: "100%",
     borderRadius: rem(0.1875),
     backgroundColor: COLORS.primary,
   },

@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Platform, Alert, ToastAndroid } from 'react-native';
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS } from '@/constants/colors';
-import { FONTS } from '@/constants/fonts';
-import { rem } from '@/utils/responsive';
-import { Ionicons } from '@expo/vector-icons';
+import { COLORS } from "@/constants/colors";
+import { FONTS } from "@/constants/fonts";
+import { rem } from "@/utils/responsive";
+import { Ionicons } from "@expo/vector-icons";
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import React, { useState } from "react";
+import { Alert, Platform, Pressable, StyleSheet, Text, ToastAndroid, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -15,18 +15,10 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
     const nextMode = !isNewMode;
     setIsNewMode(nextMode);
 
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(
-        nextMode ? "NEW MODE ENABLED!" : "RESALE MODE ENABLED!",
-        ToastAndroid.SHORT
-      );
+    if (Platform.OS === "android") {
+      ToastAndroid.show(nextMode ? "NEW MODE ENABLED!" : "RESALE MODE ENABLED!", ToastAndroid.SHORT);
     } else {
-      Alert.alert(
-        "Mode Changed",
-        nextMode
-          ? "You have switched to NEW MODE!"
-          : "You have returned to RESALE MODE."
-      );
+      Alert.alert("Mode Changed", nextMode ? "You have switched to NEW MODE!" : "You have returned to RESALE MODE.");
     }
   };
 
@@ -34,9 +26,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
   // If the device has system safe-area insets at the bottom (e.g. iOS Home Indicator or Android Gesture/3-button edge-to-edge),
   // we add a 12dp spacing above the safe area boundary to make the pill float cleanly.
   // Otherwise, we use a fallback margin of 20dp to float above the physical edge of the screen.
-  const bottomMargin = insets.bottom > 0
-    ? insets.bottom + 0
-    : rem(0.1875);
+  const bottomMargin = insets.bottom > 0 ? insets.bottom + 0 : rem(0.1875);
 
   return (
     <View style={[styles.wrapper, { bottom: bottomMargin }]}>
@@ -55,7 +45,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
 
           const onPress = () => {
             const event = navigation.emit({
-              type: 'tabPress',
+              type: "tabPress",
               target: route.key,
               canPreventDefault: true,
             });
@@ -67,7 +57,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
 
           const onLongPress = () => {
             navigation.emit({
-              type: 'tabLongPress',
+              type: "tabLongPress",
               target: route.key,
             });
           };
@@ -90,25 +80,22 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
               testID={options.tabBarButtonTestID || (options as any).tabBarTestID}
               onPress={onPress}
               onLongPress={onLongPress}
-              style={({ pressed }) => [
-                styles.tabItem,
-                { transform: [{ scale: pressed ? 0.92 : 1 }] }
-              ]}
+              style={({ pressed }) => [styles.tabItem, { transform: [{ scale: pressed ? 0.92 : 1 }] }]}
             >
-              <View style={iconStyle}>
-                {renderIcon && renderIcon({ focused: isFocused, color, size: rem(1.375) })}
-              </View>
-              {showLabel && (
-                typeof label === 'string' ? (
-                  <Text style={[{ color }, labelStyle]}>
-                    {label}
-                  </Text>
-                ) : typeof label === 'function' ? (
-                  label({ focused: isFocused, color, position: 'below-icon', children: route.name })
+              <View style={iconStyle}>{renderIcon && renderIcon({ focused: isFocused, color, size: rem(1.375) })}</View>
+              {showLabel &&
+                (typeof label === "string" ? (
+                  <Text style={[{ color }, labelStyle]}>{label}</Text>
+                ) : typeof label === "function" ? (
+                  label({
+                    focused: isFocused,
+                    color,
+                    position: "below-icon",
+                    children: route.name,
+                  })
                 ) : (
                   label
-                )
-              )}
+                ))}
             </Pressable>
           );
         })}
@@ -120,8 +107,8 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
           styles.rightPill,
           {
             backgroundColor: isNewMode ? COLORS.primary : COLORS.white,
-            transform: [{ scale: pressed ? 0.92 : 1 }]
-          }
+            transform: [{ scale: pressed ? 0.92 : 1 }],
+          },
         ]}
         onPress={handleNewModePress}
       >
@@ -133,21 +120,21 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
 
 const styles = StyleSheet.create({
   wrapper: {
-    position: 'absolute',
+    position: "absolute",
     left: 18,
     right: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   leftPill: {
     flex: 5,
-    flexDirection: 'row',
+    flexDirection: "row",
     height: rem(3.75),
     backgroundColor: COLORS.white,
     borderRadius: rem(2),
-    alignItems: 'center',
-    justifyContent: 'space-around',
+    alignItems: "center",
+    justifyContent: "space-around",
     paddingHorizontal: 8,
 
     // Shadows
@@ -161,8 +148,8 @@ const styles = StyleSheet.create({
     flex: 1.2,
     height: rem(3.75),
     borderRadius: rem(2),
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 12,
 
     // Shadows
@@ -174,13 +161,13 @@ const styles = StyleSheet.create({
   },
   tabItem: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100%',
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
   },
   tabLabel: {
     fontSize: rem(0.625),
-    fontFamily: FONTS?.montserrat?.medium || Platform.select({ ios: 'System', android: 'sans-serif-medium' }),
+    fontFamily: FONTS?.montserrat?.medium || Platform.select({ ios: "System", android: "sans-serif-medium" }),
     marginTop: 2,
   },
   tabIcon: {
@@ -188,7 +175,7 @@ const styles = StyleSheet.create({
   },
   newModeText: {
     fontSize: rem(0.6875),
-    fontFamily: FONTS?.montserrat?.bold || Platform.select({ ios: 'System', android: 'sans-serif-bold' }),
-    textAlign: 'center',
+    fontFamily: FONTS?.montserrat?.bold || Platform.select({ ios: "System", android: "sans-serif-bold" }),
+    textAlign: "center",
   },
 });
