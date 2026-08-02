@@ -12,18 +12,42 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/api/clients";
+import { ActivityIndicator } from "react-native";
+
 const AuthorListScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const [activeCategory, setActiveCategory] = useState("All");
 
+  const { data: authorsData, isLoading, refetch } = useQuery({
+    queryKey: ["authors-list"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/book/authors/");
+      return response.data;
+    },
+  });
+
+  const authors = useMemo(() => {
+    if (!authorsData?.results) return [];
+    return authorsData.results.map((item: any) => ({
+      id: String(item.id),
+      name: item.name,
+      imageUri: item.image_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
+      bio: item.bio || "",
+      category: item.designation || "Author",
+      rating: parseFloat(item.rating) || 4.5,
+    }));
+  }, [authorsData]);
+
   const filteredAuthors = useMemo(() => {
-    if (activeCategory === "All") return MOCK_AUTHORS;
-    return MOCK_AUTHORS.filter((author) => author.category === activeCategory);
-  }, [activeCategory]);
+    if (activeCategory === "All") return authors;
+    return authors.filter((author: any) => author.category === activeCategory);
+  }, [activeCategory, authors]);
 
   const handleAuthorPress = useCallback(
-    (author: Author) => {
+    (author: any) => {
       navigation.navigate("AppStack", { screen: "AuthorDetails", params: { author } });
     },
     [navigation]
@@ -91,13 +115,21 @@ const AuthorListScreen = () => {
       {renderTitleSection()}
       {renderCategoryTabs()}
 
-      <FlatList
-        data={filteredAuthors}
-        keyExtractor={(item) => item.id}
-        renderItem={renderAuthorItem}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-      />
+      {isLoading ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={filteredAuthors}
+          keyExtractor={(item) => item.id}
+          renderItem={renderAuthorItem}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+          onRefresh={refetch}
+          refreshing={isLoading}
+        />
+      )}
     </View>
   );
 };

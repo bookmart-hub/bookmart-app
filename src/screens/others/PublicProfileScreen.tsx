@@ -67,29 +67,114 @@ const SOLD_BOOKS = [
   },
 ];
 
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/api/clients";
+import { ActivityIndicator } from "react-native";
+import { useRoute } from "@react-navigation/native";
+
 const PublicProfileScreen = () => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const [menuVisible, setMenuVisible] = useState(false);
   const openMenu = () => setMenuVisible(true);
   const closeMenu = () => setMenuVisible(false);
-  const [ispublic, setIsPublic] = useState(true);
+
+  // profileId passed via route params
+  const profileId = route.params?.profileId || route.params?.userId || "me";
+
+  const { data: profileData, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ["public-profile", profileId],
+    queryFn: async () => {
+      const endpoint = profileId === "me" ? "/api/v1/core/profile/me/" : `/api/v1/core/profile/${profileId}/`;
+      const response = await api.get(endpoint);
+      return response.data;
+    },
+  });
+
+  const sellerUserId = profileData?.user?.id;
+
+  const { data: listingsData, isLoading: isLoadingListings } = useQuery({
+    queryKey: ["seller-listings", sellerUserId],
+    queryFn: async () => {
+      if (!sellerUserId) return null;
+      const response = await api.get(`/api/v1/marketplace/listings/?seller=${sellerUserId}`);
+      return response.data;
+    },
+    enabled: !!sellerUserId,
+  });
+
   const deleteAccount = () => {
-    // TODO: Implement delete account logic
-    ToastAndroid.show("Account deleted successfully", ToastAndroid.SHORT);
+    ToastAndroid.show("Account deletion requested", ToastAndroid.SHORT);
     navigation.goBack();
   };
+
+  const activeBooks = React.useMemo(() => {
+    if (!listingsData?.results) return [];
+    return listingsData.results
+      .filter((item: any) => item.status === "AVAILABLE")
+      .map((item: any) => ({
+        id: String(item.id),
+        title: item.book.title,
+        author: item.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
+        price: String(parseFloat(item.price)),
+        coverUri: item.listing_images?.[0]?.image_url || item.book.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+        condition: item.condition,
+      }));
+  }, [listingsData]);
+
+  const soldBooks = React.useMemo(() => {
+    if (!listingsData?.results) return [];
+    return listingsData.results
+      .filter((item: any) => item.status === "SOLD")
+      .map((item: any) => ({
+        id: String(item.id),
+        title: item.book.title,
+        author: item.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
+        price: String(parseFloat(item.price)),
+        coverUri: item.listing_images?.[0]?.image_url || item.book.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+        condition: "Sold",
+      }));
+  }, [listingsData]);
+
+  const handleWhatsAppContact = () => {
+    const phone = profileData?.phone_number || "919999999999";
+    const text = encodeURIComponent(`Hi ${profileData?.user?.full_name || "there"}, I'm interested in buying your books listed on BookMart.`);
+    Linking.openURL(`https://wa.me/${phone}?text=${text}`).catch(() => {
+      Alert.alert("Error", "WhatsApp is not installed on this device");
+    });
+  };
+
+  if (isLoadingProfile || isLoadingListings) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  if (!profileData) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <Text style={styles.quoteText}>Profile details not found.</Text>
+      </View>
+    );
+  }
 
   const renderProfileHeader = () => (
     <View style={styles.profileHeaderContainer}>
       <View style={styles.profileMainRow}>
         <View style={styles.avatarContainer}>
-          <Ionicons name="person" size={50} color={COLORS.grayHeavvy} />
+          {profileData.image ? (
+            <Image source={{ uri: profileData.image }} style={{ width: 80, height: 80, borderRadius: 40 }} />
+          ) : (
+            <Ionicons name="person" size={50} color={COLORS.grayHeavvy} />
+          )}
         </View>
 
         <View style={styles.profileInfo}>
           <View style={styles.nameRow}>
-            <Text style={styles.nameText}>Amit Roy</Text>
+            <Text style={styles.nameText}>{profileData.user?.full_name}</Text>
             <View style={styles.badgeContainer}>
               <Ionicons name="shield-checkmark" size={10} color={COLORS.black} />
             </View>
@@ -97,15 +182,17 @@ const PublicProfileScreen = () => {
 
           <View style={styles.infoRow}>
             <Ionicons name="school-outline" size={14} color={COLORS.primary} style={styles.infoIcon} />
-            <Text style={styles.infoText}>B.G.C College</Text>
+            <Text style={styles.infoText}>{profileData.college?.name || "B.G.C College"}</Text>
           </View>
           <View style={styles.infoRow}>
             <Ionicons name="location-outline" size={14} color={COLORS.primary} style={styles.infoIcon} />
-            <Text style={styles.infoText}>Kolkata, India</Text>
+            <Text style={styles.infoText}>{profileData.city_location || "Kolkata, India"}</Text>
           </View>
           <View style={styles.infoRow}>
             <Ionicons name="calendar-outline" size={14} color={COLORS.primary} style={styles.infoIcon} />
-            <Text style={styles.infoText}>Joined Jan 2026</Text>
+            <Text style={styles.infoText}>
+              Joined {new Date(profileData.user?.date_joined || Date.now()).toLocaleDateString([], { month: "short", year: "numeric" })}
+            </Text>
           </View>
         </View>
 
@@ -114,8 +201,6 @@ const PublicProfileScreen = () => {
             <Ionicons name="shield-checkmark" size={18} color={COLORS.primary} />
             <Text style={styles.trustedTitle}>Trusted{"\n"}Seller</Text>
           </View>
-          {/* <Text style={styles.trustedSub}>Quick replies</Text>
-                    <Text style={styles.trustedSub}>Reliable deals</Text> */}
         </View>
       </View>
     </View>
@@ -124,19 +209,19 @@ const PublicProfileScreen = () => {
   const renderStats = () => (
     <View style={styles.statsContainer}>
       <View style={styles.statItem}>
-        <Text style={styles.statNumber}>348</Text>
+        <Text style={styles.statNumber}>{activeBooks.length + soldBooks.length}</Text>
         <Text style={styles.statLabel}>Successful Contacts</Text>
         <Text style={styles.statSub}>Through WhatsApp</Text>
       </View>
       <View style={styles.statDivider} />
       <View style={styles.statItem}>
-        <Text style={styles.statNumber}>24</Text>
+        <Text style={styles.statNumber}>{activeBooks.length}</Text>
         <Text style={styles.statLabel}>Active Listings</Text>
         <Text style={styles.statSub}>Books for sale</Text>
       </View>
       <View style={styles.statDivider} />
       <View style={styles.statItem}>
-        <Text style={styles.statNumber}>12</Text>
+        <Text style={styles.statNumber}>{soldBooks.length}</Text>
         <Text style={styles.statLabel}>Books Sold</Text>
         <Text style={styles.statSub}>Successfully</Text>
       </View>
@@ -149,6 +234,7 @@ const PublicProfileScreen = () => {
         title="Contact"
         style={styles.actionBtnWhatsApp}
         textStyle={styles.actionBtnTextWhite}
+        onPress={handleWhatsAppContact}
         icon={<Ionicons name="chatbubble-ellipses-outline" size={18} color={COLORS.white} />}
       />
       <Button
@@ -165,12 +251,10 @@ const PublicProfileScreen = () => {
     <View style={styles.aboutContainer}>
       <View style={styles.aboutHeader}>
         <Ionicons name="person-circle" size={20} color={COLORS.primary} />
-        <Text style={styles.aboutTitle}>About Amit</Text>
+        <Text style={styles.aboutTitle}>About {profileData.user?.full_name?.split(" ")[0]}</Text>
       </View>
       <Text style={styles.aboutText}>
-        Student of Computer Science.{"\n"}
-        Interested in programming, entrepreneurship and technology.{"\n"}
-        Selling academic and self-help books.
+        {profileData.bio || "Student and book enthusiast. Selling academic and self-help books."}
       </Text>
     </View>
   );
@@ -180,16 +264,16 @@ const PublicProfileScreen = () => {
       <View style={styles.collegeCard}>
         <View style={styles.collegeCardHeader}>
           <Ionicons name="business-outline" size={20} color={COLORS.primary} />
-          <Text style={styles.collegeCardTitle}>From B.G.C College</Text>
+          <Text style={styles.collegeCardTitle}>From {profileData.college?.name || "College"}</Text>
         </View>
         <View style={styles.collegeStatsRow}>
           <View style={styles.collegeStatItem}>
-            <Text style={styles.collegeStatNumber}>24</Text>
+            <Text style={styles.collegeStatNumber}>{activeBooks.length}</Text>
             <Text style={styles.collegeStatLabel}>Books Listed</Text>
           </View>
           <View style={styles.collegeStatDivider} />
           <View style={styles.collegeStatItem}>
-            <Text style={styles.collegeStatNumber}>12</Text>
+            <Text style={styles.collegeStatNumber}>{soldBooks.length}</Text>
             <Text style={styles.collegeStatLabel}>Books Sold</Text>
           </View>
         </View>
@@ -246,7 +330,6 @@ const PublicProfileScreen = () => {
                 leadingIcon="share-variant-outline"
                 onPress={() => {
                   closeMenu();
-                  // Share logic
                 }}
                 title="Share Profile"
               />
@@ -273,10 +356,13 @@ const PublicProfileScreen = () => {
         {renderActions()}
         {renderAbout()}
 
-        {/* Replace this two comp */}
-        <HorizontalBookList title="Active Books (24)" books={ACTIVE_BOOKS as any} cardLayout="standard" />
+        {activeBooks.length > 0 && (
+          <HorizontalBookList title={`Active Books (${activeBooks.length})`} books={activeBooks as any} cardLayout="standard" />
+        )}
 
-        <HorizontalBookList title="Recently Sold" books={SOLD_BOOKS as any} cardLayout="horizontal" />
+        {soldBooks.length > 0 && (
+          <HorizontalBookList title="Recently Sold" books={soldBooks as any} cardLayout="horizontal" />
+        )}
 
         {renderInfoCards()}
       </ScrollView>

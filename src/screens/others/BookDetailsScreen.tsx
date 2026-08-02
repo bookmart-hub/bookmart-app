@@ -1,15 +1,16 @@
+import { api } from "@/api/clients";
 import { Button } from "@/components/ui/Button";
 import Header from "@/components/ui/Header";
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
-import { Book } from "@/data/models";
 import { MOCK_CATEGORIES } from "@/data/nearestBooksMockData";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import React, { useMemo, useState } from "react";
-import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Dimensions, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StarRating from "react-native-star-rating-widget";
 
@@ -42,41 +43,88 @@ const PADDING_HORIZONTAL = SPACING.lg;
 
 const BookDetailsScreen = () => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const [isFavorite, setIsFavorite] = useState(false);
+  const queryClient = useQueryClient();
+
   const [showBurst, setShowBurst] = useState(false);
-
-  const book: Book | undefined = route.params?.book;
-  console.log(book);
-  const categoryTitle: string = route.params?.categoryTitle || "";
-
-  const isAcademic = useMemo(() => isAcademicCategory(categoryTitle), [categoryTitle]);
-
-  const genreName = useMemo(() => {
-    if (book?.genre) return book.genre;
-    if (book?.categoryId) {
-      const cat = MOCK_CATEGORIES.find((c) => c.id === book.categoryId);
-      if (cat) return cat.name;
-    }
-    if (categoryTitle) return categoryTitle;
-    return "General";
-  }, [book?.genre, book?.categoryId, categoryTitle]);
-
-  const [localReviews, setLocalReviews] = useState(book?.reviews || []);
-  const [localRatings, setLocalRatings] = useState(book?.ratings);
   const [newReviewText, setNewReviewText] = useState("");
   const [newReviewRating, setNewReviewRating] = useState(0);
 
+  const initialBook = route.params?.book;
+  const listingId = route.params?.listingId || initialBook?.id;
+  const categoryTitle: string = route.params?.categoryTitle || "";
+
+  // Query listing details from backend
+  const { data: listingData, isLoading: isListingLoading } = useQuery({
+    queryKey: ["listing", listingId],
+    queryFn: async () => {
+      if (!listingId) return null;
+      const response = await api.get(`/api/v1/marketplace/listings/${listingId}/`);
+      return response.data;
+    },
+    enabled: !!listingId,
+  });
+
+  const activeBook = useMemo(() => {
+    if (listingData) {
+      return {
+        id: String(listingData.id),
+        bookId: String(listingData.book.id),
+        title: listingData.book.title,
+        coverUri: listingData.listing_images?.[0]?.image_url || listingData.book.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop",
+        price: parseFloat(listingData.price),
+        author: listingData.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
+        condition: listingData.condition,
+        conditionNote: listingData.condition_notes,
+        sellerName: listingData.seller.full_name,
+        sellerPhone: listingData.seller.phone_number,
+        distance: listingData.distance_km ? `${listingData.distance_km.toFixed(1)} km away` : "1.2 km away",
+        timeLeft: "15h left",
+      };
+    }
+    return initialBook;
+  }, [listingData, initialBook]);
+
+  // Load wishlist
+  const { data: wishlistData, refetch: refetchWishlist } = useQuery({
+    queryKey: ["wishlist"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/marketplace/wishlist/");
+      return response.data.results || [];
+    },
+  });
+
+  const isFavorite = useMemo(() => {
+    if (!wishlistData || !listingId) return false;
+    return wishlistData.some((w: any) => String(w.listing.id) === String(listingId));
+  }, [wishlistData, listingId]);
+
+  const wishlistId = useMemo(() => {
+    if (!wishlistData || !listingId) return null;
+    const found = wishlistData.find((w: any) => String(w.listing.id) === String(listingId));
+    return found ? found.id : null;
+  }, [wishlistData, listingId]);
+
+  const toggleWishlistMutation = useMutation({
+    mutationFn: async () => {
+      if (isFavorite && wishlistId) {
+        await api.delete(`/api/v1/marketplace/wishlist/${wishlistId}/`);
+      } else {
+        await api.post("/api/v1/marketplace/wishlist/", { listing: listingId });
+      }
+    },
+    onSuccess: () => {
+      refetchWishlist();
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+    },
+  });
+
   const handleFavorite = () => {
-    const next = !isFavorite;
-
-    setIsFavorite(next);
-
-    if (next) {
+    toggleWishlistMutation.mutate();
+    if (!isFavorite) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setShowBurst(true);
-
       setTimeout(() => {
         setShowBurst(false);
       }, 700);
@@ -85,38 +133,125 @@ const BookDetailsScreen = () => {
     }
   };
 
-  const handleAddReview = () => {
-    if (newReviewRating === 0 || !newReviewText.trim()) return;
+  // Log contact
+  const logContactMutation = useMutation({
+    mutationFn: async (payload: { contact_person_name: string; book_title: string; deal_type: string; price_recorded: number }) => {
+      await api.post("/api/v1/marketplace/contacts/", payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contacts-ledger"] });
+    },
+  });
 
-    const newReview = {
-      id: Date.now().toString(),
-      reviewerName: "Current User", // Mocked user
+  const handleContactSeller = () => {
+    if (!activeBook) return;
+    Haptics.selectionAsync();
+
+    const sellerPhone = activeBook.sellerPhone || "919876543210";
+    const cleanedPhone = sellerPhone.replace(/[^0-9]/g, "");
+    const whatsappUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(`Hi ${activeBook.sellerName || "Seller"}, I'm interested in buying your book: ${activeBook.title} listed for ₹${activeBook.price}.`)}`;
+
+    logContactMutation.mutate({
+      contact_person_name: activeBook.sellerName || "Seller User",
+      book_title: activeBook.title,
+      deal_type: "BOUGHT",
+      price_recorded: activeBook.price,
+    });
+
+    Linking.openURL(whatsappUrl).catch((err) => {
+      console.error("Failed to open WhatsApp URL", err);
+      Alert.alert("Error", "Could not open WhatsApp. Please ensure WhatsApp is installed.");
+    });
+  };
+
+  // Load reviews
+  const { data: reviewsData, refetch: refetchReviews } = useQuery({
+    queryKey: ["reviews", activeBook?.bookId || activeBook?.id],
+    queryFn: async () => {
+      const bId = listingData?.book?.id || activeBook?.bookId || activeBook?.id;
+      if (!bId) return [];
+      const response = await api.get(`/api/v1/book/reviews/?book=${bId}`);
+      return response.data.results || response.data;
+    },
+    enabled: !!(listingData?.book?.id || activeBook?.bookId || activeBook?.id),
+  });
+
+  const writeReviewMutation = useMutation({
+    mutationFn: async (payload: { book: number; rating: number; comment: string }) => {
+      await api.post("/api/v1/book/reviews/", payload);
+    },
+    onSuccess: () => {
+      refetchReviews();
+      setNewReviewText("");
+      setNewReviewRating(0);
+    },
+    onError: (err: any) => {
+      Alert.alert("Error", err.response?.data?.non_field_errors?.[0] || "Failed to submit review.");
+    },
+  });
+
+  const handleAddReview = () => {
+    const bId = listingData?.book?.id || activeBook?.bookId || activeBook?.id;
+    if (!bId || newReviewRating === 0 || !newReviewText.trim()) return;
+
+    writeReviewMutation.mutate({
+      book: parseInt(bId),
       rating: newReviewRating,
       comment: newReviewText,
-      date: new Date().toISOString().split("T")[0],
-    };
-
-    const updatedReviews = [newReview, ...localReviews];
-    setLocalReviews(updatedReviews);
-
-    if (localRatings) {
-      const newTotal = localRatings.totalReviews + 1;
-      const newAverage = (localRatings.average * localRatings.totalReviews + newReviewRating) / newTotal;
-      setLocalRatings({
-        ...localRatings,
-        average: Number(newAverage.toFixed(1)),
-        totalReviews: newTotal,
-        fiveStar: localRatings.fiveStar + (newReviewRating === 5 ? 1 : 0),
-        fourStar: localRatings.fourStar + (newReviewRating === 4 ? 1 : 0),
-        threeStar: localRatings.threeStar + (newReviewRating === 3 ? 1 : 0),
-        twoStar: localRatings.twoStar + (newReviewRating === 2 ? 1 : 0),
-        oneStar: localRatings.oneStar + (newReviewRating === 1 ? 1 : 0),
-      });
-    }
-
-    setNewReviewText("");
-    setNewReviewRating(0);
+    });
   };
+
+  const reviewsList = useMemo(() => {
+    if (!reviewsData) return [];
+    return reviewsData.map((r: any) => ({
+      id: String(r.id),
+      reviewerName: r.user,
+      rating: r.rating,
+      comment: r.comment,
+      date: new Date(r.created_at).toLocaleDateString([], { month: "short", day: "numeric" }),
+    }));
+  }, [reviewsData]);
+
+  const localReviews = reviewsList;
+
+  const localRatings = useMemo(() => {
+    const ratings = {
+      average: 4.5,
+      totalReviews: reviewsList.length || 5,
+      fiveStar: 3,
+      fourStar: 1,
+      threeStar: 1,
+      twoStar: 0,
+      oneStar: 0,
+    };
+    if (reviewsList.length > 0) {
+      const sum = reviewsList.reduce((acc, curr) => acc + curr.rating, 0);
+      ratings.average = Number((sum / reviewsList.length).toFixed(1));
+    }
+    return ratings;
+  }, [reviewsList]);
+
+  const isAcademic = useMemo(() => isAcademicCategory(categoryTitle), [categoryTitle]);
+
+  const genreName = useMemo(() => {
+    if (activeBook?.genre) return activeBook.genre;
+    if (activeBook?.categoryId) {
+      const cat = MOCK_CATEGORIES.find((c) => c.id === activeBook.categoryId);
+      if (cat) return cat.name;
+    }
+    if (categoryTitle) return categoryTitle;
+    return "General";
+  }, [activeBook?.genre, activeBook?.categoryId, categoryTitle]);
+
+  const book = activeBook;
+
+  if (isListingLoading) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
 
   if (!book) {
     return (
@@ -372,10 +507,7 @@ const BookDetailsScreen = () => {
 
         <Button
           title="Contact Seller"
-          onPress={() => {
-            Haptics.selectionAsync();
-            console.log("Contact Seller");
-          }}
+          onPress={handleContactSeller}
           style={styles.secondaryButton}
           textStyle={styles.secondaryButtonText}
         />

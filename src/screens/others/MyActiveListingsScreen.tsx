@@ -10,7 +10,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -64,14 +64,104 @@ const MY_LISTINGS = [
   },
 ];
 
+import { api } from "@/api/clients";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ActivityIndicator, Alert } from "react-native";
+
 export default function MyActiveListingsScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
+  const queryClient = useQueryClient();
   const [activeFilter, setActiveFilter] = useState("All");
+
+  const { data: userProfile } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/core/profile/me/");
+      return response.data;
+    },
+  });
+
+  const sellerId = userProfile?.user?.id;
+
+  const { data: listingsData, isLoading, refetch } = useQuery({
+    queryKey: ["my-listings", sellerId],
+    queryFn: async () => {
+      if (!sellerId) return null;
+      const response = await api.get(`/api/v1/marketplace/listings/?seller=${sellerId}`);
+      return response.data;
+    },
+    enabled: !!sellerId,
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      await api.patch(`/api/v1/marketplace/listings/${id}/`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-listings"] });
+    },
+  });
+
+  const handleMorePress = (item: any) => {
+    Alert.alert(
+      "Manage Listing",
+      `Title: ${item.title}\nStatus: ${item.status}`,
+      [
+        {
+          text: item.status === "AVAILABLE" ? "Mark as Sold" : "Mark as Available",
+          onPress: () => {
+            updateStatusMutation.mutate({
+              id: item.id,
+              status: item.status === "AVAILABLE" ? "SOLD" : "AVAILABLE",
+            });
+          },
+        },
+        {
+          text: "Delete Listing",
+          style: "destructive",
+          onPress: () => {
+            Alert.alert("Confirm Delete", "Are you sure you want to delete this listing?", [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Delete",
+                style: "destructive",
+                onPress: async () => {
+                  await api.delete(`/api/v1/marketplace/listings/${item.id}/`);
+                  queryClient.invalidateQueries({ queryKey: ["my-listings"] });
+                },
+              },
+            ]);
+          },
+        },
+        { text: "Cancel", style: "cancel" },
+      ]
+    );
+  };
+
+  const myListings = useMemo(() => {
+    if (!listingsData?.results) return [];
+    return listingsData.results.map((item: any) => ({
+      id: String(item.id),
+      title: item.book.title,
+      author: item.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
+      price: parseFloat(item.price),
+      status: item.status,
+      coverUri: item.listing_images?.[0]?.image_url || item.book.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop",
+      views: 12, // Analytics metrics can fall back or be mock
+      likes: 3,
+      chats: 2,
+    }));
+  }, [listingsData]);
+
+  const filteredListings = useMemo(() => {
+    if (activeFilter === "All") return myListings;
+    return myListings.filter((l) => l.status === (activeFilter === "Active" ? "AVAILABLE" : "SOLD"));
+  }, [myListings, activeFilter]);
 
   const renderSummarySection = () => (
     <View style={styles.summarySection}>
-      <Text style={styles.summaryTitle}>4 Active Books</Text>
+      <Text style={styles.summaryTitle}>{myListings.length} Listings</Text>
       <Text style={styles.summarySubtitle}>Manage your listed books</Text>
 
       <View style={styles.statsContainer}>
@@ -80,7 +170,7 @@ export default function MyActiveListingsScreen() {
             <Ionicons name="book-outline" size={20} color={COLORS.primary} />
           </View>
           <Text style={styles.statLabel}>Total Listings</Text>
-          <Text style={styles.statValue}>4</Text>
+          <Text style={styles.statValue}>{myListings.length}</Text>
         </View>
 
         <View style={styles.statCard}>
@@ -88,7 +178,7 @@ export default function MyActiveListingsScreen() {
             <Ionicons name="eye-outline" size={20} color={COLORS.primary} />
           </View>
           <Text style={styles.statLabel}>Total Views</Text>
-          <Text style={styles.statValue}>553</Text>
+          <Text style={styles.statValue}>{myListings.reduce((acc, curr) => acc + curr.views, 0)}</Text>
         </View>
 
         <View style={styles.statCard}>
@@ -96,13 +186,13 @@ export default function MyActiveListingsScreen() {
             <Ionicons name="heart-outline" size={20} color={COLORS.primary} />
           </View>
           <Text style={styles.statLabel}>Interested</Text>
-          <Text style={styles.statValue}>242</Text>
+          <Text style={styles.statValue}>{myListings.reduce((acc, curr) => acc + curr.likes, 0)}</Text>
         </View>
       </View>
     </View>
   );
 
-  const renderBookCard = ({ item }: { item: (typeof MY_LISTINGS)[0] }) => (
+  const renderBookCard = ({ item }: { item: any }) => (
     <View style={styles.bookCard}>
       <Image source={{ uri: item.coverUri }} style={styles.bookCover} contentFit="cover" />
       <View style={styles.bookInfo}>
@@ -115,7 +205,11 @@ export default function MyActiveListingsScreen() {
               {item.author}
             </Text>
           </View>
-          <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate("AppStack", { screen: "Create", params: { editListingId: item.id } })}
+          >
             <Feather name="edit-2" size={14} color={COLORS.primary} />
             <Text style={styles.actionBtnText}>Edit</Text>
           </TouchableOpacity>
@@ -139,7 +233,7 @@ export default function MyActiveListingsScreen() {
         <View style={styles.bookFooterRow}>
           <Text style={styles.bookPrice}>₹{item.price}</Text>
           <View style={styles.actionButtonsRow}>
-            <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7} onPress={() => handleMorePress(item)}>
               <Feather name="more-horizontal" size={14} color={COLORS.primary} />
               <Text style={styles.actionBtnText}>More</Text>
             </TouchableOpacity>
@@ -174,19 +268,27 @@ export default function MyActiveListingsScreen() {
       <StatusBar style="dark" />
       <Header backButton title="My Active Listings" />
 
-      <FlatList
-        data={MY_LISTINGS}
-        keyExtractor={(item) => item.id}
-        renderItem={renderBookCard}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={<>{renderSummarySection()}</>}
-        ListFooterComponent={<View style={styles.footerSpacing}>{renderPromoCard()}</View>}
-      />
+      {isLoading ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={filteredListings}
+          keyExtractor={(item) => item.id}
+          renderItem={renderBookCard}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={<>{renderSummarySection()}</>}
+          ListFooterComponent={<View style={styles.footerSpacing}>{renderPromoCard()}</View>}
+          onRefresh={refetch}
+          refreshing={isLoading}
+        />
+      )}
 
       {/* Floating Action Button */}
       <View style={[styles.fabContainer, { bottom: insets.bottom + SPACING.xl * 3 }]}>
-        <TouchableOpacity style={styles.fab} activeOpacity={0.9}>
+        <TouchableOpacity style={styles.fab} activeOpacity={0.9} onPress={() => navigation.navigate("AppStack", { screen: "Create" })}>
           <FontAwesome name="book" size={24} color={COLORS.white} />
         </TouchableOpacity>
       </View>

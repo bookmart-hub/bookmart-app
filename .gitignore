@@ -40,3 +40,5 @@ yarn-error.*
 # generated native folders
 /android
 /ios
+
+/temp

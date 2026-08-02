@@ -96,42 +96,64 @@ const MasonryBookCard = memo(({ book, navigation }: { book: any; navigation: any
   );
 });
 
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/api/clients";
+import { ActivityIndicator } from "react-native";
+
+const getSlugFromTitle = (title: string) => {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+};
+
 const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({ data }) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
 
-  const processedData = useMemo(() => {
-    const groupedBooks = new Map<string, Book[]>();
-    data.forEach((item) => {
-      if (item.type === "book" && item.book) {
-        if (!groupedBooks.has(item.book.title)) groupedBooks.set(item.book.title, []);
-        groupedBooks.get(item.book.title)!.push(item.book);
-      }
-    });
+  const headerItem = data.find((item) => item.type === "header");
+  const categoryTitle = headerItem ? headerItem.title : "Books";
+  const categorySlug = getSlugFromTitle(categoryTitle);
 
-    const processedTitles = new Set<string>();
-    const result: FeedItem[] = [];
+  const { data: booksData, isLoading, refetch } = useQuery({
+    queryKey: ["category-books", categorySlug],
+    queryFn: async () => {
+      const response = await api.get(`/api/v1/book/books/?categories__slug=${categorySlug}`);
+      return response.data;
+    },
+  });
 
-    data.forEach((item) => {
-      if (item.type !== "book") {
-        result.push(item);
-      } else if (item.book) {
-        if (!processedTitles.has(item.book.title)) {
-          const allListings = groupedBooks.get(item.book.title)!;
-          if (allListings.length > 1) {
-            const lowestPriceBook = allListings.reduce((prev, curr) => (prev.price < curr.price ? prev : curr));
-            const otherListings = allListings.filter((b) => b.id !== lowestPriceBook.id);
-            result.push({ ...item, book: { ...lowestPriceBook, otherListings } });
-          } else {
-            result.push(item);
-          }
-          processedTitles.add(item.book.title);
+  const categoryBooks = useMemo(() => {
+    if (!booksData?.results || booksData.results.length === 0) {
+      // Return mock books as fallback
+      const mockBooks: any[] = [];
+      data.forEach((item) => {
+        if (item.type === "book" && item.book) {
+          mockBooks.push(item.book);
         }
-      }
+      });
+      return mockBooks;
+    }
+    return booksData.results.map((item: any) => {
+      const activeListing = item.ranked_listings?.[0] || item.listings?.[0];
+      return {
+        id: String(activeListing?.id || item.id),
+        title: item.title,
+        author: item.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
+        price: activeListing ? parseFloat(activeListing.price) : 250,
+        imageUri: activeListing?.listing_images?.[0]?.image_url || item.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+      };
     });
+  }, [booksData, data]);
 
-    return result;
-  }, [data]);
+  const processedData = useMemo(() => {
+    const nonBookItems = data.filter((item) => item.type !== "book");
+    const dynamicBookItems = categoryBooks.map((book) => ({
+      type: "book" as const,
+      book,
+    }));
+    return [...nonBookItems, ...dynamicBookItems];
+  }, [data, categoryBooks]);
 
   const renderItem = ({ item }: { item: FeedItem }) => {
     const wrapperStyle = {
@@ -196,6 +218,8 @@ const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({ data }) =
           paddingBottom: SPACING.xl,
         }}
         showsVerticalScrollIndicator={false}
+        onRefresh={refetch}
+        refreshing={isLoading}
       />
     </View>
   );

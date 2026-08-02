@@ -42,13 +42,40 @@ const MOCK_AUTHOR_BOOKS = [
   },
 ];
 
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/api/clients";
+import { ActivityIndicator } from "react-native";
+
 const AuthorDetailsScreen = () => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const route = useRoute<any>();
 
   // Author can come from either AuthorListScreen (Author type) or HomeScreen (AuthorItem type)
   const author = route.params?.author;
+
+  const { data: booksData, isLoading } = useQuery({
+    queryKey: ["author-books", author?.name],
+    queryFn: async () => {
+      if (!author?.name) return null;
+      const response = await api.get(`/api/v1/book/books/?search=${encodeURIComponent(author.name)}`);
+      return response.data;
+    },
+    enabled: !!author?.name,
+  });
+
+  const authorBooks = React.useMemo(() => {
+    if (!booksData?.results) return [];
+    return booksData.results.map((item: any) => {
+      const activeListing = item.ranked_listings?.[0] || item.listings?.[0];
+      return {
+        id: String(activeListing?.id || item.id),
+        title: item.title,
+        price: activeListing ? parseFloat(activeListing.price) : 250,
+        imageUri: activeListing?.listing_images?.[0]?.image_url || item.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+      };
+    });
+  }, [booksData]);
 
   if (!author) {
     return (
@@ -106,22 +133,30 @@ const AuthorDetailsScreen = () => {
         {/* Books Section */}
         <View style={styles.booksSection}>
           <Text style={styles.sectionTitle}>Books</Text>
-          <View style={styles.booksGrid}>
-            {MOCK_AUTHOR_BOOKS.map((book) => (
-              <View key={book.id} style={styles.bookCard}>
-                <Image source={{ uri: book.imageUri }} style={styles.bookCover} contentFit="fill" />
-                <Text style={styles.bookTitle} numberOfLines={1}>
-                  {book.title}
-                </Text>
-                <View style={styles.priceContainer}>
-                  <View style={styles.currencyBadge}>
-                    <Text style={styles.currencySymbol}>₹</Text>
+          {isLoading ? (
+            <ActivityIndicator size="small" color={COLORS.primary} style={{ marginTop: 20 }} />
+          ) : (
+            <View style={styles.booksGrid}>
+              {authorBooks.map((book: any) => (
+                <TouchableOpacity
+                  key={book.id}
+                  style={styles.bookCard}
+                  onPress={() => navigation.navigate("AppStack", { screen: "BookDetails", params: { listingId: book.id } })}
+                >
+                  <Image source={{ uri: book.imageUri }} style={styles.bookCover} contentFit="fill" />
+                  <Text style={styles.bookTitle} numberOfLines={1}>
+                    {book.title}
+                  </Text>
+                  <View style={styles.priceContainer}>
+                    <View style={styles.currencyBadge}>
+                      <Text style={styles.currencySymbol}>₹</Text>
+                    </View>
+                    <Text style={styles.bookPrice}>{book.price}</Text>
                   </View>
-                  <Text style={styles.bookPrice}>{book.price}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>

@@ -7,7 +7,7 @@ import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
 import { rem } from "@/utils/responsive";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
@@ -54,7 +54,10 @@ const SLOTS_CONFIG = [
 
 const CreateScreen = () => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+
+  const editListingId = route.params?.editListingId;
 
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
@@ -62,12 +65,63 @@ const CreateScreen = () => {
   const [notes, setNotes] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
+  const [categoryInput, setCategoryInput] = useState("");
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [loadingSuggestionKey, setLoadingSuggestionKey] = useState<string | null>(null);
   const [images, setImages] = useState<(string | null)[]>([null, null, null, null, null, null]);
   const [uploadProgress, setUploadProgress] = useState<number[]>([0, 0, 0, 0, 0, 0]);
 
   const [bookId, setBookId] = useState<number | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [debouncedTitle, setDebouncedTitle] = useState("");
+
+  const { data: editListingData } = useQuery({
+    queryKey: ["edit-listing", editListingId],
+    queryFn: async () => {
+      const response = await api.get(`/api/v1/marketplace/listings/${editListingId}/`);
+      return response.data;
+    },
+    enabled: !!editListingId,
+  });
+
+  React.useEffect(() => {
+    if (editListingData) {
+      setTitle(editListingData.book.title || "");
+      setAuthor(editListingData.book.authors?.map((a: any) => a.name).join(", ") || "");
+      setPrice(String(parseFloat(editListingData.price)));
+      setCondition(editListingData.condition.toLowerCase() === "like_new" ? "like_new" : editListingData.condition.toLowerCase());
+      setNotes(editListingData.condition_notes || "");
+      setBookId(editListingData.book.id || null);
+
+      const categoryNames = editListingData.book.categories?.map((c: any) => c.name) || [];
+      if (categoryNames.length > 0) {
+        setCategoryInput(categoryNames[0]);
+      }
+
+      // Load listing images
+      const loadedImages: (string | null)[] = [null, null, null, null, null, null];
+      const loadedProgress = [0, 0, 0, 0, 0, 0];
+
+      editListingData.listing_images?.forEach((img: any) => {
+        let index = -1;
+        if (img.label === "FRONT_COVER" || img.label === "front_cover") index = 0;
+        else if (img.label === "BACK_COVER" || img.label === "back_cover") index = 1;
+        else if (img.label === "SPINE" || img.label === "spine") index = 2;
+        else if (img.label === "MIDDLE_PAGE" || img.label === "middle_page") index = 3;
+        else if (img.label === "DAMAGE_1" || img.label === "damage_1") index = 4;
+        else if (img.label === "DAMAGE_2" || img.label === "damage_2") index = 5;
+
+        if (index !== -1 && img.image_url) {
+          loadedImages[index] = img.image_url;
+          loadedProgress[index] = 100;
+        }
+      });
+
+      setImages(loadedImages);
+      setUploadProgress(loadedProgress);
+    }
+  }, [editListingData]);
 
   const BOOK_CATEGORIES = [
     { id: "science_fiction", label: "Science Fiction" },
@@ -112,40 +166,31 @@ const CreateScreen = () => {
       setTitle(importedBook.title || "");
       setAuthor(importedBook.authors?.join(", ") || "");
       setBookId(importedBook.book_id || null);
-      if (importedBook.cover_url) {
-        setImages((prev) => {
-          const next = [...prev];
-          next[0] = importedBook.cover_url;
-          return next;
-        });
-        setUploadProgress((prev) => {
-          const next = [...prev];
-          next[0] = 100;
-          return next;
-        });
-      }
-
-      if (importedBook.categories && importedBook.categories.length > 0) {
+      const responseCats = importedBook.categories || [];
+      if (responseCats.length > 0) {
+        setAvailableCategories(responseCats);
+        setCategoryInput(responseCats[0]);
         const matchedCategory = BOOK_CATEGORIES.find((c) =>
-          importedBook.categories.some(
+          responseCats.some(
             (rc: string) =>
               rc.toLowerCase().replace(/[^a-z0-9]/g, "") === c.label.toLowerCase().replace(/[^a-z0-9]/g, "")
           )
         );
-        if (matchedCategory) {
-          setCategory(matchedCategory.id);
-        } else {
-          setCategory("other");
-        }
+        setCategory(matchedCategory ? matchedCategory.id : "other");
       } else {
+        setAvailableCategories(["Other"]);
+        setCategoryInput("Other");
         setCategory("other");
       }
 
+      setLoadingSuggestionKey(null);
+      setShowSuggestions(false);
       showToast("Book imported successfully");
     },
     onError: (err: any) => {
       console.error("Error importing book:", err);
       showToast(err.response?.data?.detail || "Failed to import book.");
+      setLoadingSuggestionKey(null);
     },
   });
 
@@ -161,52 +206,63 @@ const CreateScreen = () => {
       setTitle(manualBook.title || "");
       setAuthor(manualBook.authors?.join(", ") || "");
       setBookId(manualBook.book_id || null);
-      if (manualBook.cover_url) {
-        setImages((prev) => {
-          const next = [...prev];
-          next[0] = manualBook.cover_url;
-          return next;
-        });
-        setUploadProgress((prev) => {
-          const next = [...prev];
-          next[0] = 100;
-          return next;
-        });
-      }
-
-      if (manualBook.categories && manualBook.categories.length > 0) {
+      const responseCats = manualBook.categories || [];
+      if (responseCats.length > 0) {
+        setAvailableCategories(responseCats);
+        setCategoryInput(responseCats[0]);
         const matchedCategory = BOOK_CATEGORIES.find((c) =>
-          manualBook.categories.some(
+          responseCats.some(
             (rc: string) =>
               rc.toLowerCase().replace(/[^a-z0-9]/g, "") === c.label.toLowerCase().replace(/[^a-z0-9]/g, "")
           )
         );
-        if (matchedCategory) {
-          setCategory(matchedCategory.id);
-        } else {
-          setCategory("other");
-        }
+        setCategory(matchedCategory ? matchedCategory.id : "other");
       } else {
+        setAvailableCategories(["Other"]);
+        setCategoryInput("Other");
         setCategory("other");
       }
 
+      setLoadingSuggestionKey(null);
+      setShowSuggestions(false);
       showToast("Manual book entry created");
     },
     onError: (err: any) => {
       console.error("Error creating book manually:", err);
       showToast(err.response?.data?.detail || "Failed to create manual book.");
+      setLoadingSuggestionKey(null);
     },
   });
 
   // const isImporting = importMutation.isPending || manualCreateMutation.isPending;
 
   const handleSelectSuggestion = (suggestion: any) => {
-    setShowSuggestions(false);
     if (suggestion.is_local && suggestion.id) {
+      setShowSuggestions(false);
       setTitle(suggestion.title || "");
       setAuthor(suggestion.authors?.join(", ") || "");
       setBookId(suggestion.id);
+
+      const responseCats = suggestion.categories || [];
+      if (responseCats.length > 0) {
+        setAvailableCategories(responseCats);
+        setCategoryInput(responseCats[0]);
+        const matchedCategory = BOOK_CATEGORIES.find((c) =>
+          responseCats.some(
+            (rc: string) =>
+              rc.toLowerCase().replace(/[^a-z0-9]/g, "") === c.label.toLowerCase().replace(/[^a-z0-9]/g, "")
+          )
+        );
+        setCategory(matchedCategory ? matchedCategory.id : "other");
+      } else {
+        setAvailableCategories(["Other"]);
+        setCategoryInput("Other");
+        setCategory("other");
+      }
+
+      showToast("Selected local book record");
     } else {
+      setLoadingSuggestionKey(suggestion.openlibrary_key);
       importMutation.mutate({
         openlibraryKey: suggestion.openlibrary_key,
         categoryVal: null,
@@ -215,7 +271,7 @@ const CreateScreen = () => {
   };
 
   const handleManualInsert = () => {
-    setShowSuggestions(false);
+    setLoadingSuggestionKey("manual");
     manualCreateMutation.mutate({
       titleVal: title,
       authorVal: author || "Unknown",
@@ -395,21 +451,104 @@ const CreateScreen = () => {
     setCurrentStep(2);
   };
 
-  const handleFinalSubmit = () => {
-    showToast("Book listed successfully");
-    // Reset state for future usage
+  const createListingMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const response = await api.post("/api/v1/marketplace/listings/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      showToast("Book listed successfully");
+      resetForm();
+    },
+    onError: (err: any) => {
+      console.error("Failed to list book:", err);
+      showToast(err.response?.data?.detail || "Failed to list book.");
+    },
+  });
+
+  const updateListingMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const response = await api.patch(`/api/v1/marketplace/listings/${editListingId}/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      showToast("Book listing updated successfully");
+      resetForm();
+    },
+    onError: (err: any) => {
+      console.error("Failed to update book:", err);
+      showToast(err.response?.data?.detail || "Failed to update book.");
+    },
+  });
+
+  const resetForm = () => {
     setTitle("");
     setAuthor("");
     setCondition("good");
     setNotes("");
     setPrice("");
     setCategory("");
+    setCategoryInput("");
     setImages([null, null, null, null, null, null]);
     setUploadProgress([0, 0, 0, 0, 0, 0]);
     setDescription("");
     setCurrentStep(1);
-    // Reset navigation to go back to the root of the tab navigator, effectively returning to Create screen
     navigation.reset({ index: 0, routes: [{ name: "Create" as never }] });
+  };
+
+  const handleFinalSubmit = () => {
+    const formData = new FormData();
+    formData.append("price", price);
+    
+    const conditionUpper = condition === "like_new" ? "LIKE_NEW" : condition.toUpperCase();
+    formData.append("condition", conditionUpper);
+    formData.append("condition_notes", notes || description || "");
+    
+    if (location) {
+      formData.append("latitude", location.latitude.toFixed(6));
+      formData.append("longitude", location.longitude.toFixed(6));
+    }
+    
+    if (bookId) {
+      formData.append("book_id", String(bookId));
+    } else {
+      formData.append("title", title);
+      formData.append("author", author);
+      if (categoryInput) {
+        formData.append("category", categoryInput);
+      }
+    }
+
+    const appendImageFile = (key: string, uri: string) => {
+      const name = uri.split("/").pop() || `${key}.jpg`;
+      const type = "image/jpeg";
+      formData.append(key, {
+        uri: Platform.OS === "android" ? uri : uri.replace("file://", ""),
+        name,
+        type,
+      } as any);
+    };
+
+    if (images[0] && !images[0].startsWith("http")) appendImageFile("front_cover", images[0]);
+    if (images[1] && !images[1].startsWith("http")) appendImageFile("back_cover", images[1]);
+    if (images[2] && !images[2].startsWith("http")) appendImageFile("spine", images[2]);
+    if (images[3] && !images[3].startsWith("http")) appendImageFile("middle_page", images[3]);
+    if (images[4] && !images[4].startsWith("http")) appendImageFile("damage_1", images[4]);
+    if (images[5] && !images[5].startsWith("http")) appendImageFile("damage_2", images[5]);
+
+    if (editListingId) {
+      updateListingMutation.mutate(formData);
+    } else {
+      createListingMutation.mutate(formData);
+    }
   };
 
   return (
@@ -421,7 +560,7 @@ const CreateScreen = () => {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        scrollEnabled={!showSuggestions}
+        scrollEnabled={!showSuggestions && !showCategoryDropdown}
         keyboardShouldPersistTaps="handled"
       >
         {currentStep === 1 ? (
@@ -544,7 +683,7 @@ const CreateScreen = () => {
             </View>
 
             {/* Basic Info Section */}
-            <View style={[styles.sectionWrapper, showSuggestions && { zIndex: 10 }]}>
+            <View style={[styles.sectionWrapper, (showSuggestions || showCategoryDropdown) && { zIndex: 10 }]}>
               <View style={styles.sectionHeaderRowWithNumber}>
                 <View style={styles.numberCircle}>
                   <Text style={styles.numberText}>1</Text>
@@ -576,44 +715,61 @@ const CreateScreen = () => {
                       ) : (
                         <ScrollView
                           style={{ maxHeight: rem(15) }}
-                          keyboardShouldPersistTaps="never"
+                          keyboardShouldPersistTaps="handled"
                           nestedScrollEnabled={true}
                         >
-                          {searchSuggestions.map((item: any, index: number) => (
-                            <TouchableOpacity
-                              key={item.id || item.openlibrary_key || index}
-                              style={styles.suggestionItem}
-                              onPress={() => handleSelectSuggestion(item)}
-                            >
-                              <Image
-                                source={{
-                                  uri:
-                                    item.cover_url ||
-                                    "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=120&auto=format&fit=crop",
-                                }}
-                                style={styles.suggestionItemCover}
-                                contentFit="cover"
-                              />
-                              <View style={styles.suggestionItemContent}>
-                                <Text style={styles.suggestionItemTitle} numberOfLines={1}>
-                                  {item.title}
-                                </Text>
-                                <Text style={styles.suggestionItemAuthor} numberOfLines={1}>
-                                  by {item.authors?.join(", ") || "Unknown Author"}
-                                </Text>
-                                <View style={styles.suggestionItemMetaRow}>
-                                  {item.published_year && (
-                                    <Text style={styles.suggestionItemMetaText}>Year: {item.published_year}</Text>
-                                  )}
+                          {searchSuggestions.map((item: any, index: number) => {
+                            const isThisItemLoading =
+                              loadingSuggestionKey === item.openlibrary_key ||
+                              (item.is_local && loadingSuggestionKey === String(item.id));
+                            return (
+                              <TouchableOpacity
+                                key={item.id || item.openlibrary_key || index}
+                                style={styles.suggestionItem}
+                                onPress={() => handleSelectSuggestion(item)}
+                                disabled={loadingSuggestionKey !== null}
+                              >
+                                <Image
+                                  source={{
+                                    uri:
+                                      item.cover_url ||
+                                      "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=120&auto=format&fit=crop",
+                                  }}
+                                  style={styles.suggestionItemCover}
+                                  contentFit="cover"
+                                />
+                                <View style={styles.suggestionItemContent}>
+                                  <Text style={styles.suggestionItemTitle} numberOfLines={1}>
+                                    {item.title}
+                                  </Text>
+                                  <Text style={styles.suggestionItemAuthor} numberOfLines={1}>
+                                    by {item.authors?.join(", ") || "Unknown Author"}
+                                  </Text>
+                                  <View style={styles.suggestionItemMetaRow}>
+                                    {item.published_year && (
+                                      <Text style={styles.suggestionItemMetaText}>Year: {item.published_year}</Text>
+                                    )}
+                                  </View>
                                 </View>
-                              </View>
-                            </TouchableOpacity>
-                          ))}
+                                {isThisItemLoading && (
+                                  <ActivityIndicator size="small" color={COLORS.primary} style={{ marginLeft: 8 }} />
+                                )}
+                              </TouchableOpacity>
+                            );
+                          })}
 
                           {/* Manual insertion item */}
-                          <TouchableOpacity style={styles.manualSuggestionItem} onPress={handleManualInsert}>
+                          <TouchableOpacity
+                            style={styles.manualSuggestionItem}
+                            onPress={handleManualInsert}
+                            disabled={loadingSuggestionKey !== null}
+                          >
                             <View style={styles.manualSuggestionIconWrapper}>
-                              <Ionicons name="create-outline" size={20} color={COLORS.blue} />
+                              {loadingSuggestionKey === "manual" ? (
+                                <ActivityIndicator size="small" color={COLORS.blue} />
+                              ) : (
+                                <Ionicons name="create-outline" size={20} color={COLORS.blue} />
+                              )}
                             </View>
                             <View style={styles.suggestionItemContent}>
                               <Text style={styles.manualSuggestionTitleText} numberOfLines={1}>
@@ -634,6 +790,57 @@ const CreateScreen = () => {
                     Author<Text style={styles.asterisk}>*</Text>
                   </Text>
                   <Input placeholder="Author" value={author} onChangeText={setAuthor} autoCapitalize="words" />
+                </View>
+                <View style={[styles.inputGroup, showCategoryDropdown && { zIndex: 10 }]}>
+                  <Text style={styles.inputLabel}>
+                    Category<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.dropdownSelector}
+                    activeOpacity={0.8}
+                    onPress={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                  >
+                    <Text style={[styles.dropdownSelectorText, !categoryInput && styles.dropdownPlaceholderText]}>
+                      {categoryInput || "Select Category"}
+                    </Text>
+                    <Ionicons
+                      name={showCategoryDropdown ? "chevron-up" : "chevron-down"}
+                      size={20}
+                      color={COLORS.textMuted}
+                    />
+                  </TouchableOpacity>
+
+                  {showCategoryDropdown && (
+                    <View style={styles.suggestionsContainer}>
+                      <ScrollView
+                        style={{ maxHeight: rem(10) }}
+                        keyboardShouldPersistTaps="handled"
+                        nestedScrollEnabled={true}
+                        showsVerticalScrollIndicator={true}
+                        scrollEnabled={true}
+                      >
+                        {(availableCategories.length > 0
+                          ? availableCategories
+                          : BOOK_CATEGORIES.map((c) => c.label)
+                        ).map((cat: string, index: number) => (
+                          <TouchableOpacity
+                            key={index}
+                            style={styles.suggestionItem}
+                            onPress={() => {
+                              setCategoryInput(cat);
+                              setShowCategoryDropdown(false);
+                              const matched = BOOK_CATEGORIES.find((c) => c.label.toLowerCase() === cat.toLowerCase());
+                              setCategory(matched ? matched.id : "other");
+                            }}
+                          >
+                            <View style={styles.suggestionItemContent}>
+                              <Text style={styles.suggestionItemTitle}>{cat}</Text>
+                            </View>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
                 </View>
               </View>
             </View>
@@ -1442,5 +1649,25 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.manrope.medium,
     color: COLORS.textMuted,
     marginTop: 2,
+  },
+  dropdownSelector: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    height: 56,
+    borderWidth: 1,
+    borderColor: COLORS.grayHeavvy,
+    borderRadius: 16,
+    backgroundColor: COLORS.white,
+    paddingHorizontal: SPACING.md,
+    marginTop: SPACING.xs,
+  },
+  dropdownSelectorText: {
+    fontSize: rem(0.875),
+    fontFamily: FONTS.manrope.medium,
+    color: COLORS.black,
+  },
+  dropdownPlaceholderText: {
+    color: COLORS.textMuted,
   },
 });

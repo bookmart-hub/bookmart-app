@@ -4,15 +4,12 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
-  Linking,
-  Platform,
   RefreshControl,
   StatusBar,
   StyleSheet,
   Text,
-  ToastAndroid,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -104,11 +101,36 @@ const INITIAL_CONTACTS: ContactItem[] = [
   },
 ];
 
+import { api } from "@/api/clients";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ActivityIndicator } from "react-native";
+
 const ContactsScreen = () => {
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState("");
-  const [refreshing, setRefreshing] = useState(false);
-  const [contacts, setContacts] = useState<ContactItem[]>(INITIAL_CONTACTS);
+  const queryClient = useQueryClient();
+
+  const { data: contactsData, isLoading, refetch } = useQuery({
+    queryKey: ["contacts-ledger"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/marketplace/contacts/");
+      return response.data;
+    },
+  });
+
+  const contacts = useMemo(() => {
+    if (!contactsData?.results) return [];
+    return contactsData.results.map((item: any) => ({
+      id: String(item.id),
+      name: item.contact_person_name,
+      phone: "",
+      avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=120",
+      bookTitle: item.book_title,
+      timestamp: new Date(item.transaction_date).toLocaleDateString([], { month: "short", day: "numeric" }),
+      isPinned: false,
+      isOnline: false,
+    }));
+  }, [contactsData]);
 
   // Search filter
   const filteredContacts = useMemo(() => {
@@ -124,56 +146,16 @@ const ContactsScreen = () => {
 
   // Pull-to-refresh implementation
   const handleRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => {
-      // Simulate refetching latest status
-      setContacts((prev) => {
-        // Randomly update online status or messages slightly for high-fidelity feel
-        return prev.map((item, idx) => {
-          if (idx === 0) {
-            return {
-              ...item,
-              timestamp: new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-            };
-          }
-          return item;
-        });
-      });
-      setRefreshing(false);
-      if (Platform.OS === "android") {
-        ToastAndroid.show("Inbox updated", ToastAndroid.SHORT);
-      }
-    }, 1200);
-  }, []);
+    refetch();
+  }, [refetch]);
 
   // WhatsApp redirection logic
-  const handleContactPress = useCallback((contact: ContactItem) => {
-    if (Platform.OS === "android") {
-      ToastAndroid.show(`Opening WhatsApp chat with ${contact.name}...`, ToastAndroid.SHORT);
-    }
-
-    const cleanedPhone = contact.phone.replace(/[^0-9]/g, "");
-    const whatsappUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(`Hi, I'm interested in buying your book: ${contact.bookTitle}`)}`;
-
-    Linking.canOpenURL(whatsappUrl)
-      .then((supported) => {
-        if (supported) {
-          return Linking.openURL(whatsappUrl);
-        } else {
-          // If the app is not installed, open the browser interface which will still handle it gracefully
-          return Linking.openURL(whatsappUrl);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to open WhatsApp URL", err);
-        Alert.alert(
-          "Error",
-          "Could not redirect to WhatsApp. Please ensure you have WhatsApp or a web browser installed."
-        );
-      });
+  const handleContactPress = useCallback((contact: any) => {
+    // If phone is empty we notify the user (WhatsApp is normally started from the listing page directly)
+    Alert.alert(
+      "WhatsApp Contact",
+      `This log records that you contacted seller for "${contact.bookTitle}". Please go to the book detail page to contact again.`
+    );
   }, []);
 
   // FlatList structure with section dividers
@@ -182,7 +164,7 @@ const ContactsScreen = () => {
       return filteredContacts.map((item) => ({ type: "item" as const, data: item }));
     }
 
-    const data: Array<{ type: "header"; title: string } | { type: "item"; data: ContactItem }> = [];
+    const data: Array<{ type: "header"; title: string } | { type: "item"; data: any }> = [];
 
     if (pinnedContacts.length > 0) {
       data.push({ type: "header", title: "PINNED CHATS" });
@@ -206,7 +188,7 @@ const ContactsScreen = () => {
       <Text style={styles.emptySubtitle}>
         {isSearchActive
           ? `We couldn't find any chats matching "${searchQuery}". Try a different keyword.`
-          : "Your WhatsApp inbox is currently empty. Listing books will attract interested buyers."}
+          : "Your WhatsApp inbox is currently empty. Initiating chats with sellers will populate your history."}
       </Text>
     </View>
   );
@@ -284,22 +266,28 @@ const ContactsScreen = () => {
       />
 
       {/* Contact inbox list */}
-      <FlatList
-        data={listData}
-        keyExtractor={(item, index) => (item.type === "header" ? `header-${index}` : item.data.id)}
-        renderItem={renderItem}
-        contentContainerStyle={[styles.listContent, listData.length === 0 && { flex: 1 }]}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={renderEmptyState}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={[COLORS.primary]}
-            tintColor={COLORS.primary}
-          />
-        }
-      />
+      {isLoading && listData.length === 0 ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={listData}
+          keyExtractor={(item, index) => (item.type === "header" ? `header-${index}` : item.data.id)}
+          renderItem={renderItem}
+          contentContainerStyle={[styles.listContent, listData.length === 0 && { flex: 1 }]}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={renderEmptyState}
+          refreshControl={
+            <RefreshControl
+              refreshing={isLoading}
+              onRefresh={handleRefresh}
+              colors={[COLORS.primary]}
+              tintColor={COLORS.primary}
+            />
+          }
+        />
+      )}
     </View>
   );
 };

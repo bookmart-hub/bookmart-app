@@ -7,15 +7,15 @@ import SponsoredSection from "@/components/smallComp/SponsoredSection";
 import AuthorsSection, { AuthorItem } from "@/components/ui/AuthorsSection";
 import CategorySection from "@/components/ui/CategorySection";
 import HomeHeader from "@/components/ui/HomeHeader";
-import InstituteBooks, { InstituteBookItem } from "@/components/ui/InstituteBooks";
-import NearestBooks, { NearestBookItem } from "@/components/ui/NearestBooks";
+import InstituteBooks from "@/components/ui/InstituteBooks";
+import NearestBooks from "@/components/ui/NearestBooks";
 import PromoBanner, { PromoBannerItem } from "@/components/ui/PromoBanner";
 import SearchBar from "@/components/ui/SearchBar";
 import { COLORS } from "@/constants/colors";
 import { rem } from "@/utils/responsive";
 import { useNavigation } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -420,27 +420,152 @@ const EDITORS_CHOICE = [
   },
 ];
 
+import { api } from "@/api/clients";
+import { useQuery } from "@tanstack/react-query";
+import { ActivityIndicator } from "react-native";
+
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
 
+  // ── Queries ──
+  const { data: userProfile } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/core/profile/me/");
+      return response.data;
+    },
+  });
+
+  const { data: listingsData, isLoading: isLoadingListings, refetch: refetchListings } = useQuery({
+    queryKey: ["all-listings"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/marketplace/listings/");
+      return response.data;
+    },
+  });
+
+  const { data: recommendationsData } = useQuery({
+    queryKey: ["recommendations"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/book/recommendations/");
+      return response.data;
+    },
+  });
+
+  const { data: authorsData } = useQuery({
+    queryKey: ["authors"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/book/authors/");
+      return response.data;
+    },
+  });
+
+  // ── Mappers ──
+  const mapListingToBook = useCallback((item: any) => ({
+    id: String(item.id),
+    title: item.book.title,
+    author: item.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
+    price: parseFloat(item.price),
+    coverUri: item.listing_images?.[0]?.image_url || item.book.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+    condition: item.condition,
+    distance: item.distance_km ? `${item.distance_km.toFixed(1)}km` : "1.2km",
+    description: item.condition_notes || item.book.description || "",
+    sellerName: item.seller.full_name,
+    sellerAvatarUri: item.seller.profile_image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
+  }), []);
+
+  const sponsoredBooks = useMemo(() => {
+    if (!listingsData?.results) return [];
+    return listingsData.results.slice(0, 4).map(mapListingToBook);
+  }, [listingsData, mapListingToBook]);
+
+  const nearestBooks = useMemo(() => {
+    if (!listingsData?.results) return [];
+    return listingsData.results.slice(0, 6).map(mapListingToBook);
+  }, [listingsData, mapListingToBook]);
+
+  const collegeBooks = useMemo(() => {
+    if (!listingsData?.results) return [];
+    const collegeId = userProfile?.college?.id;
+    const filtered = listingsData.results.filter((item: any) => 
+      item.seller.id !== userProfile?.user?.id && 
+      (!collegeId || item.seller.profile?.college?.id === collegeId)
+    );
+    return (filtered.length > 0 ? filtered : listingsData.results).slice(0, 6).map(mapListingToBook);
+  }, [listingsData, userProfile, mapListingToBook]);
+
+  const recentlyAdded = useMemo(() => {
+    if (!listingsData?.results) return [];
+    return [...listingsData.results].sort((a: any, b: any) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    ).slice(0, 6).map(mapListingToBook);
+  }, [listingsData, mapListingToBook]);
+
+  const excellentCondition = useMemo(() => {
+    if (!listingsData?.results) return [];
+    return listingsData.results.filter((item: any) => 
+      item.condition === "NEW" || item.condition === "LIKE_NEW"
+    ).slice(0, 6).map(mapListingToBook);
+  }, [listingsData, mapListingToBook]);
+
+  const peopleViewing = useMemo(() => {
+    if (!listingsData?.results) return [];
+    return listingsData.results.slice().reverse().slice(0, 5).map(mapListingToBook);
+  }, [listingsData, mapListingToBook]);
+
+  const endingSoon = useMemo(() => {
+    if (!listingsData?.results) return [];
+    return listingsData.results.slice(0, 5).map((item: any) => ({
+      ...mapListingToBook(item),
+      timeLeft: "12h left",
+    }));
+  }, [listingsData, mapListingToBook]);
+
+  const editorsChoice = useMemo(() => {
+    if (!recommendationsData?.results) return null;
+    if (recommendationsData.results.length === 0) return null;
+    const item = recommendationsData.results[0];
+    const activeListing = item.ranked_listings?.[0] || item.listings?.[0];
+    return {
+      id: String(activeListing?.id || item.id),
+      title: item.title,
+      author: item.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
+      price: activeListing ? parseFloat(activeListing.price) : 250,
+      coverUri: activeListing?.listing_images?.[0]?.image_url || item.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+      condition: activeListing?.condition || "Good",
+      distance: "2km",
+    };
+  }, [recommendationsData]);
+
+  const authors = useMemo(() => {
+    if (!authorsData?.results) return [];
+    return authorsData.results.map((item: any) => ({
+      id: String(item.id),
+      name: item.name,
+      photoUri: item.image_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
+      bio: item.bio || "",
+      rating: parseFloat(item.rating) || 5,
+    }));
+  }, [authorsData]);
+
   const handleNotificationPress = useCallback(() => {
-    // TODO: navigate to notifications
-  }, []);
+    navigation.navigate("AppStack", { screen: "Notifications" });
+  }, [navigation]);
 
   const handleAvatarPress = useCallback(() => {
-    // TODO: navigate to profile / settings
-  }, []);
+    navigation.navigate("AppStack", { screen: "EditProfile" });
+  }, [navigation]);
 
   const handleCtaPress = useCallback((banner: PromoBannerItem) => {
-    // TODO: navigate to promotion detail
+    // Navigate to promotion detail
   }, []);
 
   const handleBookPress = useCallback(
-    (book: NearestBookItem) => {
+    (book: any) => {
       navigation.navigate("AppStack", {
         screen: "BookDetails",
-        params: { book, categoryTitle: "Non-Fiction" },
+        params: { listingId: book.id, categoryTitle: "Non-Fiction" },
       });
     },
     [navigation]
@@ -451,10 +576,10 @@ const HomeScreen = () => {
   }, [navigation]);
 
   const handleInstituteBookPress = useCallback(
-    (book: InstituteBookItem) => {
+    (book: any) => {
       navigation.navigate("AppStack", {
         screen: "BookDetails",
-        params: { book, categoryTitle: "Textbooks" },
+        params: { listingId: book.id, categoryTitle: "Textbooks" },
       });
     },
     [navigation]
@@ -474,6 +599,14 @@ const HomeScreen = () => {
   const handleAuthorSeeAllPress = useCallback(() => {
     navigation.navigate("AppStack", { screen: "AuthorList" });
   }, [navigation]);
+
+  if (isLoadingListings) {
+    return (
+      <View style={[styles.screen, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -506,71 +639,61 @@ const HomeScreen = () => {
         <CategorySection />
 
         {/* ── Trending / Sponsored ── */}
-        <SponsoredSection books={SPONSORED_BOOKS} onBookPress={handleBookPress} />
+        {sponsoredBooks.length > 0 && <SponsoredSection books={sponsoredBooks} onBookPress={handleBookPress} />}
 
         {/* ── Nearest Books ── */}
-        <NearestBooks books={NEAREST_BOOKS} onBookPress={handleBookPress} onSeeAllPress={handleSeeAllPress} />
+        {nearestBooks.length > 0 && <NearestBooks books={nearestBooks} onBookPress={handleBookPress} onSeeAllPress={handleSeeAllPress} />}
 
         {/* ── From Your College ── */}
-        <InstituteBooks
-          instituteName="College"
-          books={COLLEGE_BOOKS}
-          onBookPress={handleInstituteBookPress}
-          onSeeAllPress={handleInstituteSeeAllPress}
-        />
+        {collegeBooks.length > 0 && (
+          <InstituteBooks
+            instituteName={userProfile?.college?.name || "College"}
+            books={collegeBooks}
+            onBookPress={handleInstituteBookPress}
+            onSeeAllPress={handleInstituteSeeAllPress}
+          />
+        )}
 
         {/* ── Authors ── */}
-        <AuthorsSection onAuthorPress={handleAuthorPress} onSeeAllPress={handleAuthorSeeAllPress} />
+        {authors.length > 0 && <AuthorsSection authors={authors} onAuthorPress={handleAuthorPress} onSeeAllPress={handleAuthorSeeAllPress} />}
 
         {/* ── Recently Added ── */}
-        <RecentlyAdded
-          title="Recently Added"
-          books={RECENTLY_ADDED}
-          onBookPress={(book) =>
-            navigation.navigate("AppStack", {
-              screen: "BookDetails",
-              params: { book, categoryTitle: "Recently Added" },
-            })
-          }
-        />
+        {recentlyAdded.length > 0 && (
+          <RecentlyAdded
+            title="Recently Added"
+            books={recentlyAdded}
+            onBookPress={handleBookPress}
+          />
+        )}
 
         {/* ── Excellent Condition ── */}
-        <ExcellentCondition
-          title="Excellent Condition"
-          books={EXCELLENT_CONDITION}
-          onBookPress={(book) =>
-            navigation.navigate("AppStack", {
-              screen: "BookDetails",
-              params: { book, categoryTitle: "Premium" },
-            })
-          }
-        />
+        {excellentCondition.length > 0 && (
+          <ExcellentCondition
+            title="Excellent Condition"
+            books={excellentCondition}
+            onBookPress={handleBookPress}
+          />
+        )}
         {/* ── People Are Viewing ── */}
-        <PeopleViewing
-          title="People Are Viewing"
-          books={PEOPLE_ARE_VIEWING}
-          onBookPress={(book) =>
-            navigation.navigate("AppStack", {
-              screen: "BookDetails",
-              params: { book, categoryTitle: "Trending" },
-            })
-          }
-        />
+        {peopleViewing.length > 0 && (
+          <PeopleViewing
+            title="People Are Viewing"
+            books={peopleViewing}
+            onBookPress={handleBookPress}
+          />
+        )}
 
         {/* ── Ending Soon ── */}
-        <EndingSoon
-          title="Ending Soon"
-          books={ENDING_SOON}
-          onBookPress={(book) =>
-            navigation.navigate("AppStack", {
-              screen: "BookDetails",
-              params: { book, categoryTitle: "Ending Soon" },
-            })
-          }
-        />
+        {endingSoon.length > 0 && (
+          <EndingSoon
+            title="Ending Soon"
+            books={endingSoon}
+            onBookPress={handleBookPress}
+          />
+        )}
 
         {/* ── Editor's Choice ── */}
-        <EditorsChoiceComp item={EDITORS_CHOICE} onBookPress={handleBookPress} />
+        {editorsChoice && <EditorsChoiceComp item={editorsChoice} onBookPress={handleBookPress} />}
       </ScrollView>
     </View>
   );

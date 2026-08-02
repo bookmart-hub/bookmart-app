@@ -13,15 +13,49 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/api/clients";
+import { ActivityIndicator } from "react-native";
+
 const FavouritesScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const queryClient = useQueryClient();
 
-  const [favourites, setFavourites] = useState([]);
+  const { data: wishlistData, isLoading, refetch } = useQuery({
+    queryKey: ["wishlist"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/marketplace/wishlist/");
+      return response.data;
+    },
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/api/v1/marketplace/wishlist/${id}/`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+    },
+  });
 
   const handleRemove = (id: string) => {
-    setFavourites((prev) => prev.filter((item) => item !== id));
+    removeMutation.mutate(id);
   };
+
+  const favourites = React.useMemo(() => {
+    if (!wishlistData?.results) return [];
+    return wishlistData.results.map((item: any) => ({
+      id: String(item.id),
+      listingId: item.listing.id,
+      title: item.listing.book.title,
+      author: item.listing.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
+      price: `₹${item.listing.price}`,
+      condition: item.listing.condition,
+      image: item.listing.listing_images?.[0]?.image_url || item.listing.book.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=120&auto=format&fit=crop",
+      distance: item.listing.distance_km ? `${item.listing.distance_km.toFixed(1)} km` : "Nearby",
+    }));
+  }, [wishlistData]);
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
@@ -39,7 +73,7 @@ const FavouritesScreen = () => {
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.8}
-      onPress={() => navigation.navigate("AppStack", { screen: "BookDetails" })}
+      onPress={() => navigation.navigate("AppStack", { screen: "BookDetails", params: { listingId: item.listingId } })}
     >
       <Image source={item.image} style={styles.bookImage} contentFit="cover" transition={200} />
       <View style={styles.cardContent}>
@@ -81,14 +115,22 @@ const FavouritesScreen = () => {
       <StatusBar style="dark" />
       <Header title="My Interests" backButton />
 
-      <FlatList
-        data={favourites}
-        keyExtractor={(item) => item.id}
-        renderItem={renderBookCard}
-        contentContainerStyle={[styles.listContent, favourites.length === 0 && { flex: 1 }]}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={renderEmptyState}
-      />
+      {isLoading ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={favourites}
+          keyExtractor={(item) => item.id}
+          renderItem={renderBookCard}
+          contentContainerStyle={[styles.listContent, favourites.length === 0 && { flex: 1 }]}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={renderEmptyState}
+          onRefresh={refetch}
+          refreshing={isLoading}
+        />
+      )}
     </View>
   );
 };
