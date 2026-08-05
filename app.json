@@ -9,6 +9,11 @@
     "ios": {
       "supportsTablet": true
     },
+    "androidStatusBar": {
+      "barStyle": "dark-content",
+      "backgroundColor": "#00000000",
+      "translucent": true
+    },
     "android": {
       "package": "com.bookmart.app",
       "config": {

@@ -1,12 +1,13 @@
+import { fontAssets } from "@/constants/fonts";
 import RootNavigator from "@/navigation/RootNavigator";
 import { StaticSplashScreen } from "@/screens/auth/SplashScreen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
-import { fontAssets } from "@/constants/fonts";
+import * as ExpoSplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from "react-native-paper";
-import * as ExpoSplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
 
 // Prevent native splash screen from autohiding until we manually hide it
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {
@@ -14,6 +15,7 @@ ExpoSplashScreen.preventAutoHideAsync().catch(() => {
 });
 
 const queryClient = new QueryClient();
+
 
 export default function App() {
   const [fontsLoaded] = useFonts(fontAssets);
@@ -32,6 +34,8 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
         <PaperProvider>
+          {/* <StatusBar style="auto" translucent={true} backgroundColor="transparent" /> */}
+          <StatusBar style="light" hidden={false} />
           <RootNavigator />
         </PaperProvider>
       </QueryClientProvider>

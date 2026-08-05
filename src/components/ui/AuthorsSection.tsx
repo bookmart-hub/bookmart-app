@@ -13,9 +13,7 @@ import Animated, {
   SharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
+  useSharedValue
 } from "react-native-reanimated";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -190,11 +188,9 @@ const AuthorCard: React.FC<AuthorCardProps> = memo(({ item, index, scrollX, onPr
     const activeProgress = interpolate(progress, [0.3, 0.7], [0, 1], Extrapolation.CLAMP);
 
     const widthVal = interpolate(activeProgress, [0, 1], [COLLAPSED_WIDTH, EXPANDED_WIDTH]);
-    const scaleVal = 1;
 
     return {
-      width: withSpring(widthVal, WIDTH_SPRING),
-      transform: [{ scale: withSpring(scaleVal, SPRING_CONFIG) }],
+      width: widthVal,
     };
   });
 
@@ -202,11 +198,12 @@ const AuthorCard: React.FC<AuthorCardProps> = memo(({ item, index, scrollX, onPr
     "worklet";
     const progress = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
     const activeProgress = interpolate(progress, [0.3, 0.7], [0, 1], Extrapolation.CLAMP);
-    const active = activeProgress > 0.45;
+    const opacity = interpolate(activeProgress, [0, 1], [0, 1], Extrapolation.CLAMP);
+    const translateX = interpolate(activeProgress, [0, 1], [-10, 0], Extrapolation.CLAMP);
 
     return {
-      opacity: withTiming(active ? 1 : 0, REVEAL_NAME),
-      transform: [{ translateX: withSpring(active ? 0 : -10, SPRING_CONFIG) }],
+      opacity,
+      transform: [{ translateX }],
     };
   });
 
@@ -214,11 +211,12 @@ const AuthorCard: React.FC<AuthorCardProps> = memo(({ item, index, scrollX, onPr
     "worklet";
     const progress = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
     const activeProgress = interpolate(progress, [0.3, 0.7], [0, 1], Extrapolation.CLAMP);
-    const active = activeProgress > 0.55;
+    const opacity = interpolate(activeProgress, [0, 1], [0, 1], Extrapolation.CLAMP);
+    const translateX = interpolate(activeProgress, [0, 1], [-8, 0], Extrapolation.CLAMP);
 
     return {
-      opacity: withTiming(active ? 1 : 0, REVEAL_BIO),
-      transform: [{ translateX: withSpring(active ? 0 : -8, SPRING_CONFIG) }],
+      opacity,
+      transform: [{ translateX }],
     };
   });
 
@@ -226,11 +224,12 @@ const AuthorCard: React.FC<AuthorCardProps> = memo(({ item, index, scrollX, onPr
     "worklet";
     const progress = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
     const activeProgress = interpolate(progress, [0.3, 0.7], [0, 1], Extrapolation.CLAMP);
-    const active = activeProgress > 0.65;
+    const opacity = interpolate(activeProgress, [0, 1], [0, 1], Extrapolation.CLAMP);
+    const scale = interpolate(activeProgress, [0, 1], [0.5, 1], Extrapolation.CLAMP);
 
     return {
-      opacity: withTiming(active ? 1 : 0, REVEAL_STARS),
-      transform: [{ scale: withSpring(active ? 1 : 0.5, SPRING_CONFIG) }],
+      opacity,
+      transform: [{ scale }],
     };
   });
 

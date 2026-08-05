@@ -1,16 +1,16 @@
+import { Ionicons } from "@expo/vector-icons";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
 import { Platform, StyleSheet } from "react-native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
 
-import HomeScreen from "../screens/main/HomeScreen";
-import CreateScreen from "../screens/main/CreateScreen";
-import ProfileScreen from "../screens/main/ProfileScreen";
+import CustomTabBar from "@/components/ui/CustomTabBar/CustomTabBar";
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
-import CustomTabBar from "@/components/ui/CustomTabBar";
+import AnalyticsScreen from "@/screens/main/Analytics.screen";
 import { rem } from "@/utils/responsive";
-import AnalyticsScreen from "@/screens/main/AnalyticsScreen";
+import CreateScreen from "../screens/main/Create.screen";
+import HomeScreen from "../screens/main/Home.screen";
+import ProfileScreen from "../screens/main/Profile.screen";
 
 export type TabParamList = {
   Home: undefined;
