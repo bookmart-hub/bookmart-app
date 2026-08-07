@@ -7,7 +7,7 @@ import PeopleViewing from "@/components/smallComp/PeopleViewing";
 import RecentlyAdded from "@/components/smallComp/RecentlyAdded";
 import SponsoredSection from "@/components/smallComp/SponsoredSection";
 import AuthorsSection, { AuthorItem } from "@/components/ui/AuthorsSection";
-import CategorySection from "@/components/ui/CategorySection";
+import GenreSection from "@/components/ui/GenreSection";
 import HomeHeader from "@/components/ui/HomeHeader";
 import InstituteBooks from "@/components/ui/InstituteBooks";
 import NearestBooks from "@/components/ui/NearestBooks";
@@ -15,7 +15,7 @@ import PromoBanner, { PromoBannerItem } from "@/components/ui/PromoBanner";
 import SearchBar from "@/components/ui/SearchBar";
 import { COLORS } from "@/constants/colors";
 import { rem } from "@/utils/responsive";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useMemo } from "react";
@@ -35,7 +35,11 @@ const HomeScreen = () => {
     },
   });
 
-  const { data: listingsData, isLoading: isLoadingListings, refetch: refetchListings } = useQuery({
+  const {
+    data: listingsData,
+    isLoading: isLoadingListings,
+    refetch: refetchListings,
+  } = useQuery({
     queryKey: ["all-listings"],
     queryFn: async () => {
       const response = await api.get("/api/v1/marketplace/listings/");
@@ -60,18 +64,26 @@ const HomeScreen = () => {
   });
 
   // ── Mappers ──
-  const mapListingToBook = useCallback((item: any) => ({
-    id: String(item.id),
-    title: item.book.title,
-    author: item.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
-    price: parseFloat(item.price),
-    coverUri: item.listing_images?.[0]?.image_url || item.book.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
-    condition: item.condition,
-    distance: item.distance_km ? `${item.distance_km.toFixed(1)}km` : "1.2km",
-    description: item.condition_notes || item.book.description || "",
-    sellerName: item.seller.full_name,
-    sellerAvatarUri: item.seller.profile_image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
-  }), []);
+  const mapListingToBook = useCallback(
+    (item: any) => ({
+      id: String(item.id),
+      title: item.book.title,
+      author: item.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
+      price: parseFloat(item.price),
+      coverUri:
+        item.listing_images?.[0]?.image_url ||
+        item.book.cover_url ||
+        "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+      condition: item.condition,
+      distance: item.distance_km ? `${item.distance_km.toFixed(1)}km` : "1.2km",
+      description: item.condition_notes || item.book.description || "",
+      sellerName: item.seller.full_name,
+      sellerAvatarUri:
+        item.seller.profile_image ||
+        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
+    }),
+    []
+  );
 
   const sponsoredBooks = useMemo(() => {
     if (!listingsData?.results) return [];
@@ -86,25 +98,27 @@ const HomeScreen = () => {
   const collegeBooks = useMemo(() => {
     if (!listingsData?.results) return [];
     const collegeId = userProfile?.college?.id;
-    const filtered = listingsData.results.filter((item: any) => 
-      item.seller.id !== userProfile?.user?.id && 
-      (!collegeId || item.seller.profile?.college?.id === collegeId)
+    const filtered = listingsData.results.filter(
+      (item: any) =>
+        item.seller.id !== userProfile?.user?.id && (!collegeId || item.seller.profile?.college?.id === collegeId)
     );
     return (filtered.length > 0 ? filtered : listingsData.results).slice(0, 6).map(mapListingToBook);
   }, [listingsData, userProfile, mapListingToBook]);
 
   const recentlyAdded = useMemo(() => {
     if (!listingsData?.results) return [];
-    return [...listingsData.results].sort((a: any, b: any) => 
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    ).slice(0, 6).map(mapListingToBook);
+    return [...listingsData.results]
+      .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 6)
+      .map(mapListingToBook);
   }, [listingsData, mapListingToBook]);
 
   const excellentCondition = useMemo(() => {
     if (!listingsData?.results) return [];
-    return listingsData.results.filter((item: any) => 
-      item.condition === "NEW" || item.condition === "LIKE_NEW"
-    ).slice(0, 6).map(mapListingToBook);
+    return listingsData.results
+      .filter((item: any) => item.condition === "NEW" || item.condition === "LIKE_NEW")
+      .slice(0, 6)
+      .map(mapListingToBook);
   }, [listingsData, mapListingToBook]);
 
   const peopleViewing = useMemo(() => {
@@ -130,7 +144,10 @@ const HomeScreen = () => {
       title: item.title,
       author: item.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
       price: activeListing ? parseFloat(activeListing.price) : 250,
-      coverUri: activeListing?.listing_images?.[0]?.image_url || item.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+      coverUri:
+        activeListing?.listing_images?.[0]?.image_url ||
+        item.cover_url ||
+        "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
       condition: activeListing?.condition || "Good",
       distance: "2km",
     };
@@ -148,77 +165,68 @@ const HomeScreen = () => {
   }, [authorsData]);
 
   const handleNotificationPress = useCallback(() => {
-    navigation.navigate("AppStack", { screen: "Notifications" });
-  }, [navigation]);
-
-  const handleAvatarPress = useCallback(() => {
-    navigation.navigate("AppStack", { screen: "EditProfile" });
-  }, [navigation]);
-
-  const handleCtaPress = useCallback((banner: PromoBannerItem) => {
-    // Navigate to promotion detail
+    router.push("/(screens)/Notifications");
   }, []);
 
-  const handleBookPress = useCallback(
-    (book: any) => {
-      navigation.navigate("AppStack", {
-        screen: "BookDetails",
-        params: { listingId: book.id, categoryTitle: "Non-Fiction" },
-      });
-    },
-    [navigation]
-  );
+  const handleAvatarPress = useCallback(() => {
+    router.push("/(screens)/EditProfile");
+  }, []);
+
+  const handleCtaPress = useCallback((banner: PromoBannerItem) => {
+    router.push("/(screens)/Search");
+  }, []);
+
+  const handleBookPress = useCallback((book: any) => {
+    router.push({
+      pathname: "/(screens)/BookDetails",
+      params: { listingId: book.id, categoryTitle: "Non-Fiction" },
+    });
+  }, []);
 
   const handleSeeAllPress = useCallback(() => {
-    navigation.navigate("AppStack", { screen: "NearestBooksMap" });
-  }, [navigation]);
+    router.push("/(screens)/NearestBooksMap");
+  }, []);
 
-  const handleInstituteBookPress = useCallback(
-    (book: any) => {
-      navigation.navigate("AppStack", {
-        screen: "BookDetails",
-        params: { listingId: book.id, categoryTitle: "Textbooks" },
-      });
-    },
-    [navigation]
-  );
+  const handleInstituteBookPress = useCallback((book: any) => {
+    router.push({
+      pathname: "/(screens)/BookDetails",
+      params: { listingId: book.id, categoryTitle: "Textbooks" },
+    });
+  }, []);
 
   const handleInstituteSeeAllPress = useCallback(() => {
-    navigation.navigate("AppStack", { screen: "CollegeInsights" });
-  }, [navigation]);
+    router.push("/(screens)/CollegeInsights");
+  }, []);
 
-  const handleAuthorPress = useCallback(
-    (author: AuthorItem) => {
-      navigation.navigate("AppStack", { screen: "AuthorDetails", params: { author } });
-    },
-    [navigation]
-  );
+  const handleAuthorPress = useCallback((author: AuthorItem) => {
+    router.push({
+      pathname: "/(screens)/AuthorDetails",
+      params: { author: JSON.stringify(author) },
+    });
+  }, []);
 
   const handleAuthorSeeAllPress = useCallback(() => {
-    navigation.navigate("AppStack", { screen: "AuthorList" });
-  }, [navigation]);
+    router.push("/(screens)/AuthorList");
+  }, []);
 
   if (isLoadingListings) {
     return <HomeSkeleton />;
   }
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <StatusBar style="dark" />
+    <View style={styles.screen}>
+      <StatusBar style="light" />
 
       {/* ── Header ── */}
       <HomeHeader
+        locationName={userProfile?.college?.name || "Campus Area"}
         notificationCount={3}
         onNotificationPress={handleNotificationPress}
         onAvatarPress={handleAvatarPress}
       />
 
       {/* ── Search Bar ── */}
-      <SearchBar
-        onPress={() => navigation.navigate("AppStack", { screen: "Search" })}
-        editable={false}
-        onClearPress={() => {}}
-      />
+      <SearchBar onPress={() => router.push("/(screens)/Search")} editable={false} onClearPress={() => {}} />
 
       <ScrollView
         style={styles.scrollView}
@@ -231,14 +239,16 @@ const HomeScreen = () => {
         {/* ── Promo Carousel ── */}
         <PromoBanner onCtaPress={handleCtaPress} />
 
-        {/* ── Categories ── */}
-        <CategorySection />
+        {/* ── Genres ── */}
+        <GenreSection />
 
         {/* ── Trending / Sponsored ── */}
         {sponsoredBooks.length > 0 && <SponsoredSection books={sponsoredBooks} onBookPress={handleBookPress} />}
 
         {/* ── Nearest Books ── */}
-        {nearestBooks.length > 0 && <NearestBooks books={nearestBooks} onBookPress={handleBookPress} onSeeAllPress={handleSeeAllPress} />}
+        {nearestBooks.length > 0 && (
+          <NearestBooks books={nearestBooks} onBookPress={handleBookPress} onSeeAllPress={handleSeeAllPress} />
+        )}
 
         {/* ── From Your College ── */}
         {collegeBooks.length > 0 && (
@@ -251,45 +261,29 @@ const HomeScreen = () => {
         )}
 
         {/* ── Authors ── */}
-        {authors.length > 0 && <AuthorsSection authors={authors} onAuthorPress={handleAuthorPress} onSeeAllPress={handleAuthorSeeAllPress} />}
+        {authors.length > 0 && (
+          <AuthorsSection authors={authors} onAuthorPress={handleAuthorPress} onSeeAllPress={handleAuthorSeeAllPress} />
+        )}
 
         {/* ── Recently Added ── */}
         {recentlyAdded.length > 0 && (
-          <RecentlyAdded
-            title="Recently Added"
-            books={recentlyAdded}
-            onBookPress={handleBookPress}
-          />
+          <RecentlyAdded title="Recently Added" books={recentlyAdded} onBookPress={handleBookPress} />
         )}
 
         {/* ── Excellent Condition ── */}
         {excellentCondition.length > 0 && (
-          <ExcellentCondition
-            title="Excellent Condition"
-            books={excellentCondition}
-            onBookPress={handleBookPress}
-          />
+          <ExcellentCondition title="Excellent Condition" books={excellentCondition} onBookPress={handleBookPress} />
         )}
         {/* ── People Are Viewing ── */}
         {peopleViewing.length > 0 && (
-          <PeopleViewing
-            title="People Are Viewing"
-            books={peopleViewing}
-            onBookPress={handleBookPress}
-          />
+          <PeopleViewing title="People Are Viewing" books={peopleViewing} onBookPress={handleBookPress} />
         )}
 
         {/* ── Ending Soon ── */}
-        {endingSoon.length > 0 && (
-          <EndingSoon
-            title="Ending Soon"
-            books={endingSoon}
-            onBookPress={handleBookPress}
-          />
-        )}
+        {endingSoon.length > 0 && <EndingSoon title="Ending Soon" books={endingSoon} onBookPress={handleBookPress} />}
 
         {/* ── Editor's Choice ── */}
-        {editorsChoice && <EditorsChoiceComp item={editorsChoice} onBookPress={handleBookPress} />}
+        {/* {editorsChoice && <EditorsChoiceComp item={editorsChoice} onBookPress={handleBookPress} />} */}
       </ScrollView>
     </View>
   );

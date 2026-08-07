@@ -4,7 +4,7 @@ import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "expo-router";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
@@ -22,7 +22,11 @@ const FavouritesScreen = () => {
   const navigation = useNavigation<any>();
   const queryClient = useQueryClient();
 
-  const { data: wishlistData, isLoading, refetch } = useQuery({
+  const {
+    data: wishlistData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["wishlist"],
     queryFn: async () => {
       const response = await api.get("/api/v1/marketplace/wishlist/");
@@ -52,7 +56,10 @@ const FavouritesScreen = () => {
       author: item.listing.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
       price: `₹${item.listing.price}`,
       condition: item.listing.condition,
-      image: item.listing.listing_images?.[0]?.image_url || item.listing.book.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=120&auto=format&fit=crop",
+      image:
+        item.listing.listing_images?.[0]?.image_url ||
+        item.listing.book.cover_url ||
+        "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=120&auto=format&fit=crop",
       distance: item.listing.distance_km ? `${item.listing.distance_km.toFixed(1)} km` : "Nearby",
     }));
   }, [wishlistData]);

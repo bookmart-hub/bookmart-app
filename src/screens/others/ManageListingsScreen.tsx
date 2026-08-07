@@ -5,8 +5,8 @@ import { SPACING } from "@/constants/spacings";
 import { AppStackParamList } from "@/navigation/AppStackNavigator";
 import { rem } from "@/utils/responsive";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation } from "expo-router";
+
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useMemo, useState } from "react";
@@ -14,7 +14,7 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View }
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type NavigationProp = NativeStackNavigationProp<AppStackParamList>;
+type NavigationProp = any;
 
 const MY_LISTINGS = [
   {

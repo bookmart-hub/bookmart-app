@@ -12,7 +12,7 @@ export const BookMartLogo = (props: SvgProps) => (
   <Svg viewBox="0 0 1983 793" {...props}>
     <Path
       d="M0 0 C654.39 0 1308.78 0 1983 0 C1983 261.69 1983 523.38 1983 793 C1328.61 793 674.22 793 0 793 C0 531.31 0 269.62 0 0 Z "
-      fill={COLORS.background}
+      fill="transparent"
       transform="translate(0,0)"
     />
     <Path

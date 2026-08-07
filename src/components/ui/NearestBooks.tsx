@@ -10,11 +10,9 @@ import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-nati
 import HeartBurst from "./HeartBrust";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const HORIZONTAL_PADDING = SPACING.md;
-const COLUMN_GAP = 8;
+const HORIZONTAL_PADDING = SPACING.lg;
+const COLUMN_GAP = rem(0.5);
 const CARD_WIDTH = (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - COLUMN_GAP * 2) / 3;
-
-// ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface NearestBookItem {
   id: string;
@@ -64,12 +62,12 @@ const BookCard = memo(
           <Image
             source={{ uri: item.coverUri }}
             style={styles.coverImg}
-            contentFit="fill"
+            contentFit="cover"
             recyclingKey={item.coverUri}
             cachePolicy="memory-disk"
           />
           <View style={styles.distanceBadge}>
-            <Ionicons name="location" size={8} color={COLORS.primary} />
+            <Ionicons name="location-sharp" size={8} color={COLORS.primary} />
             <Text style={styles.distanceText}>{item.distance}</Text>
           </View>
         </View>
@@ -91,7 +89,7 @@ const BookCard = memo(
               >
                 <Ionicons
                   name={isLiked ? "heart" : "heart-outline"}
-                  size={18}
+                  size={16}
                   color={isLiked ? COLORS.primary : COLORS.textMuted}
                 />
               </TouchableOpacity>
@@ -113,12 +111,12 @@ const NearestBooks: React.FC<NearestBooksProps> = memo(({ books, onBookPress, on
         <Text style={styles.headerTitle}>Nearest Books</Text>
         {onSeeAllPress && (
           <TouchableOpacity activeOpacity={0.7} onPress={onSeeAllPress}>
-            <Text style={styles.headerLink}>see all</Text>
+            <Text style={styles.headerLink}>SEE ALL</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      {/* 3-Column Grid */}
+      {/* Grid */}
       <View style={styles.grid}>
         {books.map((book) => (
           <BookCard key={book.id} item={book} onPress={onBookPress} />
@@ -133,22 +131,24 @@ export default NearestBooks;
 const styles = StyleSheet.create({
   section: {
     paddingHorizontal: HORIZONTAL_PADDING,
+    marginTop: rem(1.25),
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: SPACING.sm,
+    marginBottom: rem(0.5),
   },
   headerTitle: {
-    fontSize: rem(1),
+    fontSize: rem(0.9375),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.text,
   },
   headerLink: {
     fontSize: rem(0.75),
-    fontFamily: FONTS.montserrat.semibold,
+    fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
+    letterSpacing: 0.5,
   },
   grid: {
     flexDirection: "row",
@@ -158,20 +158,21 @@ const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: rem(0.75),
     borderWidth: 1,
-    borderColor: COLORS.grayLight || "#F9FAFB",
+    borderColor: "rgba(0, 128, 128, 0.05)",
     overflow: "hidden",
     shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 1,
+    marginBottom: rem(0.5),
   },
   coverContainer: {
     width: "100%",
-    height: 100,
-    backgroundColor: COLORS.grayLight,
+    height: rem(6.25),
+    backgroundColor: COLORS.background,
     position: "relative",
   },
   coverImg: {
@@ -180,15 +181,19 @@ const styles = StyleSheet.create({
   },
   distanceBadge: {
     position: "absolute",
-    bottom: 4,
-    left: 4,
+    bottom: 6,
+    left: 6,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    paddingHorizontal: 5,
-    paddingVertical: 1.5,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderRadius: 4,
     gap: 2,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   distanceText: {
     fontSize: rem(0.5),
@@ -196,11 +201,10 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   infoContainer: {
-    padding: 6,
-    gap: 1,
+    padding: rem(0.375),
   },
   titleText: {
-    fontSize: rem(0.65625),
+    fontSize: rem(0.6875),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.text,
   },
@@ -208,6 +212,7 @@ const styles = StyleSheet.create({
     fontSize: rem(0.5625),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.textMuted,
+    marginTop: 2,
   },
   priceRow: {
     flexDirection: "row",
@@ -216,15 +221,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   priceText: {
-    fontSize: rem(0.71875),
+    fontSize: rem(0.75),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
   },
   heartContainer: {
-    width: 34,
-    height: 34,
     justifyContent: "center",
     alignItems: "center",
-    position: "relative",
   },
 });

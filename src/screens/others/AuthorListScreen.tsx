@@ -4,7 +4,7 @@ import { SPACING } from "@/constants/spacings";
 import { Author, AUTHOR_CATEGORIES, MOCK_AUTHORS } from "@/data/authorMockData";
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "expo-router";
 import { Image } from "expo-image";
 import React, { useCallback, useMemo, useState } from "react";
 import { Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -21,7 +21,11 @@ const AuthorListScreen = () => {
   const navigation = useNavigation<any>();
   const [activeCategory, setActiveCategory] = useState("All");
 
-  const { data: authorsData, isLoading, refetch } = useQuery({
+  const {
+    data: authorsData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["authors-list"],
     queryFn: async () => {
       const response = await api.get("/api/v1/book/authors/");

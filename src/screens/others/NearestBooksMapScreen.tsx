@@ -7,7 +7,7 @@ import { SPACING } from "@/constants/spacings";
 import { MOCK_CATEGORIES, MOCK_NEAREST_BOOKS, NearestBook } from "@/data/nearestBooksMockData";
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Location from "expo-location";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";

@@ -4,7 +4,7 @@ import { SPACING } from "@/constants/spacings";
 import { Book } from "@/data/models";
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute } from "expo-router";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import React from "react";

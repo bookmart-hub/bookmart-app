@@ -1,7 +1,7 @@
 import { COLORS } from "@/constants/colors";
 import { rem } from "@/utils/responsive";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useRef } from "react";
 import { ActivityIndicator, Animated, Dimensions, Platform, StyleSheet, Text, View } from "react-native";
@@ -64,36 +64,19 @@ export default function SplashScreen({ isLoadingFonts = false }: SplashScreenPro
           // Ensure a minimum splash screen duration of 1800ms for smooth/premium branding
           setTimeout(() => {
             if (isLoggedIn === "true") {
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "Tab" }],
-              });
+              router.replace("/(tabs)/home");
             } else if (token) {
               // Token exists, but not fully onboarded/logged in. Go to Personalization.
-              navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: "Auth",
-                    state: { routes: [{ name: "Personalization" }] },
-                  },
-                ],
-              });
+              router.replace("/(auth)/Personalization");
             } else {
               // Not logged in and no token
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "Auth" }],
-              });
+              router.replace("/(auth)/login");
             }
           }, 1800);
         } catch (e) {
           console.error("Splash initialization error:", e);
           setTimeout(() => {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "Auth" }],
-            });
+            router.replace("/(auth)/login");
           }, 1800);
         }
       };

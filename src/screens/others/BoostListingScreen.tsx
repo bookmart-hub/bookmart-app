@@ -5,15 +5,15 @@ import { SPACING } from "@/constants/spacings";
 import { AppStackParamList } from "@/navigation/AppStackNavigator";
 import { rem } from "@/utils/responsive";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation } from "expo-router";
+
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type NavigationProp = NativeStackNavigationProp<AppStackParamList>;
+type NavigationProp = any;
 
 // Dummy data matching the design
 const MY_LISTINGS = [

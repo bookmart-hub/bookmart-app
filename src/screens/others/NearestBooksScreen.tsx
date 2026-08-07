@@ -7,7 +7,7 @@ import { DISTANCE_FILTERS, MOCK_CATEGORIES, MOCK_NEAREST_BOOKS, NearestBook } fr
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import React, { useCallback, useMemo, useState } from "react";

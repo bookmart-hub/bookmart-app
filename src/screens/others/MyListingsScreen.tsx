@@ -6,7 +6,7 @@ import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
 import { rem } from "@/utils/responsive";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "expo-router";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { StatusBar } from "expo-status-bar";

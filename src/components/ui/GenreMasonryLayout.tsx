@@ -1,10 +1,10 @@
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
-import { Book, FeedItem } from "@/data/models";
+import { FeedItem } from "@/data/models";
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "expo-router";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
@@ -16,7 +16,7 @@ import HeartBurst from "./HeartBrust";
 const COLUMN_GAP = 16;
 const PADDING_HORIZONTAL = SPACING.lg;
 
-interface CategoryMasonryLayoutProps {
+interface GenreMasonryLayoutProps {
   data: FeedItem[];
 }
 
@@ -40,8 +40,9 @@ const MasonryBookCard = memo(({ book, navigation }: { book: any; navigation: any
       style={styles.card}
       activeOpacity={0.9}
       onPress={() => {
-        navigation.navigate("BookDetails", {
-          book: book,
+        navigation.navigate("(screens)", {
+          screen: "BookDetails",
+          params: { listingId: book.id },
         });
       }}
     >
@@ -77,9 +78,9 @@ const MasonryBookCard = memo(({ book, navigation }: { book: any; navigation: any
               <TouchableOpacity
                 style={styles.moreOptionsBtn}
                 onPress={() =>
-                  navigation.navigate("OtherListings", {
-                    book,
-                    otherListings: book.otherListings,
+                  navigation.navigate("(screens)", {
+                    screen: "OtherListings",
+                    params: { book, otherListings: book.otherListings },
                   })
                 }
                 activeOpacity={0.7}
@@ -98,7 +99,6 @@ const MasonryBookCard = memo(({ book, navigation }: { book: any; navigation: any
 
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/api/clients";
-import { ActivityIndicator } from "react-native";
 
 const getSlugFromTitle = (title: string) => {
   return title
@@ -107,23 +107,28 @@ const getSlugFromTitle = (title: string) => {
     .replace(/(^-|-$)/g, "");
 };
 
-const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({ data }) => {
+const GenreMasonryLayout: React.FC<GenreMasonryLayoutProps> = ({ data }) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
 
   const headerItem = data.find((item) => item.type === "header");
-  const categoryTitle = headerItem ? headerItem.title : "Books";
-  const categorySlug = getSlugFromTitle(categoryTitle);
+  const genreTitle = headerItem ? headerItem.title : "Books";
+  const genreSlug = getSlugFromTitle(genreTitle);
 
-  const { data: booksData, isLoading, refetch } = useQuery({
-    queryKey: ["category-books", categorySlug],
+  // Use genres__slug URL search param to match the django backend filter
+  const {
+    data: booksData,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["genre-books", genreSlug],
     queryFn: async () => {
-      const response = await api.get(`/api/v1/book/books/?categories__slug=${categorySlug}`);
+      const response = await api.get(`/api/v1/book/books/?genres__slug=${genreSlug}`);
       return response.data;
     },
   });
 
-  const categoryBooks = useMemo(() => {
+  const genreBooks = useMemo(() => {
     if (!booksData?.results || booksData.results.length === 0) {
       // Return mock books as fallback
       const mockBooks: any[] = [];
@@ -141,19 +146,22 @@ const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({ data }) =
         title: item.title,
         author: item.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
         price: activeListing ? parseFloat(activeListing.price) : 250,
-        imageUri: activeListing?.listing_images?.[0]?.image_url || item.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+        imageUri:
+          activeListing?.listing_images?.[0]?.image_url ||
+          item.cover_url ||
+          "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
       };
     });
   }, [booksData, data]);
 
   const processedData = useMemo(() => {
     const nonBookItems = data.filter((item) => item.type !== "book");
-    const dynamicBookItems = categoryBooks.map((book) => ({
+    const dynamicBookItems = genreBooks.map((book) => ({
       type: "book" as const,
       book,
     }));
     return [...nonBookItems, ...dynamicBookItems];
-  }, [data, categoryBooks]);
+  }, [data, genreBooks]);
 
   const renderItem = ({ item }: { item: FeedItem }) => {
     const wrapperStyle = {
@@ -225,7 +233,7 @@ const CategoryMasonryLayout: React.FC<CategoryMasonryLayoutProps> = ({ data }) =
   );
 };
 
-export default CategoryMasonryLayout;
+export default GenreMasonryLayout;
 
 const styles = StyleSheet.create({
   container: {

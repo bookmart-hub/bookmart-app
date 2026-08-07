@@ -9,8 +9,8 @@ import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { NearestBookItem } from "../ui/NearestBooks";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const HORIZONTAL_PADDING = SPACING.md;
-const COLUMN_GAP = 8;
+const HORIZONTAL_PADDING = SPACING.lg;
+const COLUMN_GAP = rem(0.5);
 const CARD_WIDTH = (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - COLUMN_GAP * 2) / 3;
 
 interface PeopleViewingProps {
@@ -32,7 +32,7 @@ const SmallGridCard = memo(
           <Image
             source={{ uri: item.coverUri }}
             style={styles.coverImg}
-            contentFit="fill"
+            contentFit="cover"
             recyclingKey={item.coverUri}
             cachePolicy="memory-disk"
           />
@@ -56,7 +56,7 @@ const SmallGridCard = memo(
 const PeopleViewing: React.FC<PeopleViewingProps> = memo(
   ({ title = "People Are Viewing", books, onBookPress, onSeeAllPress }) => {
     const spotlightBook = books[0];
-    const gridBooks = books.slice(1, 4); // row of 3 small grid cards
+    const gridBooks = books.slice(1, 4);
 
     const handleSpotlightPress = useCallback(() => {
       if (spotlightBook && onBookPress) {
@@ -73,7 +73,7 @@ const PeopleViewing: React.FC<PeopleViewingProps> = memo(
           <Text style={styles.headerTitle}>{title}</Text>
           {onSeeAllPress && (
             <Pressable onPress={onSeeAllPress}>
-              <Text style={styles.headerLink}>see all</Text>
+              <Text style={styles.headerLink}>SEE ALL</Text>
             </Pressable>
           )}
         </View>
@@ -85,7 +85,7 @@ const PeopleViewing: React.FC<PeopleViewingProps> = memo(
               <Image
                 source={{ uri: spotlightBook.coverUri }}
                 style={styles.spotlightCover}
-                contentFit="fill"
+                contentFit="cover"
                 cachePolicy="memory-disk"
               />
               <View style={styles.spotlightInfo}>
@@ -126,64 +126,66 @@ export default PeopleViewing;
 
 const styles = StyleSheet.create({
   section: {
-    marginTop: SPACING.lg,
     paddingHorizontal: HORIZONTAL_PADDING,
+    marginTop: rem(1.25),
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: SPACING.sm,
+    marginBottom: rem(0.5),
   },
   headerTitle: {
-    fontSize: rem(1),
+    fontSize: rem(0.9375),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.text,
   },
   headerLink: {
     fontSize: rem(0.75),
-    fontFamily: FONTS.montserrat.semibold,
+    fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
+    letterSpacing: 0.5,
   },
   spotlightCard: {
-    backgroundColor: COLORS.secondary, // Light teal/mint wash
-    borderRadius: 10,
+    backgroundColor: COLORS.secondary,
+    borderRadius: rem(0.75),
     borderWidth: 1,
-    borderColor: "rgba(0,128,128,0.1)",
-    padding: 8,
-    marginBottom: 8,
+    borderColor: "rgba(0, 128, 128, 0.05)",
+    padding: rem(0.5),
+    marginBottom: rem(0.5),
     shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.02,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
   },
   spotlightInner: {
     flexDirection: "row",
     alignItems: "center",
   },
   spotlightCover: {
-    width: 48,
-    height: 64,
+    width: rem(3.0),
+    height: rem(4.25),
     borderRadius: 6,
-    backgroundColor: COLORS.grayLight,
+    backgroundColor: COLORS.background,
   },
   spotlightInfo: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: rem(0.625),
     justifyContent: "space-between",
   },
   badgeRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    marginBottom: 1,
+    marginBottom: 2,
   },
   trendingBadge: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "rgba(0,128,128,0.15)",
     paddingHorizontal: 5,
-    paddingVertical: 1,
+    paddingVertical: 1.5,
     borderRadius: 4,
     gap: 2,
   },
@@ -227,25 +229,24 @@ const styles = StyleSheet.create({
   },
   grid: {
     flexDirection: "row",
-    flexWrap: "wrap",
     gap: COLUMN_GAP,
   },
   gridCard: {
     width: CARD_WIDTH,
     backgroundColor: COLORS.white,
-    borderRadius: 10,
+    borderRadius: rem(0.75),
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.05)",
+    borderColor: "rgba(0,128,128,0.05)",
     overflow: "hidden",
     shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
     elevation: 1,
   },
   gridCoverWrap: {
     width: "100%",
-    height: 95,
+    height: rem(5.95),
     backgroundColor: COLORS.background,
   },
   coverImg: {
@@ -253,23 +254,23 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   gridInfoWrap: {
-    padding: 6,
-    gap: 1,
+    padding: rem(0.375),
   },
   titleText: {
-    fontSize: rem(0.625),
+    fontSize: rem(0.6875),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.text,
   },
   authorText: {
-    fontSize: rem(0.53125),
+    fontSize: rem(0.5625),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.textMuted,
+    marginTop: 2,
   },
   priceText: {
-    fontSize: rem(0.6875),
+    fontSize: rem(0.75),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
-    marginTop: 2,
+    marginTop: 4,
   },
 });

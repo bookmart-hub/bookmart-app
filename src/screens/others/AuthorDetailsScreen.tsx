@@ -3,7 +3,7 @@ import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
 import { rem } from "@/utils/responsive";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute } from "expo-router";
 import { Image } from "expo-image";
 import React from "react";
 import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -72,7 +72,10 @@ const AuthorDetailsScreen = () => {
         id: String(activeListing?.id || item.id),
         title: item.title,
         price: activeListing ? parseFloat(activeListing.price) : 250,
-        imageUri: activeListing?.listing_images?.[0]?.image_url || item.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+        imageUri:
+          activeListing?.listing_images?.[0]?.image_url ||
+          item.cover_url ||
+          "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
       };
     });
   }, [booksData]);
@@ -141,7 +144,9 @@ const AuthorDetailsScreen = () => {
                 <TouchableOpacity
                   key={book.id}
                   style={styles.bookCard}
-                  onPress={() => navigation.navigate("AppStack", { screen: "BookDetails", params: { listingId: book.id } })}
+                  onPress={() =>
+                    navigation.navigate("AppStack", { screen: "BookDetails", params: { listingId: book.id } })
+                  }
                 >
                   <Image source={{ uri: book.imageUri }} style={styles.bookCover} contentFit="fill" />
                   <Text style={styles.bookTitle} numberOfLines={1}>

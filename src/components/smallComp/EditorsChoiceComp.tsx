@@ -3,6 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { interpolate, SharedValue, useAnimatedStyle } from "react-native-reanimated";
+import Carousel from "react-native-reanimated-carousel";
 
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
@@ -54,7 +55,7 @@ const EditorsChoiceComp = ({ item, onBookPress }: EditorsChoiceCompProps) => {
     <View style={styles.sectionContainer}>
       <Text style={styles.headerTitle}>Editor's Choice</Text>
 
-      {/* <Carousel
+      <Carousel
         loop
         width={CARD_WIDTH + 10}
         height={CARD_HEIGHT}
@@ -74,7 +75,7 @@ const EditorsChoiceComp = ({ item, onBookPress }: EditorsChoiceCompProps) => {
         renderItem={({ item: book, animationValue }) => (
           <EditorsChoiceItem item={book} animationValue={animationValue} onBookPress={onBookPress} />
         )}
-      /> */}
+      />
     </View>
   );
 };

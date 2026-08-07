@@ -4,7 +4,7 @@ import { SPACING } from "@/constants/spacings";
 import { NearestBook } from "@/data/nearestBooksMockData";
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "expo-router";
 import { Image } from "expo-image";
 import React, { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";

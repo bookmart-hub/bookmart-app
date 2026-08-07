@@ -7,15 +7,15 @@ export const styles = StyleSheet.create({
   container: {
     position: "absolute",
     alignSelf: "center", // Center floating pill horizontally
-    width: "82%", // Sleek compact width
-    height: rem(3.25), // Reduced container height (was 4.25)
+    width: "70%", // Sleek compact width
+    height: rem(3.75), // Container height
     backgroundColor: COLORS.white, // Light theme white background
-    borderRadius: rem(1.625), // Adjusted pill shape
+    borderRadius: rem(2.0), // Adjusted pill shape
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     paddingHorizontal: rem(0.625),
-    
+
     // Light shadow matching original premium tab bar style
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 6 },
@@ -32,24 +32,23 @@ export const styles = StyleSheet.create({
     height: "100%",
   },
   activeTabCapsule: {
-    backgroundColor: COLORS.secondary, // Light primary teal tint from app colors
-    borderRadius: rem(1.25), // Capsule shape
-    paddingVertical: rem(0.2),
-    paddingHorizontal: rem(0.625),
+    backgroundColor: COLORS.secondary, // Light teal bubble highlight
+    borderRadius: rem(1.4), // Rounded circle backdrop matching reference
     alignItems: "center",
     justifyContent: "center",
-    height: rem(2.5),
+    height: rem(2.75),
+    width: rem(3.25),
   },
   inactiveTabContent: {
     alignItems: "center",
     justifyContent: "center",
-    height: rem(2.5),
-    paddingHorizontal: rem(0.625),
+    height: rem(3.2),
+    width: rem(3.2),
   },
   tabLabel: {
-    fontSize: rem(0.5625), // Sleek smaller label (was 0.6875)
+    fontSize: rem(0.5625), // Sleek smaller label
     fontFamily: FONTS.montserrat.bold,
-    marginTop: 1,
+    marginTop: rem(0.1), // Small vertical space directly below the icon
     letterSpacing: 0.15,
   },
 });

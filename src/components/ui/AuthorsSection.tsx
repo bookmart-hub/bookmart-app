@@ -13,7 +13,7 @@ import Animated, {
   SharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
-  useSharedValue
+  useSharedValue,
 } from "react-native-reanimated";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -362,7 +362,7 @@ const AuthorsSection: React.FC<AuthorsSectionProps> = memo(
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Authors</Text>
           <TouchableOpacity activeOpacity={0.7} onPress={onSeeAllPress}>
-            <Text style={styles.headerLink}>see all</Text>
+            <Text style={styles.headerLink}>SEE ALL</Text>
           </TouchableOpacity>
         </View>
 
@@ -401,8 +401,7 @@ const CARD_BG = COLORS.text;
 
 const styles = StyleSheet.create({
   section: {
-    marginTop: SPACING.sm,
-    paddingVertical: SPACING.sm,
+    marginTop: rem(1.25),
   },
 
   // ── Header ──
@@ -411,17 +410,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: HORIZONTAL_PADDING,
-    marginBottom: SPACING.sm,
+    marginBottom: rem(0.5),
   },
   headerTitle: {
-    fontSize: rem(1),
+    fontSize: rem(0.9375),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.text,
   },
   headerLink: {
     fontSize: rem(0.75),
-    fontFamily: FONTS.montserrat.semibold,
+    fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
+    letterSpacing: 0.5,
   },
 
   listContent: {

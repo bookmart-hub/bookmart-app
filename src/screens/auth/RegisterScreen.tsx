@@ -1,6 +1,6 @@
 import { FontAwesome } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation } from "expo-router";
+
 import React, { useEffect, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, ToastAndroid, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,7 +19,7 @@ import { registerUser } from "@/types/auth";
 import { useMutation } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
 
-type RegisterScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, "Register">;
+type RegisterScreenNavigationProp = any;
 
 // Google multi-colored G SVG icon component
 const GoogleIcon = () => (

@@ -1,7 +1,7 @@
 import { verifyRegisterOtp } from "@/types/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation, useRoute, router } from "expo-router";
+
 import { useMutation } from "@tanstack/react-query";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useRef, useState } from "react";
@@ -27,8 +27,8 @@ import { SPACING } from "@/constants/spacings";
 import { AuthStackParamList } from "@/navigation/AuthNavigator";
 import { rem } from "@/utils/responsive";
 
-type VerifyEmailNavigationProp = NativeStackNavigationProp<AuthStackParamList, "VerifyEmail">;
-type VerifyEmailRouteProp = RouteProp<AuthStackParamList, "VerifyEmail">;
+type VerifyEmailNavigationProp = any;
+type VerifyEmailRouteProp = any;
 
 const VerifyEmail = () => {
   const navigation = useNavigation<VerifyEmailNavigationProp>();
@@ -94,10 +94,7 @@ const VerifyEmail = () => {
       // Mark user as fully onboarded/logged in
       await AsyncStorage.setItem("@bookmart:is_logged_in", "true");
 
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Tab" as never }],
-      });
+      router.replace("/(tabs)/home");
     },
     onError: (error: any) => {
       const message = error?.response?.data?.detail || "Verification failed. Please check your OTP.";

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
   Dimensions,
@@ -193,16 +193,10 @@ export default function OnboardingScreen() {
   const handleFinish = async () => {
     try {
       await AsyncStorage.setItem("@bookmart:onboarding_completed", "true");
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Auth" }],
-      });
+      router.replace("/(auth)/login");
     } catch (error) {
       console.error("Error saving onboarding completion status:", error);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Auth" }],
-      });
+      router.replace("/(auth)/login");
     }
   };
 

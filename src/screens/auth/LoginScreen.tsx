@@ -1,8 +1,8 @@
 import { loginUser } from "@/types/auth";
 import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation, router } from "expo-router";
+
 import { useMutation } from "@tanstack/react-query";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useState } from "react";
@@ -29,7 +29,7 @@ import { AuthStackParamList } from "@/navigation/AuthNavigator";
 import { rem } from "@/utils/responsive";
 import { StatusBar } from "expo-status-bar";
 
-type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, "Login">;
+type LoginScreenNavigationProp = any;
 
 const GoogleIcon = () => (
   <Svg viewBox="0 0 24 24" width={20} height={20}>
@@ -132,10 +132,7 @@ const LoginScreen: React.FC = () => {
       }
 
       await AsyncStorage.setItem("@bookmart:is_logged_in", "true");
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Tab" as any }],
-      });
+      router.replace("/(tabs)/home");
     },
     onError: (error: any) => {
       setIsLoading(false);

@@ -2,6 +2,7 @@
   "expo": {
     "name": "Bookmart",
     "slug": "bookmart",
+    "scheme": "bookmart",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,9 +11,9 @@
       "supportsTablet": true
     },
     "androidStatusBar": {
-      "barStyle": "dark-content",
+      "barStyle": "light-content",
       "backgroundColor": "#00000000",
-      "translucent": true
+      "translucent": false
     },
     "android": {
       "package": "com.bookmart.app",
@@ -34,6 +35,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "expo-router",
       "expo-font",
       [
         "expo-location",

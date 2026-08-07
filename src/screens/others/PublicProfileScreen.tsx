@@ -6,7 +6,7 @@ import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
 import { rem } from "@/utils/responsive";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from "react-native";
@@ -70,7 +70,7 @@ const SOLD_BOOKS = [
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/api/clients";
 import { ActivityIndicator } from "react-native";
-import { useRoute } from "@react-navigation/native";
+import { useRoute } from "expo-router";
 
 const PublicProfileScreen = () => {
   const insets = useSafeAreaInsets();
@@ -118,7 +118,10 @@ const PublicProfileScreen = () => {
         title: item.book.title,
         author: item.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
         price: String(parseFloat(item.price)),
-        coverUri: item.listing_images?.[0]?.image_url || item.book.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+        coverUri:
+          item.listing_images?.[0]?.image_url ||
+          item.book.cover_url ||
+          "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
         condition: item.condition,
       }));
   }, [listingsData]);
@@ -132,14 +135,19 @@ const PublicProfileScreen = () => {
         title: item.book.title,
         author: item.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
         price: String(parseFloat(item.price)),
-        coverUri: item.listing_images?.[0]?.image_url || item.book.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+        coverUri:
+          item.listing_images?.[0]?.image_url ||
+          item.book.cover_url ||
+          "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
         condition: "Sold",
       }));
   }, [listingsData]);
 
   const handleWhatsAppContact = () => {
     const phone = profileData?.phone_number || "919999999999";
-    const text = encodeURIComponent(`Hi ${profileData?.user?.full_name || "there"}, I'm interested in buying your books listed on BookMart.`);
+    const text = encodeURIComponent(
+      `Hi ${profileData?.user?.full_name || "there"}, I'm interested in buying your books listed on BookMart.`
+    );
     Linking.openURL(`https://wa.me/${phone}?text=${text}`).catch(() => {
       Alert.alert("Error", "WhatsApp is not installed on this device");
     });
@@ -191,7 +199,11 @@ const PublicProfileScreen = () => {
           <View style={styles.infoRow}>
             <Ionicons name="calendar-outline" size={14} color={COLORS.primary} style={styles.infoIcon} />
             <Text style={styles.infoText}>
-              Joined {new Date(profileData.user?.date_joined || Date.now()).toLocaleDateString([], { month: "short", year: "numeric" })}
+              Joined{" "}
+              {new Date(profileData.user?.date_joined || Date.now()).toLocaleDateString([], {
+                month: "short",
+                year: "numeric",
+              })}
             </Text>
           </View>
         </View>
@@ -357,7 +369,11 @@ const PublicProfileScreen = () => {
         {renderAbout()}
 
         {activeBooks.length > 0 && (
-          <HorizontalBookList title={`Active Books (${activeBooks.length})`} books={activeBooks as any} cardLayout="standard" />
+          <HorizontalBookList
+            title={`Active Books (${activeBooks.length})`}
+            books={activeBooks as any}
+            cardLayout="standard"
+          />
         )}
 
         {soldBooks.length > 0 && (

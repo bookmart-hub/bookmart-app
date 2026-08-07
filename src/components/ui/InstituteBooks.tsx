@@ -3,10 +3,8 @@ import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
 import { rem } from "@/utils/responsive";
 import { Image } from "expo-image";
-import React, { memo, useCallback, useState } from "react";
+import React, { memo, useCallback } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
-// ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface InstituteBookItem {
   id: string;
@@ -32,7 +30,7 @@ const SellerPill: React.FC<{ name: string; avatarUri?: string }> = memo(({ name,
   return (
     <View style={styles.sellerPill}>
       {avatarUri ? (
-        <Image source={{ uri: avatarUri }} style={styles.sellerAvatar} contentFit="fill" cachePolicy="memory-disk" />
+        <Image source={{ uri: avatarUri }} style={styles.sellerAvatar} contentFit="cover" cachePolicy="memory-disk" />
       ) : (
         <View style={styles.sellerAvatarFallback}>
           <Text style={styles.sellerAvatarInitial}>{initial}</Text>
@@ -47,23 +45,9 @@ const SellerPill: React.FC<{ name: string; avatarUri?: string }> = memo(({ name,
 
 const BookRowCard = memo(
   ({ item, onPress }: { item: InstituteBookItem; onPress?: (item: InstituteBookItem) => void }) => {
-    const [isLiked, setIsLiked] = useState(false);
-    const [showBurst, setShowBurst] = useState(false);
-
     const handlePress = useCallback(() => {
       onPress?.(item);
     }, [item, onPress]);
-
-    const toggleLike = useCallback(() => {
-      setIsLiked((prev) => {
-        const next = !prev;
-        if (next) {
-          setShowBurst(true);
-          setTimeout(() => setShowBurst(false), 600);
-        }
-        return next;
-      });
-    }, []);
 
     return (
       <TouchableOpacity activeOpacity={0.88} onPress={handlePress} style={styles.rowCard}>
@@ -71,7 +55,7 @@ const BookRowCard = memo(
         <Image
           source={{ uri: item.coverUri }}
           style={styles.cover}
-          contentFit="fill"
+          contentFit="cover"
           recyclingKey={item.coverUri}
           cachePolicy="memory-disk"
         />
@@ -85,7 +69,7 @@ const BookRowCard = memo(
             {item.author}
           </Text>
           {item.description ? (
-            <Text style={styles.descText} numberOfLines={2}>
+            <Text style={styles.descText} numberOfLines={1}>
               {item.description}
             </Text>
           ) : null}
@@ -107,7 +91,6 @@ const BookRowCard = memo(
 
 const InstituteBooks: React.FC<InstituteBooksProps> = memo(
   ({ instituteName = "Your Institute", books, onBookPress, onSeeAllPress }) => {
-    // Only display top 3 books for Q-commerce vertical rows
     const displayBooks = books.slice(0, 3);
 
     return (
@@ -119,7 +102,7 @@ const InstituteBooks: React.FC<InstituteBooksProps> = memo(
           </Text>
           {onSeeAllPress && (
             <TouchableOpacity activeOpacity={0.7} onPress={onSeeAllPress}>
-              <Text style={styles.headerLink}>see all</Text>
+              <Text style={styles.headerLink}>SEE ALL</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -139,83 +122,82 @@ export default InstituteBooks;
 
 const styles = StyleSheet.create({
   section: {
-    marginTop: SPACING.md,
-    paddingHorizontal: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    marginTop: rem(1.25),
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: SPACING.sm,
+    marginBottom: rem(0.5),
   },
   headerTitle: {
-    fontSize: rem(1),
+    fontSize: rem(0.9375),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.text,
   },
   headerLink: {
     fontSize: rem(0.75),
-    fontFamily: FONTS.montserrat.semibold,
+    fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
+    letterSpacing: 0.5,
   },
   list: {
-    gap: 8,
+    gap: rem(0.5),
   },
   rowCard: {
     flexDirection: "row",
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: rem(0.75),
     borderWidth: 1,
-    borderColor: COLORS.grayLight || "#F9FAFB",
-    padding: 8,
+    borderColor: "rgba(0, 128, 128, 0.05)",
+    padding: rem(0.5),
     alignItems: "center",
     shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 1,
   },
   cover: {
-    width: 58,
-    height: 78,
+    width: rem(3.5),
+    height: rem(4.75),
     borderRadius: 6,
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.background,
   },
   cardBody: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: rem(0.625),
     justifyContent: "space-between",
   },
   titleText: {
     fontSize: rem(0.71875),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.text,
-    marginBottom: 1,
   },
   authorText: {
     fontSize: rem(0.59375),
     fontFamily: FONTS.manrope.semibold,
     color: COLORS.textMuted,
-    marginBottom: 2,
+    marginTop: 1,
   },
   descText: {
     fontSize: rem(0.5625),
     fontFamily: FONTS.manrope.regular,
     color: COLORS.textMuted,
     lineHeight: 12,
-    marginBottom: 4,
+    marginTop: 2,
   },
   sellerPill: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 2,
+    marginTop: 4,
   },
   sellerAvatar: {
     width: 14,
     height: 14,
     borderRadius: 7,
     marginRight: 4,
-    backgroundColor: COLORS.secondary,
   },
   sellerAvatarFallback: {
     width: 14,
@@ -230,6 +212,7 @@ const styles = StyleSheet.create({
     fontSize: rem(0.5),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.white,
+    lineHeight: 12,
   },
   sellerName: {
     fontSize: rem(0.5625),
@@ -239,18 +222,13 @@ const styles = StyleSheet.create({
   rightActionWrap: {
     alignItems: "flex-end",
     justifyContent: "center",
-    marginLeft: 8,
-    gap: 6,
+    marginLeft: rem(0.5),
+    gap: rem(0.375),
   },
   priceText: {
     fontSize: rem(0.8125),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
-  },
-  actionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
   },
   actionBtn: {
     backgroundColor: COLORS.primary,
@@ -262,12 +240,5 @@ const styles = StyleSheet.create({
     fontSize: rem(0.59375),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.white,
-  },
-  heartContainer: {
-    width: 34,
-    height: 34,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
   },
 });

@@ -9,7 +9,7 @@ import { College, createCollege, getColleges } from "@/types/core";
 import { rem } from "@/utils/responsive";
 import { Feather, FontAwesome5, Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";

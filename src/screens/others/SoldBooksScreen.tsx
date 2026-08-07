@@ -4,15 +4,15 @@ import { SPACING } from "@/constants/spacings";
 import { AppStackParamList } from "@/navigation/AppStackNavigator";
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation } from "expo-router";
+
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useState } from "react";
 import { FlatList, Image, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Menu } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type NavigationProp = NativeStackNavigationProp<AppStackParamList>;
+type NavigationProp = any;
 
 // Dummy data
 const SOLD_BOOKS = [

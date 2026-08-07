@@ -1,6 +1,6 @@
 import { Feather, FontAwesome5, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, router } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
@@ -236,10 +236,7 @@ export default function PersonalizationScreen() {
       // Mark user as fully onboarded/logged in
       await AsyncStorage.setItem("@bookmart:is_logged_in", "true");
 
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Tab" }],
-      });
+      router.replace("/(tabs)/home");
     },
     onError: (error: any) => {
       const message = error?.response?.data?.detail || "Failed to save preferences.";

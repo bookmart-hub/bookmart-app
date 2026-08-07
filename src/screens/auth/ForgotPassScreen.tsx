@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation } from "expo-router";
+
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -23,7 +23,7 @@ import { SPACING } from "@/constants/spacings";
 import { AuthStackParamList } from "@/navigation/AuthNavigator";
 import { rem } from "@/utils/responsive";
 
-type ForgotPassScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, "ForgotPassScreen">;
+type ForgotPassScreenNavigationProp = any;
 
 const ForgotPassScreen: React.FC = () => {
   const navigation = useNavigation<ForgotPassScreenNavigationProp>();

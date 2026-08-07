@@ -6,15 +6,15 @@ import { AppStackParamList } from "@/navigation/AppStackNavigator";
 import { rem } from "@/utils/responsive";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation } from "expo-router";
+
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import React, { useMemo, useState } from "react";
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type NavigationProp = NativeStackNavigationProp<AppStackParamList>;
+type NavigationProp = any;
 
 // Dummy data matching the design
 const MY_LISTINGS = [
@@ -84,7 +84,11 @@ export default function MyActiveListingsScreen() {
 
   const sellerId = userProfile?.user?.id;
 
-  const { data: listingsData, isLoading, refetch } = useQuery({
+  const {
+    data: listingsData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["my-listings", sellerId],
     queryFn: async () => {
       if (!sellerId) return null;
@@ -104,39 +108,35 @@ export default function MyActiveListingsScreen() {
   });
 
   const handleMorePress = (item: any) => {
-    Alert.alert(
-      "Manage Listing",
-      `Title: ${item.title}\nStatus: ${item.status}`,
-      [
-        {
-          text: item.status === "AVAILABLE" ? "Mark as Sold" : "Mark as Available",
-          onPress: () => {
-            updateStatusMutation.mutate({
-              id: item.id,
-              status: item.status === "AVAILABLE" ? "SOLD" : "AVAILABLE",
-            });
-          },
+    Alert.alert("Manage Listing", `Title: ${item.title}\nStatus: ${item.status}`, [
+      {
+        text: item.status === "AVAILABLE" ? "Mark as Sold" : "Mark as Available",
+        onPress: () => {
+          updateStatusMutation.mutate({
+            id: item.id,
+            status: item.status === "AVAILABLE" ? "SOLD" : "AVAILABLE",
+          });
         },
-        {
-          text: "Delete Listing",
-          style: "destructive",
-          onPress: () => {
-            Alert.alert("Confirm Delete", "Are you sure you want to delete this listing?", [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Delete",
-                style: "destructive",
-                onPress: async () => {
-                  await api.delete(`/api/v1/marketplace/listings/${item.id}/`);
-                  queryClient.invalidateQueries({ queryKey: ["my-listings"] });
-                },
+      },
+      {
+        text: "Delete Listing",
+        style: "destructive",
+        onPress: () => {
+          Alert.alert("Confirm Delete", "Are you sure you want to delete this listing?", [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Delete",
+              style: "destructive",
+              onPress: async () => {
+                await api.delete(`/api/v1/marketplace/listings/${item.id}/`);
+                queryClient.invalidateQueries({ queryKey: ["my-listings"] });
               },
-            ]);
-          },
+            },
+          ]);
         },
-        { text: "Cancel", style: "cancel" },
-      ]
-    );
+      },
+      { text: "Cancel", style: "cancel" },
+    ]);
   };
 
   const myListings = useMemo(() => {
@@ -147,7 +147,10 @@ export default function MyActiveListingsScreen() {
       author: item.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
       price: parseFloat(item.price),
       status: item.status,
-      coverUri: item.listing_images?.[0]?.image_url || item.book.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop",
+      coverUri:
+        item.listing_images?.[0]?.image_url ||
+        item.book.cover_url ||
+        "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop",
       views: 12, // Analytics metrics can fall back or be mock
       likes: 3,
       chats: 2,
@@ -288,7 +291,11 @@ export default function MyActiveListingsScreen() {
 
       {/* Floating Action Button */}
       <View style={[styles.fabContainer, { bottom: insets.bottom + SPACING.xl * 3 }]}>
-        <TouchableOpacity style={styles.fab} activeOpacity={0.9} onPress={() => navigation.navigate("AppStack", { screen: "Create" })}>
+        <TouchableOpacity
+          style={styles.fab}
+          activeOpacity={0.9}
+          onPress={() => navigation.navigate("AppStack", { screen: "Create" })}
+        >
           <FontAwesome name="book" size={24} color={COLORS.white} />
         </TouchableOpacity>
       </View>

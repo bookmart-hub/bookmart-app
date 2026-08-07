@@ -1,11 +1,11 @@
-import CategoryMasonryLayout from "@/components/ui/CategoryMasonryLayout";
-import { CATEGORY_DATA } from "@/data/categoryMockData";
+import GenreMasonryLayout from "@/components/ui/GenreMasonryLayout";
+import { GENRE_DATA } from "@/data/genreMockData";
 import React from "react";
 
 const BiographyScreen = () => {
-  const data = CATEGORY_DATA["Biography"];
+  const data = GENRE_DATA["Biography"];
   console.log(data.items);
-  return <CategoryMasonryLayout data={data.items} />;
+  return <GenreMasonryLayout data={data.items} />;
 };
 
 export default BiographyScreen;

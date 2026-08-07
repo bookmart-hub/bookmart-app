@@ -1,22 +1,24 @@
-import { Ionicons } from "@expo/vector-icons";
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import React, { memo } from "react";
 import { Pressable, Text, View } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 import { COLORS } from "@/constants/colors";
 import { rem } from "@/utils/responsive";
 import { styles } from "./CustomTabBar.style";
 
-// Interface kept directly inside the TSX file as requested
-export interface CustomTabBarProps extends BottomTabBarProps {}
+export interface CustomTabBarProps {
+  state: any;
+  descriptors: any;
+  navigation: any;
+}
 
 const CustomTabBar: React.FC<CustomTabBarProps> = memo(({ state, descriptors, navigation }) => {
   const insets = useSafeAreaInsets();
 
   // Floating tab bar offset calculation
-  const bottomMargin = insets.bottom > 0 ? insets.bottom + rem(0.25) : rem(1.0);
+  const bottomMargin = insets.bottom > 0 ? insets.bottom + rem(1.25) : rem(1.0);
 
   return (
     <View style={[styles.container, { bottom: bottomMargin }]}>
@@ -50,20 +52,22 @@ const CustomTabBar: React.FC<CustomTabBarProps> = memo(({ state, descriptors, na
           });
         };
 
-        // Determine icon name based on route
+        // Determine icon name based on route (case-insensitive for compatibility)
         let iconName: keyof typeof Ionicons.glyphMap = "home-outline";
-        if (route.name === "Home") {
+        const normalizedRouteName = route.name.toLowerCase();
+        if (normalizedRouteName === "home") {
           iconName = isFocused ? "home" : "home-outline";
-        } else if (route.name === "Create") {
+        } else if (normalizedRouteName === "create") {
           iconName = isFocused ? "add-circle" : "add-circle-outline";
-        } else if (route.name === "Analytics") {
+        } else if (normalizedRouteName === "analytics") {
           iconName = isFocused ? "bar-chart" : "bar-chart-outline";
-        } else if (route.name === "Profile") {
+        } else if (normalizedRouteName === "profile") {
           iconName = isFocused ? "person" : "person-outline";
         }
 
-        const activeColor = COLORS.primary; // Active color matches primary teal of the app
-        const inactiveColor = COLORS.textMuted; // Inactive color is muted gray from the app
+        // Light colors matching the user's request
+        const activeColor = COLORS.primary; // Brand teal for active
+        const inactiveColor = COLORS.textMuted; // Muted gray for inactive
         const color = isFocused ? activeColor : inactiveColor;
 
         return (
@@ -78,20 +82,14 @@ const CustomTabBar: React.FC<CustomTabBarProps> = memo(({ state, descriptors, na
             style={styles.tabItem}
           >
             {isFocused ? (
-              // Active Tab: Capsule background with standard FadeIn animation
+              // Active Tab: vertical bubble containing BOTH icon and text
               <Animated.View entering={FadeIn.duration(200)} style={styles.activeTabCapsule}>
-                <Ionicons name={iconName} size={rem(1.1)} color={color} />
-                <Text style={[styles.tabLabel, { color }]}>
-                  {typeof label === "string" ? label : route.name}
-                </Text>
+                <Ionicons name={iconName} size={rem(1.5)} color={color} />
               </Animated.View>
             ) : (
-              // Inactive Tab: No capsule background, muted colors
+              // Inactive Tab: vertical layout containing BOTH icon and text (no background bubble)
               <View style={styles.inactiveTabContent}>
-                <Ionicons name={iconName} size={rem(1.1)} color={color} />
-                <Text style={[styles.tabLabel, { color }]}>
-                  {typeof label === "string" ? label : route.name}
-                </Text>
+                <Ionicons name={iconName} size={rem(1.5)} color={color} />
               </View>
             )}
           </Pressable>

@@ -10,8 +10,8 @@ import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { NearestBookItem } from "../ui/NearestBooks";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const HORIZONTAL_PADDING = SPACING.md;
-const COLUMN_GAP = 8;
+const HORIZONTAL_PADDING = SPACING.lg;
+const COLUMN_GAP = rem(0.5);
 const CARD_WIDTH = (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - COLUMN_GAP * 2) / 3;
 
 interface ExcellentConditionProps {
@@ -33,7 +33,7 @@ const BookCard = memo(
           <Image
             source={{ uri: item.coverUri }}
             style={styles.coverImg}
-            contentFit="fill"
+            contentFit="cover"
             recyclingKey={item.coverUri}
             cachePolicy="memory-disk"
           />
@@ -52,7 +52,6 @@ const BookCard = memo(
           </Text>
           <View style={styles.footerRow}>
             <Text style={styles.priceText}>₹{item.price}</Text>
-            <Text style={styles.distanceText}>{item.distance}</Text>
           </View>
         </View>
       </Pressable>
@@ -63,16 +62,15 @@ const BookCard = memo(
 
 const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(
   ({ title = "Excellent Condition", books, onBookPress, onSeeAllPress }) => {
-    // Render up to 6 items in a clean 3-column grid
-    const displayBooks = books.slice(0, 6);
+    const displayBooks = books.slice(0, 3); // Slice 3 to maintain a clean single-row grid matching "Spotlight" consistency
 
     return (
-      <LinearGradient colors={[COLORS.purple + "35", COLORS.purple + "70"]} style={styles.section}>
+      <View style={styles.section}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{title}</Text>
           {onSeeAllPress && (
             <Pressable onPress={onSeeAllPress}>
-              <Text style={styles.headerLink}>see all</Text>
+              <Text style={styles.headerLink}>SEE ALL</Text>
             </Pressable>
           )}
         </View>
@@ -82,7 +80,7 @@ const ExcellentCondition: React.FC<ExcellentConditionProps> = memo(
             <BookCard key={book.id} item={book} onPress={onBookPress} />
           ))}
         </View>
-      </LinearGradient>
+      </View>
     );
   }
 );
@@ -91,50 +89,46 @@ export default ExcellentCondition;
 
 const styles = StyleSheet.create({
   section: {
-    marginTop: SPACING.md,
     paddingHorizontal: HORIZONTAL_PADDING,
-    borderRadius: 20,
-    paddingTop: 10,
-    paddingBottom: 10,
+    marginTop: rem(1.25),
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: SPACING.sm,
+    marginBottom: rem(0.5),
   },
   headerTitle: {
-    fontSize: rem(1),
+    fontSize: rem(0.9375),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.text,
   },
   headerLink: {
     fontSize: rem(0.75),
-    fontFamily: FONTS.montserrat.semibold,
+    fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
+    letterSpacing: 0.5,
   },
   grid: {
     flexDirection: "row",
-    flexWrap: "wrap",
     gap: COLUMN_GAP,
   },
   card: {
     width: CARD_WIDTH,
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: rem(0.75),
     borderWidth: 1,
-    borderColor: COLORS.white,
+    borderColor: "rgba(0, 128, 128, 0.05)",
     overflow: "hidden",
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.04,
     shadowRadius: 8,
-    elevation: 3,
-    marginBottom: 8,
+    elevation: 1,
   },
   coverWrap: {
     width: "100%",
-    height: 100,
+    height: rem(6.25),
     backgroundColor: COLORS.background,
     position: "relative",
   },
@@ -146,7 +140,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 6,
     left: 6,
-    backgroundColor: COLORS.green, // Mint green color
+    backgroundColor: COLORS.green,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 5,
@@ -160,11 +154,10 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   infoWrap: {
-    padding: 6,
-    gap: 1,
+    padding: rem(0.375),
   },
   titleText: {
-    fontSize: rem(0.65625),
+    fontSize: rem(0.6875),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.text,
   },
@@ -172,6 +165,7 @@ const styles = StyleSheet.create({
     fontSize: rem(0.5625),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.textMuted,
+    marginTop: 2,
   },
   footerRow: {
     flexDirection: "row",
@@ -180,13 +174,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   priceText: {
-    fontSize: rem(0.71875),
+    fontSize: rem(0.75),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
-  },
-  distanceText: {
-    fontSize: rem(0.53125),
-    fontFamily: FONTS.manrope.medium,
-    color: COLORS.textMuted,
   },
 });

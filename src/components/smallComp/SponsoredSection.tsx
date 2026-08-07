@@ -1,7 +1,7 @@
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
-import { rem, rf } from "@/utils/responsive";
+import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
@@ -11,8 +11,8 @@ import { Dimensions, FlatList, Pressable, StyleSheet, Text, View } from "react-n
 import { NearestBookItem } from "../ui/NearestBooks";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const HORIZONTAL_PADDING = SPACING.md;
-const CARD_WIDTH = SCREEN_WIDTH * 0.28; // Show ~3.5 items (4 visible in a row)
+const HORIZONTAL_PADDING = SPACING.lg;
+const CARD_WIDTH = rem(7.0);
 
 interface SponsoredSectionProps {
   title?: string;
@@ -38,7 +38,7 @@ const SponsoredCard = memo(
             cachePolicy="memory-disk"
           />
           <View style={styles.sponsoredBadge}>
-            <Ionicons name="trending-up" size={rem(0.875)} color={COLORS.white} />
+            <Ionicons name="sparkles" size={10} color={COLORS.white} />
           </View>
         </View>
         <View style={styles.infoWrap}>
@@ -48,9 +48,7 @@ const SponsoredCard = memo(
           <Text numberOfLines={1} style={styles.authorText}>
             {item.author}
           </Text>
-          <View style={styles.footerRow}>
-            <Text style={styles.priceText}>₹{item.price}</Text>
-          </View>
+          <Text style={styles.priceText}>₹{item.price}</Text>
         </View>
       </Pressable>
     );
@@ -61,30 +59,28 @@ const SponsoredCard = memo(
 const SponsoredSection: React.FC<SponsoredSectionProps> = memo(({ title = "Trending Now", books, onBookPress }) => {
   if (books.length === 0) return null;
 
-  const displayBooks = books;
-
   return (
-    <LinearGradient colors={["#FFF8E7", "#FDF5E6", COLORS.background]} style={styles.section}>
+    <LinearGradient colors={["#FFFDF7", "#FFFDF7", COLORS.background]} style={styles.section}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{title}</Text>
         <View style={styles.adTag}>
-          <Text style={styles.adTagText}>Ad</Text>
+          <Text style={styles.adTagText}>AD</Text>
         </View>
       </View>
 
       <FlatList
-        data={displayBooks}
+        data={books}
         keyExtractor={(item) => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}
-        snapToInterval={CARD_WIDTH + 12}
+        snapToInterval={CARD_WIDTH + rem(0.75)}
         snapToAlignment="start"
         decelerationRate="fast"
         contentContainerStyle={{
           paddingHorizontal: HORIZONTAL_PADDING,
-          paddingBottom: SPACING.md,
+          paddingBottom: rem(0.75),
         }}
-        ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+        ItemSeparatorComponent={() => <View style={{ width: rem(0.75) }} />}
         renderItem={({ item }) => <SponsoredCard item={item} onPress={onBookPress} />}
       />
     </LinearGradient>
@@ -95,95 +91,90 @@ export default SponsoredSection;
 
 const styles = StyleSheet.create({
   section: {
-    paddingTop: SPACING.md,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    paddingTop: rem(1.25),
+    borderTopLeftRadius: rem(1.5),
+    borderTopRightRadius: rem(1.5),
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: SPACING.md,
+    marginBottom: rem(0.5),
     paddingHorizontal: HORIZONTAL_PADDING,
-    gap: 8,
+    gap: 6,
   },
   headerTitle: {
-    fontSize: rem(1.125),
+    fontSize: rem(0.9375),
     fontFamily: FONTS.montserrat.bold,
-    color: "#4B3621", // Dark brown/gold hue
+    color: "#6B5020", // Deep brown gold tone for trending sponsored
   },
   adTag: {
-    backgroundColor: "#E8D5B5",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    backgroundColor: "#F4E5CA",
+    paddingHorizontal: 5,
+    paddingVertical: 1,
     borderRadius: 4,
   },
   adTagText: {
-    fontSize: rem(0.5625),
+    fontSize: rem(0.5),
     fontFamily: FONTS.montserrat.bold,
-    color: "#4B3621",
+    color: "#6B5020",
+    letterSpacing: 0.5,
   },
   card: {
     width: CARD_WIDTH,
-    height: CARD_WIDTH * 1.45,
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    overflow: "hidden",
+    borderRadius: rem(0.75),
     borderWidth: 1,
-    borderColor: "#F5E6D3",
+    borderColor: "rgba(107, 80, 32, 0.08)",
+    overflow: "hidden",
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
   },
   coverWrap: {
     width: "100%",
-    height: "65%",
+    height: rem(6.25),
+    backgroundColor: COLORS.background,
     position: "relative",
   },
   coverImg: {
     width: "100%",
-    height: "80%",
+    height: "100%",
   },
   sponsoredBadge: {
     position: "absolute",
-    top: 4,
-    left: 4,
-    backgroundColor: COLORS.completeTransparency,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  sponsoredBadgeText: {
-    fontSize: rem(0.46875),
-    fontFamily: FONTS.montserrat.bold,
-    color: COLORS.white,
-    letterSpacing: 0.5,
+    top: 6,
+    left: 6,
+    backgroundColor: "#D4AF37", // Gold accent for trending
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   infoWrap: {
-    paddingHorizontal: rem(0.375),
-    marginTop: rf(-5),
-    gap: 2,
+    padding: rem(0.375),
   },
   titleText: {
-    fontSize: rem(0.5625),
+    fontSize: rem(0.6875),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.text,
   },
   authorText: {
-    fontSize: rem(0.5),
-    fontFamily: FONTS.manrope.medium,
-    color: COLORS.textMuted,
-  },
-  footerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 4,
-  },
-  priceText: {
-    fontSize: rem(0.71875),
-    fontFamily: FONTS.montserrat.bold,
-    color: "#D4AF37", // Gold color for price
-  },
-  distanceText: {
     fontSize: rem(0.5625),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.textMuted,
+    marginTop: 2,
+  },
+  priceText: {
+    fontSize: rem(0.75),
+    fontFamily: FONTS.montserrat.bold,
+    color: "#6B5020",
+    marginTop: 4,
   },
 });

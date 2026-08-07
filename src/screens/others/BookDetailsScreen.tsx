@@ -1,16 +1,26 @@
 import { api } from "@/api/clients";
-import { Button } from "@/components/ui/Button";
-import Header from "@/components/ui/Header";
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
-import { MOCK_CATEGORIES } from "@/data/nearestBooksMockData";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import React, { useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Dimensions, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useNavigation, useRoute } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  FlatList,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewToken,
+} from "react-native";
+import Animated, { cancelAnimation, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StarRating from "react-native-star-rating-widget";
 
@@ -22,24 +32,48 @@ import * as Haptics from "expo-haptics";
 import { StatusBar } from "expo-status-bar";
 import { TextInput } from "react-native";
 
-const isAcademicCategory = (category: string) => {
-  if (!category) return false;
-  const academicKeywords = [
-    "engineering",
-    "medical",
-    "law",
-    "competitive",
-    "exam",
-    "textbook",
-    "reference",
-    "study",
-    "academic",
-  ];
-  const lowerCategory = category.toLowerCase();
-  return academicKeywords.some((keyword) => lowerCategory.includes(keyword));
-};
+// Progress indicators matching Home Screen's PromoBanner
+const ProgressIndicator = React.memo(({ active }: { active: boolean }) => {
+  const progress = useSharedValue(active ? 0 : 1);
+  const dotWidth = useSharedValue(active ? rem(1.2) : rem(0.4));
 
-const PADDING_HORIZONTAL = SPACING.lg;
+  useEffect(() => {
+    cancelAnimation(progress);
+    cancelAnimation(dotWidth);
+    dotWidth.value = withTiming(active ? rem(1.2) : rem(0.4), { duration: 300 });
+
+    if (active) {
+      progress.value = 0;
+      progress.value = withTiming(1, { duration: 4000 });
+    } else {
+      progress.value = 0;
+    }
+  }, [active]);
+
+  const trackAnimatedStyle = useAnimatedStyle(() => ({
+    width: dotWidth.value,
+  }));
+
+  const fillAnimatedStyle = useAnimatedStyle(() => ({
+    width: `${progress.value * 100}%`,
+  }));
+
+  return (
+    <Animated.View style={[styles.indicatorTrack, trackAnimatedStyle]}>
+      <Animated.View style={[styles.indicatorFill, fillAnimatedStyle]} />
+    </Animated.View>
+  );
+});
+
+const PaginationDots = React.memo(({ count, activeIndex }: { count: number; activeIndex: number }) => {
+  return (
+    <View style={styles.indicatorContainer}>
+      {Array.from({ length: count }).map((_, index) => (
+        <ProgressIndicator key={index} active={index === activeIndex} />
+      ))}
+    </View>
+  );
+});
 
 const BookDetailsScreen = () => {
   const insets = useSafeAreaInsets();
@@ -50,10 +84,10 @@ const BookDetailsScreen = () => {
   const [showBurst, setShowBurst] = useState(false);
   const [newReviewText, setNewReviewText] = useState("");
   const [newReviewRating, setNewReviewRating] = useState(0);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const initialBook = route.params?.book;
   const listingId = route.params?.listingId || initialBook?.id;
-  const categoryTitle: string = route.params?.categoryTitle || "";
 
   // Query listing details from backend
   const { data: listingData, isLoading: isListingLoading } = useQuery({
@@ -72,19 +106,87 @@ const BookDetailsScreen = () => {
         id: String(listingData.id),
         bookId: String(listingData.book.id),
         title: listingData.book.title,
-        coverUri: listingData.listing_images?.[0]?.image_url || listingData.book.cover_url || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop",
+        coverUri:
+          listingData.listing_images?.[0]?.image_url ||
+          listingData.book.cover_url ||
+          "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop",
         price: parseFloat(listingData.price),
-        author: listingData.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
+        authorsList: listingData.book.authors || [],
         condition: listingData.condition,
         conditionNote: listingData.condition_notes,
         sellerName: listingData.seller.full_name,
         sellerPhone: listingData.seller.phone_number,
-        distance: listingData.distance_km ? `${listingData.distance_km.toFixed(1)} km away` : "1.2 km away",
-        timeLeft: "15h left",
+        distance: listingData.distance_km != null ? `${listingData.distance_km.toFixed(1)} km away` : null,
+        listedDate: new Date(listingData.created_at).toLocaleDateString([], {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        description: listingData.book.description || "",
+        publisher: listingData.book.publisher || "",
+        publishedDate: listingData.book.published_date || "",
+        language: listingData.book.language || "",
+        isbn13: listingData.book.isbn_13 || "",
+        isbn10: listingData.book.isbn_10 || "",
+        genresList: listingData.book.genres || [],
+        tagsList: listingData.tags || [],
       };
     }
     return initialBook;
   }, [listingData, initialBook]);
+
+  const imagesToDisplay = useMemo(() => {
+    if (listingData?.listing_images && listingData.listing_images.length > 0) {
+      return listingData.listing_images.map((img: any) => img.image_url);
+    }
+    return activeBook?.coverUri ? [activeBook.coverUri] : [];
+  }, [listingData, activeBook?.coverUri]);
+
+  // Autoscroll hooks and effects
+  const flatListRef = useRef<FlatList>(null);
+  const currentIndexRef = useRef(0);
+  const autoSlideRef = useRef<NodeJS.Timeout | null>(null);
+
+  const viewabilityConfig = useRef({
+    viewAreaCoveragePercentThreshold: 50,
+  }).current;
+
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    if (viewableItems.length > 0 && viewableItems[0]?.index !== null && viewableItems[0]?.index !== undefined) {
+      const index = viewableItems[0].index;
+      currentIndexRef.current = index;
+      setActiveImageIndex(index);
+    }
+  }).current;
+
+  const startAutoSlide = useCallback(() => {
+    if (imagesToDisplay.length <= 1) return;
+
+    if (autoSlideRef.current) {
+      clearInterval(autoSlideRef.current);
+    }
+
+    autoSlideRef.current = setInterval(() => {
+      const nextIndex = (currentIndexRef.current + 1) % imagesToDisplay.length;
+
+      flatListRef.current?.scrollToIndex({
+        index: nextIndex,
+        animated: true,
+      });
+
+      currentIndexRef.current = nextIndex;
+      setActiveImageIndex(nextIndex);
+    }, 4000);
+  }, [imagesToDisplay.length]);
+
+  useEffect(() => {
+    startAutoSlide();
+    return () => {
+      if (autoSlideRef.current) {
+        clearInterval(autoSlideRef.current);
+      }
+    };
+  }, [startAutoSlide]);
 
   // Load wishlist
   const { data: wishlistData, refetch: refetchWishlist } = useQuery({
@@ -135,7 +237,12 @@ const BookDetailsScreen = () => {
 
   // Log contact
   const logContactMutation = useMutation({
-    mutationFn: async (payload: { contact_person_name: string; book_title: string; deal_type: string; price_recorded: number }) => {
+    mutationFn: async (payload: {
+      contact_person_name: string;
+      book_title: string;
+      deal_type: string;
+      price_recorded: number;
+    }) => {
       await api.post("/api/v1/marketplace/contacts/", payload);
     },
     onSuccess: () => {
@@ -212,36 +319,47 @@ const BookDetailsScreen = () => {
     }));
   }, [reviewsData]);
 
-  const localReviews = reviewsList;
-
   const localRatings = useMemo(() => {
+    if (reviewsList.length === 0) return null;
     const ratings = {
       average: 4.5,
-      totalReviews: reviewsList.length || 5,
-      fiveStar: 3,
-      fourStar: 1,
-      threeStar: 1,
+      totalReviews: reviewsList.length,
+      fiveStar: 0,
+      fourStar: 0,
+      threeStar: 0,
       twoStar: 0,
       oneStar: 0,
     };
-    if (reviewsList.length > 0) {
-      const sum = reviewsList.reduce((acc, curr) => acc + curr.rating, 0);
-      ratings.average = Number((sum / reviewsList.length).toFixed(1));
-    }
+    const sum = reviewsList.reduce((acc, curr) => {
+      const r = Math.round(curr.rating);
+      if (r === 5) ratings.fiveStar++;
+      else if (r === 4) ratings.fourStar++;
+      else if (r === 3) ratings.threeStar++;
+      else if (r === 2) ratings.twoStar++;
+      else if (r === 1) ratings.oneStar++;
+      return acc + curr.rating;
+    }, 0);
+    ratings.average = Number((sum / reviewsList.length).toFixed(1));
     return ratings;
   }, [reviewsList]);
 
-  const isAcademic = useMemo(() => isAcademicCategory(categoryTitle), [categoryTitle]);
-
-  const genreName = useMemo(() => {
-    if (activeBook?.genre) return activeBook.genre;
-    if (activeBook?.categoryId) {
-      const cat = MOCK_CATEGORIES.find((c) => c.id === activeBook.categoryId);
-      if (cat) return cat.name;
+  const getConditionColor = (cond: string) => {
+    if (!cond) return COLORS.textMuted;
+    switch (cond.toUpperCase()) {
+      case "NEW":
+        return COLORS.green;
+      case "LIKE_NEW":
+        return COLORS.primary;
+      case "GOOD":
+        return COLORS.blue;
+      case "FAIR":
+        return COLORS.yellow;
+      case "POOR":
+        return COLORS.red;
+      default:
+        return COLORS.textMuted;
     }
-    if (categoryTitle) return categoryTitle;
-    return "General";
-  }, [activeBook?.genre, activeBook?.categoryId, categoryTitle]);
+  };
 
   const book = activeBook;
 
@@ -265,13 +383,51 @@ const BookDetailsScreen = () => {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar style="dark" />
-      <Header backButton />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent]} bounces={false}>
-        {/* Book Cover Image */}
-        <View style={styles.imageContainer}>
-          <Image source={{ uri: book.coverUri }} style={styles.bookImage} contentFit="fill" cachePolicy="memory-disk" />
+    <View style={styles.container}>
+      <StatusBar style="light" />
+
+      {/* Floating circular back button floating above full-width top cover carousel */}
+      <TouchableOpacity
+        style={[styles.floatingBackButton, { top: insets.top > 0 ? insets.top + 8 : 16 }]}
+        onPress={() => navigation.goBack()}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="arrow-back" size={22} color={COLORS.black} />
+      </TouchableOpacity>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} bounces={false}>
+        {/* Full-width Carousel (30% of screen length, zero bezel) */}
+        <View style={styles.carouselContainer}>
+          <FlatList
+            ref={flatListRef}
+            data={imagesToDisplay}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item, index) => String(index)}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
+            onScrollBeginDrag={() => {
+              if (autoSlideRef.current) {
+                clearInterval(autoSlideRef.current);
+              }
+            }}
+            onMomentumScrollEnd={(e) => {
+              const offset = e.nativeEvent.contentOffset.x;
+              const idx = Math.round(offset / width);
+              currentIndexRef.current = idx;
+              setActiveImageIndex(idx);
+              startAutoSlide();
+            }}
+            renderItem={({ item }) => (
+              <View style={styles.carouselImageWrapper}>
+                <Image source={{ uri: item }} style={styles.bookImage} contentFit="cover" cachePolicy="memory-disk" />
+              </View>
+            )}
+          />
+          {imagesToDisplay.length > 1 && (
+            <PaginationDots count={imagesToDisplay.length} activeIndex={activeImageIndex} />
+          )}
         </View>
 
         {/* Content Section */}
@@ -280,57 +436,77 @@ const BookDetailsScreen = () => {
             <Text style={styles.title} numberOfLines={2}>
               {book.title}
             </Text>
-            <View
-              style={{
-                position: "relative",
-                width: 30,
-                height: 30,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <TouchableOpacity
-                hitSlop={{
-                  top: 10,
-                  bottom: 10,
-                  left: 10,
-                  right: 10,
-                }}
-                onPress={handleFavorite}
-              >
+            <View style={styles.favContainer}>
+              <TouchableOpacity onPress={handleFavorite} activeOpacity={0.7}>
                 <Ionicons
                   name={isFavorite ? "heart" : "heart-outline"}
                   size={26}
                   color={isFavorite ? COLORS.primary : COLORS.textMuted}
                 />
               </TouchableOpacity>
-
               {showBurst && <HeartBurst />}
             </View>
           </View>
 
-          {/* Author Avatar */}
-          <View style={styles.authorRow}>
-            <Image
-              source={{
-                uri: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
-              }}
-              style={styles.authorAvatar}
-              contentFit="fill"
-            />
-            <Text style={styles.authorName}>{book.author}</Text>
+          {/* Authors as chips */}
+          <View style={styles.chipsRow}>
+            {book.authorsList?.map((a: any, idx: number) => {
+              const authorImageUrl =
+                a.image_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop";
+              return (
+                <View key={idx} style={styles.authorChip}>
+                  <Image
+                    source={{ uri: authorImageUrl }}
+                    style={styles.authorChipAvatar}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                  />
+                  <Text style={styles.authorChipText}>{a.name}</Text>
+                </View>
+              );
+            })}
           </View>
 
-          <View style={styles.bookMetaCard}>
-            <View style={styles.conditionSection}>
-              <Text style={styles.priceLabel}>Condition</Text>
-              <Text style={styles.conditionValue}>{book.condition || "Used - Good"}</Text>
+          {/* Highlights section (Condition, language, distance as pill chips) */}
+          <View style={styles.highlightsContainer}>
+            <View style={[styles.highlightChip, { backgroundColor: getConditionColor(book.condition) + "12" }]}>
+              <Text style={[styles.highlightChipText, { color: getConditionColor(book.condition) }]}>
+                {book.condition}
+              </Text>
             </View>
-            <View style={styles.priceSection}>
-              <Text style={styles.priceLabel}>Price</Text>
-              <Text style={styles.priceValue}>₹{book.price}</Text>
-            </View>
+            {book.language ? (
+              <View style={styles.highlightChip}>
+                <Text style={styles.highlightChipText}>{book.language.toUpperCase()}</Text>
+              </View>
+            ) : null}
+            {book.distance ? (
+              <View style={styles.highlightChip}>
+                <Text style={styles.highlightChipText}>{book.distance}</Text>
+              </View>
+            ) : null}
           </View>
+
+          {/* Price Box */}
+          <View style={styles.bookMetaCard}>
+            <Text style={styles.priceLabel}>Price</Text>
+            <Text style={styles.priceValue}>₹{book.price}</Text>
+          </View>
+
+          {/* Seller Notes Section */}
+          {book.conditionNote ? (
+            <View style={styles.notesSection}>
+              <Text style={styles.sectionTitle}>Seller's Notes</Text>
+              <View style={styles.notesCard}>
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={18}
+                  color={COLORS.primary}
+                  style={{ marginTop: 2 }}
+                />
+                <Text style={styles.notesText}>{book.conditionNote}</Text>
+              </View>
+            </View>
+          ) : null}
 
           {/* Listing & Seller Details Card */}
           <View style={styles.sellerDetailsCard}>
@@ -341,102 +517,156 @@ const BookDetailsScreen = () => {
                 <View style={styles.sellerDetailTextCol}>
                   <Text style={styles.sellerDetailLabel}>Seller</Text>
                   <Text style={styles.sellerDetailVal} numberOfLines={1}>
-                    {book.sellerName || "Amit Roy"}
+                    {book.sellerName || "Seller User"}
                   </Text>
                 </View>
               </View>
 
-              <View style={styles.sellerDetailCol}>
-                <Ionicons name="location-outline" size={20} color={COLORS.primary} />
-                <View style={styles.sellerDetailTextCol}>
-                  <Text style={styles.sellerDetailLabel}>Distance</Text>
-                  <Text style={styles.sellerDetailVal} numberOfLines={1}>
-                    {book.distance
-                      ? book.distance.includes("away")
-                        ? book.distance
-                        : `${book.distance} away`
-                      : "1.2 km away"}
-                  </Text>
+              {book.distance ? (
+                <View style={styles.sellerDetailCol}>
+                  <Ionicons name="location-outline" size={20} color={COLORS.primary} />
+                  <View style={styles.sellerDetailTextCol}>
+                    <Text style={styles.sellerDetailLabel}>Distance</Text>
+                    <Text style={styles.sellerDetailVal} numberOfLines={1}>
+                      {book.distance}
+                    </Text>
+                  </View>
                 </View>
-              </View>
+              ) : null}
 
-              <View style={styles.sellerDetailCol}>
-                <Ionicons name="alarm-outline" size={20} color={COLORS.red} />
-                <View style={styles.sellerDetailTextCol}>
-                  <Text style={styles.sellerDetailLabel}>Expires In</Text>
-                  <Text style={[styles.sellerDetailVal, { color: COLORS.red }]} numberOfLines={1}>
-                    {book.timeLeft || "15h left"}
-                  </Text>
+              {book.listedDate ? (
+                <View style={styles.sellerDetailCol}>
+                  <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
+                  <View style={styles.sellerDetailTextCol}>
+                    <Text style={styles.sellerDetailLabel}>Listed On</Text>
+                    <Text style={styles.sellerDetailVal} numberOfLines={1}>
+                      {book.listedDate}
+                    </Text>
+                  </View>
                 </View>
+              ) : null}
+            </View>
+          </View>
+
+          {/* Description Section */}
+          {book.description ? (
+            <View style={styles.specsSection}>
+              <Text style={styles.sectionTitle}>About the Book</Text>
+              <Text style={styles.descriptionText}>{book.description}</Text>
+            </View>
+          ) : null}
+
+          {/* Specifications Grid */}
+          <View style={styles.specsSection}>
+            <Text style={styles.sectionTitle}>Book Specifications</Text>
+            <View style={styles.specsCard}>
+              {book.publisher ? (
+                <View style={styles.specRow}>
+                  <Text style={styles.specLabel}>Publisher</Text>
+                  <Text style={styles.specValue}>{book.publisher}</Text>
+                </View>
+              ) : null}
+              {book.publishedDate ? (
+                <View style={[styles.specRow, styles.specRowBorder]}>
+                  <Text style={styles.specLabel}>Published Date</Text>
+                  <Text style={styles.specValue}>{book.publishedDate}</Text>
+                </View>
+              ) : null}
+              {book.language ? (
+                <View style={[styles.specRow, styles.specRowBorder]}>
+                  <Text style={styles.specLabel}>Language</Text>
+                  <Text style={styles.specValue}>{book.language}</Text>
+                </View>
+              ) : null}
+              {book.isbn13 ? (
+                <View style={[styles.specRow, styles.specRowBorder]}>
+                  <Text style={styles.specLabel}>ISBN-13</Text>
+                  <Text style={styles.specValue}>{book.isbn13}</Text>
+                </View>
+              ) : null}
+              {book.isbn10 ? (
+                <View style={[styles.specRow, styles.specRowBorder]}>
+                  <Text style={styles.specLabel}>ISBN-10</Text>
+                  <Text style={styles.specValue}>{book.isbn10}</Text>
+                </View>
+              ) : null}
+            </View>
+          </View>
+
+          {/* Genres as chips */}
+          {book.genresList && book.genresList.length > 0 ? (
+            <View style={styles.genreSection}>
+              <Text style={styles.sectionTitle}>Genre</Text>
+              <View style={styles.chipsContainer}>
+                {book.genresList.map((g: string, idx: number) => (
+                  <View key={idx} style={styles.genreChip}>
+                    <Text style={styles.genreText}>{g}</Text>
+                  </View>
+                ))}
               </View>
             </View>
-          </View>
+          ) : null}
 
-          {/* Conditional Section */}
-          <View style={styles.reasonsSection}>
-            <Text style={styles.reasonsHeader}>{isAcademic ? "Why buy this:" : "Why read this:"}</Text>
-            <View style={styles.reasonsList}>
-              {[1, 2, 3, 4].map((num) => (
-                <Text key={num} style={styles.reasonItem}>
-                  {num}. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Viverra dignissim ac, Nibh et sed ac,
-                  eget malesuada.
-                </Text>
-              ))}
+          {/* Tags as chips */}
+          {book.tagsList && book.tagsList.length > 0 ? (
+            <View style={styles.genreSection}>
+              <Text style={styles.sectionTitle}>Tags</Text>
+              <View style={styles.chipsContainer}>
+                {book.tagsList.map((tag: string, idx: number) => (
+                  <View key={idx} style={styles.tagChip}>
+                    <Text style={styles.tagText}>#{tag}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
-          </View>
-
-          {/* Genre Section */}
-          <View style={styles.genreSection}>
-            <Text style={styles.sectionTitle}>Genre</Text>
-            <View style={styles.genreChip}>
-              <Text style={styles.genreText}>{genreName}</Text>
-            </View>
-          </View>
+          ) : null}
         </View>
+
+        {/* Review & Ratings Section */}
         <View style={styles.reviewSection}>
           <Text style={styles.reviewHeaderTitle}>Ratings and reviews</Text>
 
-          {/* Ratings Overview */}
-          <View style={styles.ratingsOverview}>
-            <View style={styles.averageRatingContainer}>
-              <Text style={styles.averageRatingText}>{localRatings?.average || 0}</Text>
-              <StarRating
-                rating={localRatings?.average || 0}
-                onChange={() => {}} // Read-only
-                maxStars={5}
-                starSize={20}
-                color={COLORS.yellow}
-                enableSwiping={false}
-                animationConfig={{ scale: 1 }}
-              />
-              <Text style={styles.totalReviewsText}>{localRatings?.totalReviews || 0} reviews</Text>
-            </View>
+          {/* Ratings Overview - Only display if reviews count > 0 */}
+          {localRatings ? (
+            <View style={styles.ratingsOverview}>
+              <View style={styles.averageRatingContainer}>
+                <Text style={styles.averageRatingText}>{localRatings.average}</Text>
+                <StarRating
+                  rating={localRatings.average}
+                  onChange={() => {}}
+                  maxStars={5}
+                  starSize={18}
+                  color={COLORS.yellow}
+                  enableSwiping={false}
+                  animationConfig={{ scale: 1 }}
+                />
+                <Text style={styles.totalReviewsText}>{localRatings.totalReviews} reviews</Text>
+              </View>
 
-            <View style={styles.ratingBarsContainer}>
-              {[5, 4, 3, 2, 1].map((star) => {
-                const count = localRatings
-                  ? (localRatings as any)[
+              <View style={styles.ratingBarsContainer}>
+                {[5, 4, 3, 2, 1].map((star) => {
+                  const count =
+                    (localRatings as any)[
                       `${star === 5 ? "five" : star === 4 ? "four" : star === 3 ? "three" : star === 2 ? "two" : "one"}Star`
-                    ]
-                  : 0;
-                const percentage =
-                  localRatings && localRatings.totalReviews > 0 ? (count / localRatings.totalReviews) * 100 : 0;
-                return (
-                  <View key={star} style={styles.ratingBarRow}>
-                    <Text style={styles.starLabel}>{star}</Text>
-                    <View style={styles.barBackground}>
-                      <View style={[styles.barFill, { width: `${percentage}%` }]} />
+                    ] || 0;
+                  const percentage = (count / localRatings.totalReviews) * 100;
+                  return (
+                    <View key={star} style={styles.ratingBarRow}>
+                      <Text style={styles.starLabel}>{star}</Text>
+                      <View style={styles.barBackground}>
+                        <View style={[styles.barFill, { width: `${percentage}%` }]} />
+                      </View>
                     </View>
-                  </View>
-                );
-              })}
+                  );
+                })}
+              </View>
             </View>
-          </View>
+          ) : null}
 
           {/* Dynamic Reviews List */}
           <View style={styles.reviewsList}>
-            {localReviews && localReviews.length > 0 ? (
-              localReviews.map((review) => (
+            {reviewsList.length > 0 ? (
+              reviewsList.map((review) => (
                 <View key={review.id} style={styles.reviewCard}>
                   <View style={styles.reviewHeaderRow}>
                     <Text style={styles.reviewerName}>{review.reviewerName}</Text>
@@ -456,7 +686,8 @@ const BookDetailsScreen = () => {
               ))
             ) : (
               <View style={styles.emptyReviewsContainer}>
-                <Text style={styles.emptyReviewsText}>No reviews yet. Be the first to review!</Text>
+                <Ionicons name="chatbubbles-outline" size={32} color={COLORS.textMuted} style={{ marginBottom: 6 }} />
+                <Text style={styles.emptyReviewsText}>No reviews yet. Be the first to share your thoughts!</Text>
               </View>
             )}
           </View>
@@ -496,21 +727,16 @@ const BookDetailsScreen = () => {
         </View>
       </ScrollView>
 
-      {/* Bottom Sticky Action Bar */}
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : SPACING.md }]}>
-        <Button
-          title="Continue shopping"
-          onPress={() => navigation.goBack()}
-          style={styles.primaryButton}
-          textStyle={styles.primaryButtonText}
-        />
+      {/* Bottom Sticky Action Bar (Optimized Pill Conversion flow) */}
+      <View style={[styles.bottomBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : SPACING.sm }]}>
+        <TouchableOpacity style={styles.backCtaButton} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+          <Ionicons name="arrow-back-outline" size={20} color={COLORS.text} />
+        </TouchableOpacity>
 
-        <Button
-          title="Contact Seller"
-          onPress={handleContactSeller}
-          style={styles.secondaryButton}
-          textStyle={styles.secondaryButtonText}
-        />
+        <TouchableOpacity style={styles.contactCtaButton} onPress={handleContactSeller} activeOpacity={0.8}>
+          <Ionicons name="logo-whatsapp" size={20} color={COLORS.white} style={{ marginRight: 6 }} />
+          <Text style={styles.contactCtaText}>Contact Seller</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -529,11 +755,10 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
   scrollContent: {
-    paddingBottom: 100, // Space for bottom bar
+    paddingBottom: rem(5.5),
   },
-  backButton: {
+  floatingBackButton: {
     position: "absolute",
-    top: 0,
     left: SPACING.lg,
     zIndex: 10,
     width: 40,
@@ -546,150 +771,273 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 4,
   },
-  imageContainer: {
-    paddingHorizontal: SPACING.xl,
-    alignItems: "center",
-    marginBottom: SPACING.lg,
+  // Zero-bezel top image carousel (takes up 30% of screen length)
+  carouselContainer: {
+    width: width,
+    height: height * 0.4,
+    backgroundColor: COLORS.grayLight,
+    position: "relative",
+  },
+  carouselImageWrapper: {
+    width: width,
+    height: height * 0.4,
   },
   bookImage: {
     width: "100%",
-    height: height * 0.45,
-    borderRadius: 24,
-    backgroundColor: COLORS.grayLight,
+    height: "100%",
+  },
+  // Progress indicators layout matching home screen's pagination dots
+  indicatorContainer: {
+    flexDirection: "row",
+    position: "absolute",
+    bottom: 12,
+    alignSelf: "center",
+    gap: rem(0.3),
+  },
+  indicatorTrack: {
+    width: rem(0.4),
+    height: rem(0.1875),
+    borderRadius: rem(0.09375),
+    overflow: "hidden",
+    backgroundColor: "rgba(255, 255, 255, 0.4)",
+  },
+  indicatorFill: {
+    height: "100%",
+    borderRadius: rem(0.09375),
+    backgroundColor: COLORS.primary,
   },
   contentContainer: {
     paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.lg,
   },
   titleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.xs,
   },
   title: {
     flex: 1,
-    fontSize: rem(1.5),
+    fontSize: rem(1.25),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
     marginRight: SPACING.md,
-    lineHeight: 32,
+    lineHeight: 26,
   },
-  authorRow: {
-    flexDirection: "row",
+  favContainer: {
+    position: "relative",
+    width: 30,
+    height: 30,
+    justifyContent: "center",
     alignItems: "center",
-    gap: SPACING.md,
-    marginBottom: SPACING.xl,
+    marginTop: 2,
   },
-  authorName: {
-    fontSize: rem(0.875),
-    fontFamily: FONTS.manrope.regular,
-    color: COLORS.text,
-  },
-  authorAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.grayLight,
-  },
-  reasonsSection: {
-    marginBottom: SPACING.xl,
-  },
-  reasonsHeader: {
-    fontSize: rem(1),
-    fontFamily: FONTS.montserrat.bold,
-    color: COLORS.black,
-    textDecorationLine: "underline",
+  chipsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
     marginBottom: SPACING.md,
   },
-  reasonsList: {
-    gap: SPACING.sm,
+  authorChip: {
+    backgroundColor: COLORS.secondary,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingLeft: 4,
+    paddingRight: 10,
+    paddingVertical: 4,
+    borderRadius: 14,
   },
-  reasonItem: {
-    fontSize: rem(0.875),
-    fontFamily: FONTS.manrope.medium,
-    color: COLORS.textMuted, // lighter gray matching the design's textMuted
-    lineHeight: 22,
-  },
-  genreSection: {
-    marginBottom: SPACING.xl,
-  },
-  sectionTitle: {
-    fontSize: rem(1.125),
-    fontFamily: FONTS.montserrat.bold,
-    color: COLORS.black,
-    marginBottom: SPACING.sm,
-  },
-  genreChip: {
-    alignSelf: "flex-start",
+  authorChipAvatar: {
+    width: rem(1.2),
+    height: rem(1.2),
+    borderRadius: rem(0.6),
+    marginRight: 6,
     backgroundColor: COLORS.grayLight,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.grayHeavvy,
   },
-  genreText: {
-    fontSize: rem(0.8125),
-    fontFamily: FONTS.manrope.bold,
+  authorChipText: {
+    fontSize: rem(0.75),
+    fontFamily: FONTS.manrope.medium,
     color: COLORS.primary,
+  },
+  highlightsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginBottom: SPACING.md,
+  },
+  highlightChip: {
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.06)",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  highlightChipText: {
+    fontSize: rem(0.75),
+    fontFamily: FONTS.manrope.bold,
+    color: COLORS.text,
   },
   bookMetaCard: {
     backgroundColor: COLORS.white,
-    marginTop: -SPACING.lg,
-    borderRadius: rem(1),
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
+    borderRadius: 16,
+    padding: SPACING.md,
     marginBottom: SPACING.md,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.03)",
   },
-
-  priceSection: {
-    // gap: SPACING.sm,
-  },
-
   priceLabel: {
-    fontSize: rem(0.75),
+    fontSize: rem(0.8125),
     color: COLORS.textMuted,
     fontFamily: FONTS.manrope.medium,
   },
-
   priceValue: {
-    fontSize: rem(1.0625),
+    fontSize: rem(1.25),
     color: COLORS.primary,
     fontFamily: FONTS.montserrat.bold,
   },
-
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.grayLight,
-    marginVertical: SPACING.sm,
+  notesSection: {
+    marginBottom: SPACING.md,
   },
-
-  conditionSection: {
-    gap: 4,
+  notesCard: {
+    flexDirection: "row",
+    gap: 8,
+    backgroundColor: COLORS.white,
+    borderRadius: 14,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.03)",
   },
-
-  conditionValue: {
-    fontSize: rem(0.9375),
-    color: COLORS.black,
-    fontFamily: FONTS.montserrat.semibold,
-  },
-
-  conditionNote: {
+  notesText: {
+    flex: 1,
     fontSize: rem(0.8125),
-    lineHeight: 20,
-    color: COLORS.textMuted,
     fontFamily: FONTS.manrope.medium,
+    color: COLORS.text,
+    lineHeight: 20,
   },
+  sellerDetailsCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.03)",
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
+  },
+  sellerCardTitle: {
+    fontSize: rem(0.8125),
+    fontFamily: FONTS.montserrat.bold,
+    color: COLORS.black,
+    marginBottom: 12,
+  },
+  sellerDetailsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 8,
+  },
+  sellerDetailCol: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    gap: 6,
+  },
+  sellerDetailTextCol: {
+    flex: 1,
+  },
+  sellerDetailLabel: {
+    fontSize: rem(0.625),
+    fontFamily: FONTS.manrope.medium,
+    color: COLORS.textMuted,
+  },
+  sellerDetailVal: {
+    fontSize: rem(0.75),
+    fontFamily: FONTS.manrope.bold,
+    color: COLORS.text,
+    marginTop: 1,
+  },
+  specsSection: {
+    marginBottom: SPACING.md,
+  },
+  sectionTitle: {
+    fontSize: rem(0.875),
+    fontFamily: FONTS.montserrat.bold,
+    color: COLORS.black,
+    marginBottom: 8,
+  },
+  descriptionText: {
+    fontSize: rem(0.8125),
+    fontFamily: FONTS.manrope.medium,
+    color: COLORS.text,
+    lineHeight: 22,
+  },
+  specsCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.03)",
+    paddingHorizontal: SPACING.md,
+  },
+  specRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+  },
+  specRowBorder: {
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.03)",
+  },
+  specLabel: {
+    fontSize: rem(0.8125),
+    fontFamily: FONTS.manrope.medium,
+    color: COLORS.textMuted,
+  },
+  specValue: {
+    fontSize: rem(0.8125),
+    fontFamily: FONTS.manrope.bold,
+    color: COLORS.text,
+    textAlign: "right",
+  },
+  genreSection: {
+    marginBottom: SPACING.md,
+  },
+  chipsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  genreChip: {
+    backgroundColor: COLORS.secondary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.primary + "30",
+  },
+  genreText: {
+    fontSize: rem(0.75),
+    fontFamily: FONTS.manrope.bold,
+    color: COLORS.primary,
+  },
+  tagChip: {
+    backgroundColor: COLORS.grayLight,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.grayHeavvy,
+  },
+  tagText: {
+    fontSize: rem(0.75),
+    fontFamily: FONTS.manrope.medium,
+    color: COLORS.text,
+  },
+  // Compact pill-shaped CTAs
   bottomBar: {
     position: "absolute",
     bottom: 0,
@@ -697,55 +1045,60 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: COLORS.white,
     flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.md,
+    paddingTop: SPACING.sm,
     gap: SPACING.md,
     borderTopWidth: 1,
-    borderTopColor: COLORS.grayLight,
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 10,
+    borderTopColor: "rgba(0,0,0,0.03)",
+    height: rem(4.5),
   },
-  primaryButton: {
-    flex: 1.5,
-    backgroundColor: COLORS.primary,
-    borderRadius: 30,
-    paddingVertical: 14,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  primaryButtonText: {
-    fontSize: rem(1),
-    fontFamily: FONTS.montserrat.semibold,
-    color: COLORS.white,
-  },
-  secondaryButton: {
-    flex: 1,
-    backgroundColor: COLORS.grayLight,
-    borderRadius: 30,
-    paddingVertical: 14,
-    justifyContent: "center",
-    alignItems: "center",
+  backCtaButton: {
+    width: rem(2.8),
+    height: rem(2.8),
+    borderRadius: rem(1.4),
     borderWidth: 1,
     borderColor: COLORS.grayHeavvy,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: COLORS.white,
+  },
+  contactCtaButton: {
+    flex: 1,
+    height: rem(2.8),
+    borderRadius: rem(1.4),
+    backgroundColor: COLORS.primary,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  contactCtaText: {
+    fontSize: rem(0.9375),
+    fontFamily: FONTS.montserrat.bold,
+    color: COLORS.white,
+  },
+  reviewSection: {
+    marginTop: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
   },
   reviewHeaderTitle: {
-    fontSize: rem(1.25),
+    fontSize: rem(0.9375),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
     marginBottom: SPACING.md,
   },
-  reviewSection: {
-    marginTop: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-  },
   ratingsOverview: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: SPACING.xl,
-    backgroundColor: COLORS.grayLight,
+    marginBottom: SPACING.lg,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.03)",
     padding: SPACING.md,
     borderRadius: 16,
   },
@@ -783,7 +1136,7 @@ const styles = StyleSheet.create({
   barBackground: {
     flex: 1,
     height: 6,
-    backgroundColor: COLORS.grayHeavvy,
+    backgroundColor: COLORS.grayLight,
     borderRadius: 3,
     overflow: "hidden",
   },
@@ -800,7 +1153,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.grayLight,
+    borderColor: "rgba(0,0,0,0.03)",
   },
   reviewHeaderRow: {
     flexDirection: "row",
@@ -809,7 +1162,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   reviewerName: {
-    fontSize: rem(0.875),
+    fontSize: rem(0.8125),
     fontFamily: FONTS.montserrat.semibold,
     color: COLORS.black,
   },
@@ -819,41 +1172,45 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
   },
   reviewComment: {
-    fontSize: rem(0.875),
+    fontSize: rem(0.8125),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.text,
     marginTop: 8,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   emptyReviewsContainer: {
     padding: SPACING.xl,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.grayLight,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.03)",
     borderRadius: 12,
   },
   emptyReviewsText: {
-    fontSize: rem(0.875),
+    fontSize: rem(0.8125),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.textMuted,
   },
   addReviewContainer: {
-    marginTop: SPACING.xl,
-    paddingTop: SPACING.xl,
+    marginTop: SPACING.lg,
+    paddingTop: SPACING.lg,
     borderTopWidth: 1,
-    borderTopColor: COLORS.grayLight,
+    borderTopColor: "rgba(0,0,0,0.03)",
   },
   addReviewTitle: {
-    fontSize: rem(1.125),
+    fontSize: rem(0.9375),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
     marginBottom: SPACING.sm,
   },
   reviewInput: {
-    backgroundColor: COLORS.grayLight,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.08)",
     borderRadius: 12,
     padding: SPACING.md,
-    fontSize: rem(0.875),
+    fontSize: rem(0.8125),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.black,
     minHeight: 100,
@@ -871,58 +1228,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayHeavvy,
   },
   submitReviewText: {
-    fontSize: rem(1),
+    fontSize: rem(0.875),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.white,
-  },
-  secondaryButtonText: {
-    fontSize: rem(1),
-    fontFamily: FONTS.montserrat.semibold,
-    color: COLORS.primary,
-  },
-  sellerDetailsCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: rem(1),
-    borderWidth: 1,
-    borderColor: COLORS.grayLight || "#F9FAFB",
-    padding: SPACING.md,
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-    marginBottom: rem(1),
-  },
-  sellerCardTitle: {
-    fontSize: rem(0.8125),
-    fontFamily: FONTS.montserrat.bold,
-    color: COLORS.black,
-    marginBottom: 10,
-  },
-  sellerDetailsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 8,
-  },
-  sellerDetailCol: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-    gap: 6,
-  },
-  sellerDetailTextCol: {
-    flex: 1,
-  },
-  sellerDetailLabel: {
-    fontSize: rem(0.53125),
-    fontFamily: FONTS.manrope.medium,
-    color: COLORS.textMuted,
-  },
-  sellerDetailVal: {
-    fontSize: rem(0.6875),
-    fontFamily: FONTS.manrope.bold,
-    color: COLORS.text,
-    marginTop: 1,
   },
 });

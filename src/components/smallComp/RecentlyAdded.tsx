@@ -26,12 +26,12 @@ const FeaturedCard = memo(
           <Image
             source={{ uri: item.coverUri }}
             style={styles.coverImg}
-            contentFit="fill"
+            contentFit="cover"
             recyclingKey={item.coverUri}
             cachePolicy="memory-disk"
           />
           <View style={styles.featuredBadge}>
-            <Text style={styles.featuredBadgeText}>FEATURED NEW</Text>
+            <Text style={styles.featuredBadgeText}>NEW LISTING</Text>
           </View>
         </View>
 
@@ -66,7 +66,7 @@ const SideRowCard = memo(
         <Image
           source={{ uri: item.coverUri }}
           style={styles.sideRowCover}
-          contentFit="fill"
+          contentFit="cover"
           recyclingKey={item.coverUri}
           cachePolicy="memory-disk"
         />
@@ -90,7 +90,7 @@ const RecentlyAdded: React.FC<RecentlyAddedProps> = memo(
     if (books.length === 0) return null;
 
     const featuredBook = books[0];
-    const sideBooks = books.slice(1, 3); // next 2 books for side column
+    const sideBooks = books.slice(1, 3);
 
     return (
       <View style={styles.section}>
@@ -98,7 +98,7 @@ const RecentlyAdded: React.FC<RecentlyAddedProps> = memo(
           <Text style={styles.headerTitle}>{title}</Text>
           {onSeeAllPress && (
             <Pressable onPress={onSeeAllPress}>
-              <Text style={styles.headerLink}>see all</Text>
+              <Text style={styles.headerLink}>SEE ALL</Text>
             </Pressable>
           )}
         </View>
@@ -127,29 +127,30 @@ export default RecentlyAdded;
 
 const styles = StyleSheet.create({
   section: {
-    marginTop: SPACING.md,
-    paddingHorizontal: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    marginTop: rem(1.25),
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: SPACING.sm,
+    marginBottom: rem(0.5),
   },
   headerTitle: {
-    fontSize: rem(1),
+    fontSize: rem(0.9375),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.text,
   },
   headerLink: {
     fontSize: rem(0.75),
-    fontFamily: FONTS.montserrat.semibold,
+    fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
+    letterSpacing: 0.5,
   },
   splitBlock: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 10,
+    gap: rem(0.5),
   },
   leftCol: {
     flex: 1,
@@ -157,24 +158,24 @@ const styles = StyleSheet.create({
   rightCol: {
     flex: 1,
     justifyContent: "space-between",
-    gap: 8,
+    gap: rem(0.5),
   },
   featuredCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 10,
+    borderRadius: rem(0.75),
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.05)",
+    borderColor: "rgba(0, 128, 128, 0.05)",
     overflow: "hidden",
-    height: 206, // matches total height of right column stacked cards
+    height: rem(12.75),
     shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
     elevation: 1,
   },
   featuredCoverWrap: {
     width: "100%",
-    height: 130,
+    height: rem(8.25),
     position: "relative",
   },
   coverImg: {
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
     left: 6,
     backgroundColor: COLORS.primary,
     paddingHorizontal: 6,
-    paddingVertical: 1.5,
+    paddingVertical: 2,
     borderRadius: 4,
   },
   featuredBadgeText: {
@@ -196,11 +197,10 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   featuredInfo: {
-    padding: 6,
-    gap: 1,
+    padding: rem(0.375),
   },
   titleText: {
-    fontSize: rem(0.65625),
+    fontSize: rem(0.6875),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.text,
   },
@@ -208,22 +208,23 @@ const styles = StyleSheet.create({
     fontSize: rem(0.5625),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.textMuted,
+    marginTop: 2,
   },
   footerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 3,
+    marginTop: 4,
   },
   priceText: {
-    fontSize: rem(0.71875),
+    fontSize: rem(0.75),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
   },
   conditionBadge: {
     backgroundColor: COLORS.secondary,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
     borderRadius: 3,
   },
   conditionText: {
@@ -235,41 +236,41 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: COLORS.white,
-    borderRadius: 10,
+    borderRadius: rem(0.75),
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.05)",
-    padding: 6,
-    height: 99, // 2 cards = 198 + 8 gap = 206 total height
+    borderColor: "rgba(0, 128, 128, 0.05)",
+    padding: rem(0.375),
+    height: rem(6.125),
     shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.02,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
     elevation: 1,
   },
   sideRowCover: {
-    width: 48,
-    height: 66,
+    width: rem(3.0),
+    height: rem(4.25),
     borderRadius: 6,
     backgroundColor: COLORS.background,
   },
   sideRowInfo: {
     flex: 1,
-    marginLeft: 8,
+    marginLeft: rem(0.5),
     justifyContent: "center",
-    gap: 1,
   },
   sideTitle: {
-    fontSize: rem(0.65625),
+    fontSize: rem(0.6875),
     fontFamily: FONTS.manrope.bold,
     color: COLORS.text,
   },
   sideAuthor: {
-    fontSize: rem(0.53125),
+    fontSize: rem(0.5625),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.textMuted,
+    marginTop: 2,
   },
   sidePrice: {
-    fontSize: rem(0.6875),
+    fontSize: rem(0.75),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
     marginTop: 4,

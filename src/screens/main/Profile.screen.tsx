@@ -5,7 +5,7 @@ import { SPACING } from "@/constants/spacings";
 import { rem, rf } from "@/utils/responsive";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { CommonActions, useNavigation } from "@react-navigation/native";
+import { useNavigation, router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -132,12 +132,10 @@ const ProfileScreen = () => {
       await SecureStore.deleteItemAsync("refreshToken");
       await AsyncStorage.removeItem("@bookmart:is_logged_in");
 
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: "Auth" }],
-        })
-      );
+      (navigation as any).reset({
+        index: 0,
+        routes: [{ name: "Auth" }],
+      });
     }
   };
 

@@ -3,7 +3,7 @@ import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View, FlatList, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,7 +14,11 @@ const NotificationsScreen = () => {
   const navigation = useNavigation<any>();
   const queryClient = useQueryClient();
 
-  const { data: notificationsData, isLoading, refetch } = useQuery({
+  const {
+    data: notificationsData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
       const response = await api.get("/api/v1/marketplace/notifications/");

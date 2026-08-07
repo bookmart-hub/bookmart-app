@@ -1,10 +1,10 @@
-import CategoryMasonryLayout from "@/components/ui/CategoryMasonryLayout";
-import { CATEGORY_DATA } from "@/data/categoryMockData";
+import GenreMasonryLayout from "@/components/ui/GenreMasonryLayout";
+import { GENRE_DATA } from "@/data/genreMockData";
 import React from "react";
 
 const SelfHelpScreen = () => {
-  const data = CATEGORY_DATA["SelfHelp"];
-  return <CategoryMasonryLayout data={data.items} />;
+  const data = GENRE_DATA["SelfHelp"];
+  return <GenreMasonryLayout data={data.items} />;
 };
 
 export default SelfHelpScreen;

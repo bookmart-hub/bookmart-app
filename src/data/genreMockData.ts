@@ -32,18 +32,18 @@ const createMockBook = (
   stock: stock,
 });
 
-export const CATEGORY_DATA: Record<string, MasonryCategoryData> = {
-  ScinceFinction: {
+export const GENRE_DATA: Record<string, MasonryCategoryData> = {
+  ScienceFiction: {
     items: [
       {
         type: "header",
-        id: "h_ScinceFinction",
+        id: "h_ScienceFiction",
         title: "Science Fiction",
         subtitle: "The Art of the Possible",
       },
       {
         type: "book",
-        id: "bl_0_ScinceFinction",
+        id: "bl_0_ScienceFiction",
         book: createMockBook(
           "1",
           "Project Hail Mary",
@@ -55,7 +55,7 @@ export const CATEGORY_DATA: Record<string, MasonryCategoryData> = {
       },
       {
         type: "book",
-        id: "br_0_ScinceFinction",
+        id: "br_0_ScienceFiction",
         book: createMockBook(
           "4",
           "The War of the Worlds",
@@ -68,12 +68,12 @@ export const CATEGORY_DATA: Record<string, MasonryCategoryData> = {
       },
       {
         type: "ad",
-        id: "ad_0_ScinceFinction",
+        id: "ad_0_ScienceFiction",
         imageUrl: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=200&fit=crop",
       },
       {
         type: "book",
-        id: "bl_1_ScinceFinction",
+        id: "bl_1_ScienceFiction",
         book: createMockBook(
           "2",
           "1984",
@@ -85,7 +85,7 @@ export const CATEGORY_DATA: Record<string, MasonryCategoryData> = {
       },
       {
         type: "book",
-        id: "br_1_ScinceFinction",
+        id: "br_1_ScienceFiction",
         book: createMockBook(
           "5",
           "The Martian Chronicles",
@@ -98,7 +98,7 @@ export const CATEGORY_DATA: Record<string, MasonryCategoryData> = {
       },
       {
         type: "book",
-        id: "bl_2_ScinceFinction",
+        id: "bl_2_ScienceFiction",
         book: createMockBook(
           "3",
           "Dune",
@@ -110,7 +110,7 @@ export const CATEGORY_DATA: Record<string, MasonryCategoryData> = {
       },
       {
         type: "book",
-        id: "br_2_ScinceFinction",
+        id: "br_2_ScienceFiction",
         book: createMockBook(
           "6",
           "The Time Machine",
@@ -902,14 +902,14 @@ export const CATEGORY_DATA: Record<string, MasonryCategoryData> = {
   },
 };
 
-export interface CategoryItem {
+export interface GenreItem {
   id: string;
   label: string;
   imageUri: string;
   screenName: string;
 }
 
-export const CATEGORIES_LIST: CategoryItem[] = [
+export const GENRES_LIST: GenreItem[] = [
   {
     id: "1",
     label: "Romance",
@@ -926,7 +926,7 @@ export const CATEGORIES_LIST: CategoryItem[] = [
     id: "3",
     label: "Science Fiction",
     imageUri: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200",
-    screenName: "ScinceFinction",
+    screenName: "ScienceFiction",
   },
   {
     id: "4",

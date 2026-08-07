@@ -18,8 +18,6 @@ export interface PromoBannerItem {
   subtitle: string;
   cta: string;
   bookImageUri: string;
-  bgColor: string;
-  bgColorLight: string;
 }
 
 const DEFAULT_BANNERS: PromoBannerItem[] = [
@@ -27,28 +25,22 @@ const DEFAULT_BANNERS: PromoBannerItem[] = [
     id: "1",
     title: "New Exploration on Non-Fiction",
     subtitle: "Discount 50% for first transaction",
-    cta: "Explore now",
-    bookImageUri: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=300&fit=crop",
-    bgColor: "#C5D5C0",
-    bgColorLight: "#DDE8D8",
+    cta: "Explore Now",
+    bookImageUri: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&h=400&fit=crop",
   },
   {
     id: "2",
-    title: "Best Sellers This Week - Fiction & Thrillers",
+    title: "Best Sellers This Week",
     subtitle: "Up to 40% off on top picks",
-    cta: "Browse now",
-    bookImageUri: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=200&h=300&fit=crop",
-    bgColor: "#B8C8D8",
-    bgColorLight: "#D4E0EC",
+    cta: "Browse Now",
+    bookImageUri: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&h=400&fit=crop",
   },
   {
     id: "3",
     title: "Pre-owned Books at Unbeatable Prices",
     subtitle: "Flat ₹99 on selected titles",
-    cta: "Shop now",
-    bookImageUri: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=200&h=300&fit=crop",
-    bgColor: "#D4C5B8",
-    bgColorLight: "#E8DDD4",
+    cta: "Shop Now",
+    bookImageUri: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=600&h=400&fit=crop",
   },
 ];
 
@@ -63,44 +55,37 @@ const PromoCard: React.FC<PromoCardProps> = memo(({ item, onCtaPress }) => {
   }, [item, onCtaPress]);
 
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          backgroundColor: item.bgColor,
-        },
-      ]}
-    >
+    <View style={styles.card}>
+      {/* Full background image (resembles 2nd image banner) */}
+      <Image
+        source={{ uri: item.bookImageUri }}
+        style={styles.backgroundImage}
+        contentFit="cover"
+        cachePolicy="memory-disk"
+        recyclingKey={item.bookImageUri}
+        transition={200}
+      />
+
+      {/* Light gradient overlay from transparent to white bottom */}
       <LinearGradient
-        colors={[item.bgColorLight + "11", item.bgColorLight + "00"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
+        colors={["transparent", "rgba(255, 255, 255, 0.75)", "rgba(255, 255, 255, 0.98)"]}
         style={styles.cardOverlay}
       />
 
+      {/* Bottom overlay text contents */}
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={3}>
-          {item.title}
-        </Text>
-
-        <Text style={styles.cardSubtitle} numberOfLines={2}>
-          {item.subtitle}
-        </Text>
+        <View style={styles.textContainer}>
+          <Text style={styles.cardTitle} numberOfLines={2}>
+            {item.title}
+          </Text>
+          <Text style={styles.cardSubtitle} numberOfLines={1}>
+            {item.subtitle}
+          </Text>
+        </View>
 
         <TouchableOpacity style={styles.ctaButton} activeOpacity={0.8} onPress={handlePress}>
           <Text style={styles.ctaText}>{item.cta}</Text>
         </TouchableOpacity>
-      </View>
-
-      <View style={styles.bookImageContainer}>
-        <Image
-          source={{ uri: item.bookImageUri }}
-          style={styles.bookImage}
-          contentFit="fill"
-          cachePolicy="memory-disk"
-          recyclingKey={item.bookImageUri}
-          transition={0}
-        />
       </View>
     </View>
   );
@@ -155,7 +140,7 @@ const PromoBanner: React.FC<PromoBannerProps> = memo(({ banners = DEFAULT_BANNER
         activeIndexRef.current = nextIndex;
         setActiveDot(nextIndex);
       }
-    }, 3000);
+    }, 4000);
   }, [banners.length]);
 
   useEffect(() => {
@@ -213,26 +198,26 @@ const PromoBanner: React.FC<PromoBannerProps> = memo(({ banners = DEFAULT_BANNER
           }
         }, [])}
         onMomentumScrollEnd={startAutoSlide}
+        style={styles.flatlist}
       />
 
       {banners.length > 1 && <PaginationDots count={banners.length} activeIndex={activeDot} />}
     </View>
   );
 });
+
 const ProgressIndicator = memo(({ active }: { active: boolean }) => {
   const progress = useSharedValue(active ? 0 : 1);
-  const dotWidth = useSharedValue(active ? rem(1.875) : rem(0.625));
+  const dotWidth = useSharedValue(active ? rem(1.5) : rem(0.5));
 
   useEffect(() => {
     cancelAnimation(progress);
     cancelAnimation(dotWidth);
-    dotWidth.value = withTiming(active ? rem(1.875) : rem(0.625), { duration: 300 });
+    dotWidth.value = withTiming(active ? rem(1.5) : rem(0.5), { duration: 300 });
 
     if (active) {
       progress.value = 0;
-      progress.value = withTiming(1, {
-        duration: 3000,
-      });
+      progress.value = withTiming(1, { duration: 4000 });
     } else {
       progress.value = 0;
     }
@@ -267,7 +252,7 @@ export default PromoBanner;
 
 const styles = StyleSheet.create({
   container: {
-    // marginTop: SPACING.md,
+    marginBottom: rem(0.625),
   },
   listContent: {
     paddingHorizontal: CARD_HORIZONTAL_PADDING,
@@ -275,53 +260,64 @@ const styles = StyleSheet.create({
   },
   card: {
     width: CARD_WIDTH,
-    height: rem(9.375),
-    borderRadius: rem(1.125),
-    flexDirection: "row",
+    height: rem(13.5), // Tall vertical portrait aspect ratio (spotlight card style)
+    borderRadius: rem(1.0),
     overflow: "hidden",
     position: "relative",
+    backgroundColor: COLORS.white,
     shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
     elevation: 4,
+  },
+  backgroundImage: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: "100%",
+    height: "100%",
   },
   cardOverlay: {
     position: "absolute",
     left: 0,
-    top: 0,
+    right: 0,
     bottom: 0,
-    width: "60%",
-    borderTopLeftRadius: rem(1.25),
-    borderBottomLeftRadius: rem(1.25),
+    height: "65%",
   },
   cardContent: {
-    flex: 1,
-    paddingVertical: SPACING.lg - 4,
-    paddingLeft: SPACING.lg,
-    paddingRight: SPACING.sm,
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: SPACING.md + 2,
+    flexDirection: "row",
     justifyContent: "space-between",
-    zIndex: 1,
+    alignItems: "flex-end",
+    gap: SPACING.xs,
+  },
+  textContainer: {
+    flex: 1,
   },
   cardTitle: {
     fontSize: rem(0.9375),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.text,
-    lineHeight: rem(1.125),
+    lineHeight: rem(1.2),
   },
   cardSubtitle: {
     fontSize: rem(0.6875),
-    fontFamily: FONTS.manrope.semibold,
+    fontFamily: FONTS.manrope.bold,
     color: COLORS.textMuted,
     marginTop: 4,
   },
   ctaButton: {
-    backgroundColor: COLORS.white,
-    alignSelf: "flex-start",
-    paddingHorizontal: rem(1),
-    paddingVertical: rem(0.5),
+    backgroundColor: COLORS.primary, // Brand teal background for light mode
+    paddingHorizontal: rem(1.0),
+    paddingVertical: rem(0.55),
     borderRadius: rem(1.5),
-    marginTop: rem(0.375),
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -331,44 +327,28 @@ const styles = StyleSheet.create({
   ctaText: {
     fontSize: rem(0.75),
     fontFamily: FONTS.montserrat.bold,
-    color: COLORS.black,
+    color: COLORS.white,
   },
-  bookImageContainer: {
-    width: rem(6.5625),
-    justifyContent: "center",
-    alignItems: "center",
-    paddingRight: SPACING.md,
-    paddingVertical: SPACING.md,
-  },
-  bookImage: {
-    width: rem(5.3125),
-    height: rem(7.1875),
-    borderRadius: 8,
-  },
-  dotsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: SPACING.md,
-    gap: SPACING.sm,
+  flatlist: {
+    paddingBottom: rem(0.25),
   },
   indicatorContainer: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: rem(0.625),
-    marginTop: SPACING.md,
+    gap: rem(0.5),
+    marginTop: rem(0.625),
   },
   indicatorTrack: {
-    width: rem(6.25),
-    height: rem(0.125),
-    borderRadius: rem(0.1875),
+    width: rem(0.5),
+    height: rem(0.1875),
+    borderRadius: rem(0.09375),
     overflow: "hidden",
-    backgroundColor: COLORS.grayHeavvy,
+    backgroundColor: "rgba(0, 128, 128, 0.1)",
   },
   indicatorFill: {
     height: "100%",
-    borderRadius: rem(0.1875),
+    borderRadius: rem(0.09375),
     backgroundColor: COLORS.primary,
   },
 });

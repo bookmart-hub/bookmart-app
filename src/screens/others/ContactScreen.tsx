@@ -1,16 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React, { useCallback, useMemo, useState } from "react";
-import {
-  Alert,
-  FlatList,
-  RefreshControl,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from "react-native";
+import { Alert, FlatList, RefreshControl, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -110,7 +101,11 @@ const ContactsScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: contactsData, isLoading, refetch } = useQuery({
+  const {
+    data: contactsData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["contacts-ledger"],
     queryFn: async () => {
       const response = await api.get("/api/v1/marketplace/contacts/");
