@@ -1,3 +1,4 @@
+import { api } from "@/api/clients";
 import { Button } from "@/components/ui/Button";
 import Header from "@/components/ui/Header";
 import HorizontalBookList from "@/components/ui/HorizontalBookList";
@@ -6,71 +7,24 @@ import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
 import { rem } from "@/utils/responsive";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
+import { useNavigation, useRoute } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
-import { ScrollView, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Divider, Menu } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const ACTIVE_BOOKS = [
-  {
-    id: "1",
-    title: "Atomic Habits",
-    author: "James Clear",
-    price: "350",
-    coverUri: "https://m.media-amazon.com/images/I/91bYsX41DVL.jpg",
-    condition: "Good",
-  },
-  {
-    id: "2",
-    title: "The Kite Runner",
-    author: "Khaled Hosseini",
-    price: "230",
-    coverUri: "https://m.media-amazon.com/images/I/81IzbD2IiIL.jpg",
-    condition: "Good",
-  },
-  {
-    id: "3",
-    title: "1984",
-    author: "George Orwell",
-    price: "200",
-    coverUri: "https://m.media-amazon.com/images/I/71kxa1-0mfL.jpg",
-    condition: "Good",
-  },
-  {
-    id: "4",
-    title: "The Alchemist",
-    author: "Paulo Coelho",
-    price: "280",
-    coverUri: "https://m.media-amazon.com/images/I/71aFt4+OTOL.jpg",
-    condition: "Like New",
-  },
-];
-
-const SOLD_BOOKS = [
-  {
-    id: "s1",
-    title: "Rich Dad Poor Dad",
-    author: "Robert T. Kiyosaki",
-    price: "180",
-    coverUri: "https://m.media-amazon.com/images/I/81bsw6fnUiL.jpg",
-    condition: "Sold 3 days ago", // Using condition field for sold status
-  },
-  {
-    id: "s2",
-    title: "Deep Work",
-    author: "Cal Newport",
-    price: "220",
-    coverUri: "https://m.media-amazon.com/images/I/81qnd0J2hwL.jpg",
-    condition: "Sold 1 week ago",
-  },
-];
-
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/api/clients";
-import { ActivityIndicator } from "react-native";
-import { useRoute } from "expo-router";
 
 const PublicProfileScreen = () => {
   const insets = useSafeAreaInsets();
@@ -189,10 +143,6 @@ const PublicProfileScreen = () => {
           </View>
 
           <View style={styles.infoRow}>
-            <Ionicons name="school-outline" size={14} color={COLORS.primary} style={styles.infoIcon} />
-            <Text style={styles.infoText}>{profileData.college?.name || "B.G.C College"}</Text>
-          </View>
-          <View style={styles.infoRow}>
             <Ionicons name="location-outline" size={14} color={COLORS.primary} style={styles.infoIcon} />
             <Text style={styles.infoText}>{profileData.city_location || "Kolkata, India"}</Text>
           </View>
@@ -273,23 +223,6 @@ const PublicProfileScreen = () => {
 
   const renderInfoCards = () => (
     <View style={styles.infoCardsContainer}>
-      <View style={styles.collegeCard}>
-        <View style={styles.collegeCardHeader}>
-          <Ionicons name="business-outline" size={20} color={COLORS.primary} />
-          <Text style={styles.collegeCardTitle}>From {profileData.college?.name || "College"}</Text>
-        </View>
-        <View style={styles.collegeStatsRow}>
-          <View style={styles.collegeStatItem}>
-            <Text style={styles.collegeStatNumber}>{activeBooks.length}</Text>
-            <Text style={styles.collegeStatLabel}>Books Listed</Text>
-          </View>
-          <View style={styles.collegeStatDivider} />
-          <View style={styles.collegeStatItem}>
-            <Text style={styles.collegeStatNumber}>{soldBooks.length}</Text>
-            <Text style={styles.collegeStatLabel}>Books Sold</Text>
-          </View>
-        </View>
-      </View>
 
       <View style={styles.ratingsCard}>
         <View style={styles.ratingsHeaderRow}>

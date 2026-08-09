@@ -131,13 +131,13 @@ const ContactsScreen = () => {
   const filteredContacts = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) return contacts;
-    return contacts.filter((c) => c.name.toLowerCase().includes(query) || c.bookTitle.toLowerCase().includes(query));
+    return contacts.filter((c: any) => c.name.toLowerCase().includes(query) || c.bookTitle.toLowerCase().includes(query));
   }, [searchQuery, contacts]);
 
   // Split into pinned and recent (only when search query is empty)
   const isSearchActive = searchQuery.trim().length > 0;
-  const pinnedContacts = useMemo(() => filteredContacts.filter((c) => c.isPinned), [filteredContacts]);
-  const recentContacts = useMemo(() => filteredContacts.filter((c) => !c.isPinned), [filteredContacts]);
+  const pinnedContacts = useMemo(() => filteredContacts.filter((c: any) => c.isPinned), [filteredContacts]);
+  const recentContacts = useMemo(() => filteredContacts.filter((c: any) => !c.isPinned), [filteredContacts]);
 
   // Pull-to-refresh implementation
   const handleRefresh = useCallback(() => {
@@ -156,19 +156,19 @@ const ContactsScreen = () => {
   // FlatList structure with section dividers
   const listData = useMemo(() => {
     if (isSearchActive) {
-      return filteredContacts.map((item) => ({ type: "item" as const, data: item }));
+      return filteredContacts.map((item: any) => ({ type: "item" as const, data: item }));
     }
 
     const data: Array<{ type: "header"; title: string } | { type: "item"; data: any }> = [];
 
     if (pinnedContacts.length > 0) {
       data.push({ type: "header", title: "PINNED CHATS" });
-      pinnedContacts.forEach((item) => data.push({ type: "item", data: item }));
+      pinnedContacts.forEach((item: any) => data.push({ type: "item", data: item }));
     }
 
     if (recentContacts.length > 0) {
       data.push({ type: "header", title: "RECENT CHATS" });
-      recentContacts.forEach((item) => data.push({ type: "item", data: item }));
+      recentContacts.forEach((item: any) => data.push({ type: "item", data: item }));
     }
 
     return data;

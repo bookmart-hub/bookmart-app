@@ -219,7 +219,7 @@ const HomeScreen = () => {
 
       {/* ── Header ── */}
       <HomeHeader
-        locationName={userProfile?.college?.name || "Campus Area"}
+        locationName={userProfile?.city_location || "Campus Area"}
         notificationCount={3}
         onNotificationPress={handleNotificationPress}
         onAvatarPress={handleAvatarPress}
@@ -248,16 +248,6 @@ const HomeScreen = () => {
         {/* ── Nearest Books ── */}
         {nearestBooks.length > 0 && (
           <NearestBooks books={nearestBooks} onBookPress={handleBookPress} onSeeAllPress={handleSeeAllPress} />
-        )}
-
-        {/* ── From Your College ── */}
-        {collegeBooks.length > 0 && (
-          <InstituteBooks
-            instituteName={userProfile?.college?.name || "College"}
-            books={collegeBooks}
-            onBookPress={handleInstituteBookPress}
-            onSeeAllPress={handleInstituteSeeAllPress}
-          />
         )}
 
         {/* ── Authors ── */}

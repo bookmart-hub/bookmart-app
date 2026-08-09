@@ -444,7 +444,7 @@ export default function ReportScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <View style={[styles.bottomContainer, { paddingBottom: insets.bottom > 0 ? insets.bottom : SPACING.lg }]}>
+      <View style={[styles.bottomContainer, { bottom: insets.bottom > 0 ? insets.bottom + 8 : rem(1.0) }]}>
         {(activeTab === "Listing" ? listingStep : userStep) === (activeTab === "Listing" ? 3 : 2) ? (
           <Button
             title="Submit Report"
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: SPACING.lg,
-    paddingBottom: 100,
+    paddingBottom: 120,
   },
   warningContainer: {
     flexDirection: "row",
@@ -737,13 +737,18 @@ const styles = StyleSheet.create({
   },
   bottomContainer: {
     position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: COLORS.background,
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.md,
-    borderTopWidth: 1,
-    borderColor: COLORS.grayHeavvy + "40",
+    left: rem(1.0),
+    right: rem(1.0),
+    backgroundColor: COLORS.white,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
+    borderRadius: 24,
+    elevation: 8,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.04)",
   },
 });

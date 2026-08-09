@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   featuredOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0,0,0,0.4)",
   },
   featuredInfoWrap: {

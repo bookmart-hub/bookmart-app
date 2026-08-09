@@ -2,144 +2,101 @@ import Header from "@/components/ui/Header";
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
-import { AppStackParamList } from "@/navigation/AppStackNavigator";
 import { rem } from "@/utils/responsive";
-import { Feather, Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "expo-router";
-
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, router } from "expo-router";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View, TextInput } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/api/clients";
 
-type NavigationProp = any;
-
-const MY_LISTINGS = [
-  {
-    id: "1",
-    title: "Atomic Habits",
-    author: "James Clear",
-    price: 350,
-    status: "Active",
-    coverUri: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400&h=600&fit=crop",
-    views: 152,
-    interested: 22,
-    date: "2024-06-25T10:00:00Z",
-  },
-  {
-    id: "2",
-    title: "The Kite Runner",
-    author: "Khaled Hosseini",
-    price: 230,
-    status: "Active",
-    coverUri: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop",
-    views: 128,
-    interested: 18,
-    date: "2024-06-20T10:00:00Z",
-  },
-  {
-    id: "3",
-    title: "1984",
-    author: "George Orwell",
-    price: 200,
-    status: "Draft",
-    coverUri: "https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop",
-    views: 98,
-    interested: 15,
-    date: "2024-05-15T10:00:00Z",
-  },
-  {
-    id: "4",
-    title: "The Alchemist",
-    author: "Paulo Coelho",
-    price: 280,
-    status: "Draft",
-    coverUri: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop",
-    views: 175,
-    interested: 30,
-    date: "2024-06-27T10:00:00Z",
-  },
-  {
-    id: "5",
-    title: "Sapiens",
-    author: "Yuval Noah Harari",
-    price: 450,
-    status: "Active",
-    coverUri: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop",
-    views: 210,
-    interested: 45,
-    date: "2024-06-10T10:00:00Z",
-  },
-];
-
-const FILTER_CHIPS = ["All", "Active", "Draft"];
-const SORT_OPTIONS = ["Newest", "Price: Low to High", "Price: High to Low", "Most Viewed"];
+const FILTER_CHIPS = ["All", "Active", "Sold"];
+const SORT_OPTIONS = ["Newest", "Price: Low to High", "Price: High to Low", "Most Liked"];
 
 export default function ManageListingsScreen() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NavigationProp>();
+  const navigation = useNavigation<any>();
 
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
   const [activeSort, setActiveSort] = useState("Newest");
   const [showSortOptions, setShowSortOptions] = useState(false);
 
-  useEffect(() => {
-    // Simulate network request
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
+  // Fetch Logged-in User Profile to filter by seller
+  const { data: userProfile } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/core/profile/me/");
+      return response.data;
+    },
+  });
+
+  // Fetch all listings
+  const { data: listingsData, isLoading, refetch } = useQuery({
+    queryKey: ["allListings"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/marketplace/listings/");
+      return response.data;
+    },
+  });
+
+  const myListingsList = useMemo(() => {
+    if (!listingsData?.results || !userProfile?.user_id) return [];
+    // Filter listings belonging to the logged-in user
+    return listingsData.results.filter((item: any) => item.seller.id === userProfile.user_id);
+  }, [listingsData, userProfile]);
 
   const filteredAndSortedData = useMemo(() => {
-    let data = [...MY_LISTINGS];
+    let data = [...myListingsList];
 
-    // Search Filter
+    // Search Query Filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       data = data.filter(
-        (item) => item.title.toLowerCase().includes(query) || item.author.toLowerCase().includes(query)
+        (item) =>
+          item.book.title.toLowerCase().includes(query) ||
+          item.book.authors?.some((a: any) => a.name.toLowerCase().includes(query))
       );
     }
 
     // Status Filter
-    if (activeFilter !== "All") {
-      data = data.filter((item) => item.status === activeFilter);
+    if (activeFilter === "Active") {
+      data = data.filter((item) => item.status === "AVAILABLE");
+    } else if (activeFilter === "Sold") {
+      data = data.filter((item) => item.status === "SOLD");
     }
 
     // Sorting
     data.sort((a, b) => {
       if (activeSort === "Newest") {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       } else if (activeSort === "Price: Low to High") {
-        return a.price - b.price;
+        return parseFloat(a.price) - parseFloat(b.price);
       } else if (activeSort === "Price: High to Low") {
-        return b.price - a.price;
-      } else if (activeSort === "Most Viewed") {
-        return b.views - a.views;
+        return parseFloat(b.price) - parseFloat(a.price);
+      } else if (activeSort === "Most Liked") {
+        return (b.favorite_count || 0) - (a.favorite_count || 0);
       }
       return 0;
     });
 
     return data;
-  }, [searchQuery, activeFilter, activeSort]);
+  }, [myListingsList, searchQuery, activeFilter, activeSort]);
 
   const handleListingPress = (item: any) => {
-    // Navigate to existing MyListings which acts as EditListing
+    // Navigate to listings update edit view
     navigation.navigate("MyListings");
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Active":
+      case "AVAILABLE":
         return COLORS.green;
-      case "Draft":
-        return COLORS.primary;
-      case "Draft":
+      case "SOLD":
         return COLORS.textMuted;
       default:
         return COLORS.grayHeavvy;
@@ -148,14 +105,29 @@ export default function ManageListingsScreen() {
 
   const getStatusBgColor = (status: string) => {
     switch (status) {
-      case "Active":
+      case "AVAILABLE":
         return COLORS.greenlight;
-      case "Draft":
-        return COLORS.blueLight;
-      case "Draft":
-        return COLORS.grayLight;
+      case "SOLD":
+        return "rgba(0,0,0,0.04)";
       default:
-        return COLORS.white;
+        return "rgba(0,0,0,0.02)";
+    }
+  };
+
+  const getConditionLabel = (condition: string) => {
+    switch (condition) {
+      case "NEW":
+        return "New";
+      case "LIKE_NEW":
+        return "Like New";
+      case "GOOD":
+        return "Good";
+      case "FAIR":
+        return "Fair";
+      case "POOR":
+        return "Poor";
+      default:
+        return condition;
     }
   };
 
@@ -205,101 +177,114 @@ export default function ManageListingsScreen() {
     </View>
   );
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyStateContainer}>
-      <View style={styles.emptyIconWrap}>
-        <Ionicons name="book-outline" size={48} color={COLORS.grayHeavvy} />
-      </View>
-      <Text style={styles.emptyTitle}>No Listings Found</Text>
-      <Text style={styles.emptyDesc}>
-        {searchQuery || activeFilter !== "All"
-          ? "We couldn't find any listings matching your search or filters."
-          : "You haven't listed any books yet."}
-      </Text>
-      {(searchQuery || activeFilter !== "All") && (
-        <TouchableOpacity
-          style={styles.clearFiltersBtn}
-          onPress={() => {
-            setSearchQuery("");
-            setActiveFilter("All");
-          }}
-        >
-          <Text style={styles.clearFiltersText}>Clear Filters</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
+  const renderItem = ({ item }: { item: any }) => {
+    const authorsStr = item.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author";
+    const coverUrl =
+      item.listing_images?.[0]?.image_url ||
+      item.book.cover_url ||
+      "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop";
 
-  const renderBookCard = ({ item, index }: { item: (typeof MY_LISTINGS)[0]; index: number }) => (
-    <Animated.View entering={FadeIn.delay(index * 100).duration(300)}>
-      <TouchableOpacity style={styles.bookCard} activeOpacity={0.7} onPress={() => handleListingPress(item)}>
-        <Image source={{ uri: item.coverUri }} style={styles.bookCover} contentFit="cover" />
-        <View style={styles.bookInfo}>
-          <View style={styles.bookHeaderRow}>
-            <View style={{ flex: 1, paddingRight: 8 }}>
-              <Text style={styles.bookTitle} numberOfLines={1}>
-                {item.title}
-              </Text>
-              <Text style={styles.bookAuthor} numberOfLines={1}>
-                {item.author}
-              </Text>
-            </View>
+    return (
+      <TouchableOpacity style={styles.listingCard} activeOpacity={0.9} onPress={() => handleListingPress(item)}>
+        <Image source={{ uri: coverUrl }} style={styles.bookCover} contentFit="cover" />
+        <View style={styles.cardDetails}>
+          <View style={styles.cardHeaderRow}>
+            <Text style={styles.bookTitle} numberOfLines={1}>
+              {item.book.title}
+            </Text>
             <View style={[styles.statusBadge, { backgroundColor: getStatusBgColor(item.status) }]}>
-              <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) }]} />
-              <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>{item.status}</Text>
+              <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
+                {item.status === "AVAILABLE" ? "Active" : "Sold"}
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.bookAuthor} numberOfLines={1}>
+            by {authorsStr}
+          </Text>
+
+          <View style={styles.cardMiddleRow}>
+            <Text style={styles.bookPrice}>₹{parseInt(item.price)}</Text>
+            <View style={styles.conditionChip}>
+              <Text style={styles.conditionText}>{getConditionLabel(item.condition)}</Text>
             </View>
           </View>
 
-          <View style={styles.bookStatsRow}>
-            <View style={styles.bookStat}>
-              <Ionicons name="eye-outline" size={14} color={COLORS.textMuted} />
-              <Text style={styles.bookStatText}>{item.views}</Text>
+          <View style={styles.cardFooterRow}>
+            <View style={styles.footerMetric}>
+              <Ionicons name="heart" size={14} color={COLORS.red} />
+              <Text style={styles.metricText}>{item.favorite_count || 0} Likes</Text>
             </View>
-            <View style={styles.bookStat}>
-              <Ionicons name="heart-outline" size={14} color={COLORS.textMuted} />
-              <Text style={styles.bookStatText}>{item.interested}</Text>
-            </View>
-          </View>
-
-          <View style={styles.bookFooterRow}>
-            <Text style={styles.bookPrice}>₹{item.price}</Text>
-            <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7} onPress={() => handleListingPress(item)}>
-              <Feather name="edit-2" size={14} color={COLORS.primary} />
-              <Text style={styles.actionBtnText}>Edit</Text>
-            </TouchableOpacity>
+            <Text style={styles.listingDate}>
+              Listed {new Date(item.created_at).toLocaleDateString([], { month: "short", day: "numeric" })}
+            </Text>
           </View>
         </View>
       </TouchableOpacity>
-    </Animated.View>
+    );
+  };
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <View style={styles.emptyIconCircle}>
+        <Ionicons name="book-outline" size={48} color={COLORS.primary} />
+      </View>
+      <Text style={styles.emptyTitle}>No Listings Yet</Text>
+      <Text style={styles.emptySubtitle}>
+        You haven't listed any pre-owned books for sale. List books to get buyers instantly.
+      </Text>
+      <TouchableOpacity style={styles.createBtn} activeOpacity={0.8} onPress={() => router.push("/(tabs)/create")}>
+        <Ionicons name="add" size={20} color={COLORS.white} style={{ marginRight: 6 }} />
+        <Text style={styles.createBtnText}>Create Listing</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       <StatusBar style="dark" />
-      <Header backButton title="Manage Listings" />
+      <Header title="Manage Listings" backButton />
 
-      {/* {renderSearchBar()} */}
+      {/* Search & Sort Row */}
+      <View style={styles.searchRow}>
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color={COLORS.textMuted} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by title or author..."
+            placeholderTextColor={COLORS.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+        <TouchableOpacity
+          style={[styles.sortButton, showSortOptions && styles.sortButtonActive]}
+          onPress={() => setShowSortOptions(!showSortOptions)}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="funnel-outline" size={20} color={COLORS.primary} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Sort Overlay dropdown */}
       {renderSortOptions()}
+
+      {/* Filter Chips */}
       {renderFilters()}
 
+      {/* Main List */}
       {isLoading ? (
-        <View style={styles.loadingContainer}>
+        <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Loading listings...</Text>
         </View>
       ) : (
         <FlatList
           data={filteredAndSortedData}
-          keyExtractor={(item) => item.id}
-          renderItem={renderBookCard}
-          contentContainerStyle={[
-            styles.listContent,
-            filteredAndSortedData.length === 0 && styles.listContentEmpty,
-            { paddingBottom: insets.bottom + SPACING.xl },
-          ]}
-          showsVerticalScrollIndicator={false}
+          keyExtractor={(item) => String(item.id)}
+          renderItem={renderItem}
           ListEmptyComponent={renderEmptyState}
-          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[styles.listContainer, { paddingBottom: insets.bottom + SPACING.lg }]}
+          onRefresh={refetch}
+          refreshing={isLoading}
         />
       )}
     </View>
@@ -311,274 +296,270 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  searchContainer: {
+  searchRow: {
     flexDirection: "row",
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.sm,
-    paddingBottom: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
     gap: SPACING.sm,
+    backgroundColor: COLORS.white,
+    zIndex: 10,
   },
-  searchBar: {
+  searchContainer: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.white,
+    backgroundColor: "rgba(0,0,0,0.02)",
     borderWidth: 1,
-    borderColor: COLORS.grayLight,
+    borderColor: "rgba(0,0,0,0.06)",
     borderRadius: 12,
-    paddingHorizontal: SPACING.md,
-    height: 48,
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    // elevation: 1,
+    paddingHorizontal: SPACING.sm,
+    height: 44,
+  },
+  searchIcon: {
+    marginRight: 6,
   },
   searchInput: {
     flex: 1,
-    marginLeft: SPACING.sm,
-    fontSize: rem(0.8125),
+    fontSize: rem(0.875),
     fontFamily: FONTS.manrope.medium,
-    color: COLORS.text,
-    height: "100%",
+    color: COLORS.black,
+    padding: 0,
   },
   sortButton: {
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: 12,
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.grayLight,
+    backgroundColor: "rgba(0, 128, 128, 0.08)",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    // elevation: 1,
   },
   sortButtonActive: {
     backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
   },
   sortOptionsContainer: {
-    marginHorizontal: SPACING.lg,
+    position: "absolute",
+    top: 110,
+    right: SPACING.md,
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: SPACING.xs,
-    marginBottom: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.grayLight,
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    // elevation: 3,
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    zIndex: 100,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.04)",
   },
   sortOptionItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: SPACING.sm,
-    borderRadius: 8,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: 10,
+    minWidth: 180,
   },
   sortOptionItemActive: {
-    backgroundColor: COLORS.background,
+    backgroundColor: "rgba(0, 128, 128, 0.04)",
   },
   sortOptionText: {
-    fontSize: rem(0.8125),
+    fontSize: rem(0.875),
     fontFamily: FONTS.manrope.medium,
-    color: COLORS.text,
+    color: COLORS.black,
   },
   sortOptionTextActive: {
-    fontFamily: FONTS.manrope.bold,
     color: COLORS.primary,
+    fontFamily: FONTS.manrope.bold,
   },
   filtersWrapper: {
-    marginBottom: SPACING.sm,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0,0,0,0.04)",
+    paddingBottom: SPACING.sm,
   },
   filtersContainer: {
-    paddingHorizontal: SPACING.lg,
-    gap: SPACING.sm,
-    paddingBottom: SPACING.xs,
+    paddingHorizontal: SPACING.md,
+    gap: SPACING.xs,
   },
   filterChip: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: 8,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 6,
     borderRadius: 20,
-    backgroundColor: COLORS.white,
+    backgroundColor: "rgba(0,0,0,0.02)",
     borderWidth: 1,
-    borderColor: COLORS.grayHeavvy,
+    borderColor: "rgba(0,0,0,0.06)",
+    marginRight: 6,
   },
   filterChipActive: {
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
   },
   filterChipText: {
-    fontSize: rem(0.75),
-    fontFamily: FONTS.manrope.semibold,
-    color: COLORS.text,
+    fontSize: rem(0.8125),
+    fontFamily: FONTS.manrope.bold,
+    color: COLORS.textMuted,
   },
   filterChipTextActive: {
     color: COLORS.white,
   },
-  listContent: {
-    paddingTop: SPACING.sm,
+  listContainer: {
+    padding: SPACING.md,
+    gap: SPACING.sm,
   },
-  listContentEmpty: {
-    flexGrow: 1,
-  },
-  loadingContainer: {
+  loaderContainer: {
     flex: 1,
-    alignItems: "center",
     justifyContent: "center",
-  },
-  loadingText: {
-    marginTop: SPACING.md,
-    fontSize: rem(0.8125),
-    fontFamily: FONTS.manrope.medium,
-    color: COLORS.textMuted,
-  },
-  emptyStateContainer: {
-    flex: 1,
     alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: SPACING.xl,
-    marginTop: 60,
   },
-  emptyIconWrap: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: COLORS.grayLight,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: SPACING.lg,
-  },
-  emptyTitle: {
-    fontSize: rem(1.125),
-    fontFamily: FONTS.montserrat.bold,
-    color: COLORS.black,
-    marginBottom: 8,
-  },
-  emptyDesc: {
-    fontSize: rem(0.8125),
-    fontFamily: FONTS.manrope.regular,
-    color: COLORS.textMuted,
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: SPACING.xl,
-  },
-  clearFiltersBtn: {
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: 12,
-    backgroundColor: COLORS.primary,
-    borderRadius: 25,
-  },
-  clearFiltersText: {
-    fontSize: rem(0.8125),
-    fontFamily: FONTS.manrope.bold,
-    color: COLORS.white,
-  },
-  bookCard: {
+  listingCard: {
     flexDirection: "row",
     backgroundColor: COLORS.white,
-    marginHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
     borderRadius: 16,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.03)",
+    padding: SPACING.sm,
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.03,
     shadowRadius: 8,
-    // elevation: -1,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.02)",
+    marginBottom: SPACING.xs,
   },
   bookCover: {
-    width: 75,
-    height: 100,
-    borderRadius: 10,
-    backgroundColor: COLORS.grayLight,
+    width: 80,
+    height: 110,
+    borderRadius: 12,
+    backgroundColor: "rgba(0,0,0,0.02)",
   },
-  bookInfo: {
+  cardDetails: {
     flex: 1,
     marginLeft: SPACING.md,
     justifyContent: "space-between",
   },
-  bookHeaderRow: {
+  cardHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
+    alignItems: "center",
+    gap: SPACING.xs,
   },
   bookTitle: {
-    fontSize: rem(0.875),
-    fontFamily: FONTS.manrope.bold,
+    fontSize: rem(0.9375),
+    fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
-    marginBottom: 4,
+    flex: 1,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  statusText: {
+    fontSize: rem(0.6875),
+    fontFamily: FONTS.manrope.bold,
   },
   bookAuthor: {
     fontSize: rem(0.75),
-    fontFamily: FONTS.manrope.medium,
-    color: COLORS.textMuted,
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-  },
-  statusText: {
-    fontSize: rem(0.625),
     fontFamily: FONTS.manrope.bold,
+    color: COLORS.textMuted,
+    marginTop: 2,
   },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  bookStatsRow: {
-    flexDirection: "row",
-    gap: SPACING.lg,
-    marginVertical: 8,
-  },
-  bookStat: {
+  cardMiddleRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-  },
-  bookStatText: {
-    fontSize: rem(0.75),
-    fontFamily: FONTS.manrope.semibold,
-    color: COLORS.text,
-  },
-  bookFooterRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    gap: 8,
+    marginTop: 6,
   },
   bookPrice: {
     fontSize: rem(1),
     fontFamily: FONTS.montserrat.bold,
-    color: COLORS.primary,
+    color: COLORS.black,
   },
-  actionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 0.5,
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.primary + "10",
-    gap: 6,
+  conditionChip: {
+    backgroundColor: "rgba(0,0,0,0.02)",
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.06)",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
-  actionBtnText: {
+  conditionText: {
     fontSize: rem(0.6875),
     fontFamily: FONTS.manrope.bold,
-    color: COLORS.primary,
+    color: COLORS.textMuted,
+  },
+  cardFooterRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: SPACING.xs,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.03)",
+    paddingTop: 6,
+  },
+  footerMetric: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  metricText: {
+    fontSize: rem(0.75),
+    fontFamily: FONTS.manrope.bold,
+    color: COLORS.black,
+  },
+  listingDate: {
+    fontSize: rem(0.6875),
+    fontFamily: FONTS.manrope.medium,
+    color: COLORS.textMuted,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: SPACING.xl,
+    marginTop: rem(6),
+  },
+  emptyIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(0, 128, 128, 0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: SPACING.md,
+  },
+  emptyTitle: {
+    fontSize: rem(1.25),
+    fontFamily: FONTS.montserrat.bold,
+    color: COLORS.black,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: rem(0.875),
+    fontFamily: FONTS.manrope.medium,
+    color: COLORS.textMuted,
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: SPACING.lg,
+    paddingHorizontal: SPACING.sm,
+  },
+  createBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: 24,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  createBtnText: {
+    fontSize: rem(0.875),
+    fontFamily: FONTS.manrope.bold,
+    color: COLORS.white,
   },
 });

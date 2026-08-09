@@ -22,7 +22,7 @@ const CustomTabBar: React.FC<CustomTabBarProps> = memo(({ state, descriptors, na
 
   return (
     <View style={[styles.container, { bottom: bottomMargin }]}>
-      {state.routes.map((route, index) => {
+      {state.routes.map((route: any, index: number) => {
         const { options } = descriptors[route.key];
         const label =
           options.tabBarLabel !== undefined

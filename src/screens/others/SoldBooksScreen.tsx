@@ -1,7 +1,6 @@
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
-import { AppStackParamList } from "@/navigation/AppStackNavigator";
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";

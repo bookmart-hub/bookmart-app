@@ -79,6 +79,22 @@ const ProfileMenuTile = ({ icon, title, subtitle, color, onPress, isDanger = fal
   </TouchableOpacity>
 );
 
+const getInitials = (name?: string) => {
+  if (!name) return "U";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 0 || !parts[0]) return "U";
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+};
+
+const formatNumber = (num?: number) => {
+  if (num === undefined || num === null) return "0";
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+  }
+  return num.toString();
+};
+
 const ProfileScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
@@ -98,15 +114,15 @@ const ProfileScreen = () => {
 
   const handleQuickAction = (id: string) => {
     if (id === "requests") {
-      navigation.navigate("AppStack", { screen: "RequestPost" });
+      router.push("/(screens)/RequestPost");
     } else if (id === "interests") {
-      navigation.navigate("AppStack", { screen: "Favourites" });
+      router.push("/(screens)/Favourites");
     } else if (id === "listings") {
-      navigation.navigate("AppStack", { screen: "ManageListings" });
+      router.push("/(screens)/ManageListings");
     } else if (id === "sold") {
-      navigation.navigate("AppStack", { screen: "SoldBooks" });
+      router.push("/(screens)/SoldBooks");
     } else if (id === "waContacts") {
-      navigation.navigate("AppStack", { screen: "Contacts" });
+      router.push("/(screens)/Contacts");
     }
   };
   const openMenu = () => setMenuVisible(true);
@@ -122,8 +138,6 @@ const ProfileScreen = () => {
         });
       }
     } catch (error: any) {
-      // A 400 error often happens if the token is already expired or blacklisted on the server.
-      // We can safely ignore it since we are clearing local data and logging out anyway.
       if (error?.response?.status !== 400 && error?.response?.status !== 401) {
         console.error("Logout API error:", error?.response?.data || error.message);
       }
@@ -132,10 +146,7 @@ const ProfileScreen = () => {
       await SecureStore.deleteItemAsync("refreshToken");
       await AsyncStorage.removeItem("@bookmart:is_logged_in");
 
-      (navigation as any).reset({
-        index: 0,
-        routes: [{ name: "Auth" }],
-      });
+      router.replace("/(auth)/login");
     }
   };
 
@@ -150,7 +161,6 @@ const ProfileScreen = () => {
   };
 
   const handleRateUs = () => {
-    // Platform specific logic for opening app store could go here
     Alert.alert("Rate Us", "Thank you for using Bookmart! Redirecting to Play Store...");
   };
 
@@ -183,7 +193,7 @@ const ProfileScreen = () => {
               leadingIcon="share-variant-outline"
               onPress={() => {
                 closeMenu();
-                // Share logic
+                handleShare();
               }}
               title="Share Profile"
             />
@@ -192,9 +202,7 @@ const ProfileScreen = () => {
               leadingIcon="account-edit-outline"
               onPress={() => {
                 closeMenu();
-                navigation.navigate("AppStack", {
-                  screen: "EditProfile",
-                });
+                router.push("/(screens)/EditProfile");
               }}
               title="Edit Profile"
             />
@@ -205,8 +213,8 @@ const ProfileScreen = () => {
                 leadingIcon="flag-outline"
                 onPress={() => {
                   closeMenu();
-                  navigation.navigate("AppStack", {
-                    screen: "Report",
+                  router.push({
+                    pathname: "/(screens)/Report",
                     params: { initialTab: "User" },
                   });
                 }}
@@ -231,30 +239,28 @@ const ProfileScreen = () => {
           </View>
         ) : (
           <View style={styles.profileInfoRow}>
-            <Image
-              source={{
-                uri:
-                  userProfile?.image ||
-                  "https://media.istockphoto.com/id/2220866251/photo/isolated-generic-gray-human-figure-placeholder.webp?a=1&b=1&s=612x612&w=0&k=20&c=vkqNIInBzzIYcuk-wV5KC28xiXfFfYZmAgVOaYebNEA=",
-              }}
-              contentFit="fill"
-              style={styles.avatarPlaceholder}
-            />
+            {userProfile?.image ? (
+              <Image
+                source={{ uri: userProfile.image }}
+                contentFit="cover"
+                style={styles.avatarPlaceholder}
+              />
+            ) : (
+              <View style={[styles.avatarPlaceholder, styles.avatarInitialsContainer]}>
+                <Text style={styles.avatarInitialsText}>{getInitials(userProfile?.full_name)}</Text>
+              </View>
+            )}
             <View style={styles.profileDetails}>
               <View style={styles.nameRow}>
-                <Text style={styles.profileName}>{userProfile?.full_name || "User"}</Text>
+                <Text style={styles.profileName} numberOfLines={1}>{userProfile?.full_name || "User"}</Text>
                 <View style={styles.topSellerBadge}>
                   <Ionicons name="shield-checkmark" size={12} color={COLORS.black} />
                   <Text style={styles.topSellerText}>Top Seller</Text>
                 </View>
               </View>
               <View style={styles.infoRow}>
-                <Ionicons name="school-outline" size={14} color={COLORS.text} />
-                <Text style={styles.infoText}>{userProfile?.college?.name || "N/A"}</Text>
-              </View>
-              <View style={styles.infoRow}>
                 <Ionicons name="location-outline" size={14} color={COLORS.text} />
-                <Text style={styles.infoText}>{userProfile?.city_location || "N/A"}</Text>
+                <Text style={styles.infoText} numberOfLines={1}>{userProfile?.city_location || "N/A"}</Text>
               </View>
             </View>
           </View>
@@ -263,17 +269,17 @@ const ProfileScreen = () => {
         {/* Stats Block */}
         <View style={styles.statsBlock}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>1.2K</Text>
+            <Text style={styles.statValue}>{formatNumber(userProfile?.profile_views)}</Text>
             <Text style={styles.statLabel}>Profile Views</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>348</Text>
+            <Text style={styles.statValue}>{formatNumber(userProfile?.whatsapp_contacts)}</Text>
             <Text style={styles.statLabel}>WhatsApp Contacts</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>24</Text>
+            <Text style={styles.statValue}>{formatNumber(userProfile?.active_listings_count)}</Text>
             <Text style={styles.statLabel}>Active Listings</Text>
           </View>
         </View>
@@ -308,14 +314,14 @@ const ProfileScreen = () => {
             title="Manage Listings"
             subtitle="Edit, delete or update your active books"
             color={COLORS.primary}
-            onPress={() => navigation.navigate("AppStack", { screen: "ManageListings" })}
+            onPress={() => router.push("/(screens)/ManageListings")}
           />
           <ProfileMenuTile
             icon="rocket-outline"
             title="Boost Listing"
             subtitle="Increase visibility and get more buyers"
             color="#F59E0B"
-            onPress={() => navigation.navigate("AppStack", { screen: "BoostListing" })}
+            onPress={() => router.push("/(screens)/BoostListing")}
             rightElement={
               <View style={styles.proBadge}>
                 <Text style={styles.proBadgeText}>PRO</Text>
@@ -332,21 +338,21 @@ const ProfileScreen = () => {
             title="Edit Profile"
             subtitle="Update your personal details"
             color={COLORS.blue}
-            onPress={() => navigation.navigate("AppStack", { screen: "EditProfile" })}
+            onPress={() => router.push("/(screens)/EditProfile")}
           />
           <ProfileMenuTile
             icon="location-outline"
             title="Saved Addresses"
             subtitle="Manage your delivery addresses"
             color={COLORS.green}
-            onPress={() => navigation.navigate("AppStack", { screen: "SavedAddresses" })}
+            onPress={() => router.push("/(screens)/SavedAddresses")}
           />
           <ProfileMenuTile
             icon="notifications-outline"
             title="Notifications"
             subtitle="Customize your alert preferences"
             color={COLORS.primary}
-            onPress={() => navigation.navigate("AppStack", { screen: "Notifications" })}
+            onPress={() => router.push("/(screens)/Notifications")}
           />
         </View>
 
@@ -357,37 +363,39 @@ const ProfileScreen = () => {
             icon="help-buoy-outline"
             title="Help & Support"
             color={COLORS.text}
-            onPress={() => navigation.navigate("AppStack", { screen: "HelpSupport" })}
+            onPress={() => router.push("/(screens)/HelpSupport")}
           />
           <ProfileMenuTile
             icon="chatbubbles-outline"
             title="FAQs"
             color={COLORS.text}
-            onPress={() => navigation.navigate("AppStack", { screen: "FAQs" })}
+            onPress={() => router.push("/(screens)/FAQs")}
           />
           <ProfileMenuTile
             icon="mail-outline"
             title="Contact Us"
             color={COLORS.text}
-            // onPress={() => navigation.navigate('AppStack', { screen: 'ContactUs' })}
+            onPress={() => {
+              Alert.alert("Contact Us", "You can reach us at support@bookmart.com");
+            }}
           />
           <ProfileMenuTile
             icon="shield-checkmark-outline"
             title="Privacy Policy"
             color={COLORS.text}
-            onPress={() => navigation.navigate("AppStack", { screen: "PrivacyPolicy" })}
+            onPress={() => router.push("/(screens)/PrivacyPolicy")}
           />
           <ProfileMenuTile
             icon="document-text-outline"
             title="Terms & Conditions"
             color={COLORS.text}
-            onPress={() => navigation.navigate("AppStack", { screen: "TermsConditions" })}
+            onPress={() => router.push("/(screens)/TermsConditions")}
           />
           <ProfileMenuTile
             icon="information-circle-outline"
             title="About"
             color={COLORS.text}
-            onPress={() => navigation.navigate("AppStack", { screen: "About" })}
+            onPress={() => router.push("/(screens)/About")}
           />
           <ProfileMenuTile icon="star-outline" title="Rate Us" color={COLORS.text} onPress={handleRateUs} />
           <ProfileMenuTile icon="share-social-outline" title="Share App" color={COLORS.text} onPress={handleShare} />
@@ -754,5 +762,17 @@ const styles = StyleSheet.create({
     fontSize: rem(0.6875),
     fontFamily: FONTS.manrope.medium,
     color: COLORS.textMuted,
+  },
+  avatarInitialsContainer: {
+    backgroundColor: "rgba(0, 128, 128, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "rgba(0, 128, 128, 0.2)",
+  },
+  avatarInitialsText: {
+    fontSize: rem(1.5),
+    fontFamily: FONTS.montserrat.bold,
+    color: COLORS.primary,
   },
 });

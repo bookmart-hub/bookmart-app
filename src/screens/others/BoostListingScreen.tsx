@@ -2,7 +2,6 @@ import Header from "@/components/ui/Header";
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
-import { AppStackParamList } from "@/navigation/AppStackNavigator";
 import { rem } from "@/utils/responsive";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
@@ -258,7 +257,7 @@ export default function BoostListingScreen() {
       </ScrollView>
 
       {/* Bottom Sticky Summary */}
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom || SPACING.lg }]}>
+      <View style={[styles.bottomBar, { bottom: insets.bottom > 0 ? insets.bottom + 8 : rem(1.0) }]}>
         <View style={styles.bottomBarInfo}>
           <Text style={styles.selectedCountText}>
             {selectedBooks.length} book{selectedBooks.length > 1 ? "s" : ""} selected
@@ -595,22 +594,22 @@ const styles = StyleSheet.create({
   },
   bottomBar: {
     position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
+    left: rem(1.0),
+    right: rem(1.0),
     backgroundColor: COLORS.white,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
+    borderRadius: 24,
+    elevation: 8,
     shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
     shadowRadius: 12,
-    elevation: 10,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.grayLight,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.04)",
   },
   bottomBarInfo: {
     flex: 1,

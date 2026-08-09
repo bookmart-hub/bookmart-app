@@ -140,7 +140,6 @@ const CleanBottomSheet: React.FC<CleanBottomSheetProps> = ({
   return (
     <View
       style={{
-        ...StyleSheet.absoluteFillObject,
         position: "absolute",
         top: 0,
         left: 0,

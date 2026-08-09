@@ -102,7 +102,7 @@ const PromoBanner: React.FC<PromoBannerProps> = memo(({ banners = DEFAULT_BANNER
 
   const flatListRef = useRef<FlatList>(null);
   const currentIndexRef = useRef(0);
-  const autoSlideRef = useRef<NodeJS.Timeout | null>(null);
+  const autoSlideRef = useRef<any>(null);
 
   const viewabilityConfig = useRef({
     viewAreaCoveragePercentThreshold: 50,

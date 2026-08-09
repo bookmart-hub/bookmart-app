@@ -26,7 +26,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // ────────────────────────────────────────────────────────────────────
@@ -196,7 +196,7 @@ const SuccessOverlay = ({ onViewListing, onGoHome }: { onViewListing: () => void
 
 const successStyles = StyleSheet.create({
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0,0,0,0.55)",
     alignItems: "center",
     justifyContent: "center",
@@ -713,7 +713,7 @@ const CreateScreen = () => {
                     >
                       {imgUri ? (
                         <View style={{ flex: 1, width: "100%" }}>
-                          <Image source={{ uri: imgUri }} contentFit="cover" style={StyleSheet.absoluteFillObject} />
+                          <Image source={{ uri: imgUri }} contentFit="cover" style={StyleSheet.absoluteFill} />
                           <View style={styles.photoBadge}>
                             <Text style={styles.photoBadgeText}>{slot.label}</Text>
                           </View>
@@ -1025,7 +1025,7 @@ const CreateScreen = () => {
               />
             </View>
 
-            {location && (
+            {location ? (
               <View style={styles.sectionCard}>
                 <View style={styles.locationHeader}>
                   <Ionicons name="location" size={22} color={COLORS.primary} />
@@ -1050,15 +1050,15 @@ const CreateScreen = () => {
 
                 <View style={styles.mapWrapper}>
                   <MapView
-                    key={`${location.latitude}-${location.longitude}`}
-                    style={styles.map}
-                    provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
+                    key={`map-${location.latitude.toFixed(6)}-${location.longitude.toFixed(6)}`}
+                    style={{ width: "100%", height: 180 }}
                     initialRegion={{
                       latitude: location.latitude,
                       longitude: location.longitude,
                       latitudeDelta: 0.005,
                       longitudeDelta: 0.005,
                     }}
+                    liteMode={Platform.OS === "android"}
                     pitchEnabled={false}
                     rotateEnabled={false}
                     scrollEnabled={false}
@@ -1070,6 +1070,27 @@ const CreateScreen = () => {
                       </View>
                     </Marker>
                   </MapView>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.sectionCard}>
+                <View style={styles.locationHeader}>
+                  <Ionicons name="location-outline" size={22} color={COLORS.textMuted} />
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text style={styles.locationTitle}>Pickup Location</Text>
+                    <Text style={styles.locationAddress}>Fetching your location…</Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={getCurrentLocation}
+                    disabled={isFetchingLocation}
+                    style={styles.refreshBtn}
+                  >
+                    {isFetchingLocation ? (
+                      <ActivityIndicator size="small" color={COLORS.primary} />
+                    ) : (
+                      <Ionicons name="refresh" size={20} color={COLORS.primary} />
+                    )}
+                  </TouchableOpacity>
                 </View>
               </View>
             )}
@@ -1376,7 +1397,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: "hidden",
   },
-  map: { ...StyleSheet.absoluteFillObject },
+  map: { ...StyleSheet.absoluteFill },
   markerDot: {
     width: 36,
     height: 36,

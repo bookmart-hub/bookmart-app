@@ -7,12 +7,12 @@ import { DISTANCE_FILTERS, MOCK_CATEGORIES, MOCK_NEAREST_BOOKS, NearestBook } fr
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
-import { useNavigation } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
+import { useNavigation } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import { Dimensions, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
@@ -210,14 +210,8 @@ const NearestBooksScreen = ({ route }: any) => {
           <TouchableOpacity activeOpacity={1} style={StyleSheet.absoluteFill} onPress={() => setShowFilter(false)} />
 
           <Animated.View
-            entering={FadeIn.duration(250)
-              .springify()
-              .withInitialValues({
-                transform: [{ translateX: (width * 0.75) / 2 }, { translateY: -(height * 0.6) / 2 }, { scale: 0.05 }],
-              })}
-            exiting={FadeOut.duration(250).withInitialValues({
-              transform: [{ translateX: (width * 0.75) / 2 }, { translateY: -(height * 0.6) / 2 }, { scale: 0.05 }],
-            })}
+            entering={ZoomIn.duration(250).springify()}
+            exiting={ZoomOut.duration(200)}
             style={[
               styles.filterModal,
               {
@@ -368,7 +362,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "#00000069",
     justifyContent: "flex-start",
     alignItems: "flex-end",

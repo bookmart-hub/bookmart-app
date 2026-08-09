@@ -156,7 +156,7 @@ const GenreMasonryLayout: React.FC<GenreMasonryLayoutProps> = ({ data }) => {
 
   const processedData = useMemo(() => {
     const nonBookItems = data.filter((item) => item.type !== "book");
-    const dynamicBookItems = genreBooks.map((book) => ({
+    const dynamicBookItems = genreBooks.map((book: any) => ({
       type: "book" as const,
       book,
     }));

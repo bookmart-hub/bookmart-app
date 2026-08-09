@@ -42,3 +42,5 @@ yarn-error.*
 /ios
 
 /temp
+google-services.json
+firebase-service-account.json

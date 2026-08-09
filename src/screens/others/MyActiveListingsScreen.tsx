@@ -2,7 +2,6 @@ import Header from "@/components/ui/Header";
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
-import { AppStackParamList } from "@/navigation/AppStackNavigator";
 import { rem } from "@/utils/responsive";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -159,7 +158,7 @@ export default function MyActiveListingsScreen() {
 
   const filteredListings = useMemo(() => {
     if (activeFilter === "All") return myListings;
-    return myListings.filter((l) => l.status === (activeFilter === "Active" ? "AVAILABLE" : "SOLD"));
+    return myListings.filter((l: any) => l.status === (activeFilter === "Active" ? "AVAILABLE" : "SOLD"));
   }, [myListings, activeFilter]);
 
   const renderSummarySection = () => (
@@ -181,7 +180,7 @@ export default function MyActiveListingsScreen() {
             <Ionicons name="eye-outline" size={20} color={COLORS.primary} />
           </View>
           <Text style={styles.statLabel}>Total Views</Text>
-          <Text style={styles.statValue}>{myListings.reduce((acc, curr) => acc + curr.views, 0)}</Text>
+          <Text style={styles.statValue}>{myListings.reduce((acc: number, curr: any) => acc + curr.views, 0)}</Text>
         </View>
 
         <View style={styles.statCard}>
@@ -189,7 +188,7 @@ export default function MyActiveListingsScreen() {
             <Ionicons name="heart-outline" size={20} color={COLORS.primary} />
           </View>
           <Text style={styles.statLabel}>Interested</Text>
-          <Text style={styles.statValue}>{myListings.reduce((acc, curr) => acc + curr.likes, 0)}</Text>
+          <Text style={styles.statValue}>{myListings.reduce((acc: number, curr: any) => acc + curr.likes, 0)}</Text>
         </View>
       </View>
     </View>

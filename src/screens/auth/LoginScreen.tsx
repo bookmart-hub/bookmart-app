@@ -1,11 +1,10 @@
 import { loginUser } from "@/types/auth";
-import { FontAwesome } from "@expo/vector-icons";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, router } from "expo-router";
-
 import { useMutation } from "@tanstack/react-query";
 import * as SecureStore from "expo-secure-store";
-import React, { useEffect, useState } from "react";
+import React, { memo, useCallback, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -14,24 +13,24 @@ import {
   StyleSheet,
   Text,
   ToastAndroid,
-  TouchableOpacity,
   View,
+  ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
+import { api } from "@/api/clients";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
-import { AuthStackParamList } from "@/navigation/AuthNavigator";
 import { rem } from "@/utils/responsive";
 import { StatusBar } from "expo-status-bar";
 
-type LoginScreenNavigationProp = any;
-
-const GoogleIcon = () => (
+// Memoize SVG icons to prevent re-rendering the SVG tree on every parent render
+const GoogleIcon = memo(() => (
   <Svg viewBox="0 0 24 24" width={20} height={20}>
     <Path
       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -50,77 +49,51 @@ const GoogleIcon = () => (
       fill="#EA4335"
     />
   </Svg>
-);
+));
 
-const FacebookIcon = () => (
+const FacebookIcon = memo(() => (
   <View style={styles.facebookIconContainer}>
     <FontAwesome name="facebook" size={14} color={COLORS.white} />
   </View>
-);
+));
+
+const showToastOrAlert = (message: string) => {
+  if (Platform.OS === "android") {
+    ToastAndroid.showWithGravityAndOffset(message, ToastAndroid.LONG, ToastAndroid.BOTTOM, 25, 50);
+  } else {
+    Alert.alert("Validation Error", message);
+  }
+};
 
 const LoginScreen: React.FC = () => {
-  const navigation = useNavigation<LoginScreenNavigationProp>();
+  const navigation = useNavigation<any>();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState("Signing in");
 
-  useEffect(() => {
-    if (!isLoading) return;
-
-    let count = 0;
-
-    const interval = setInterval(() => {
-      count = (count + 1) % 4;
-
-      setLoadingText(`Signing in${".".repeat(count)}`);
-    }, 400);
-
-    return () => {
-      clearInterval(interval);
-      setEmail("");
-      setPassword("");
-    };
-  }, [isLoading]);
-
-  // Helper function to trigger platform-appropriate notifications
-  const showToastOrAlert = (message: string) => {
-    if (Platform.OS === "android") {
-      ToastAndroid.showWithGravityAndOffset(message, ToastAndroid.LONG, ToastAndroid.BOTTOM, 25, 50);
-    } else {
-      Alert.alert("Validation Error", message);
-    }
-  };
-
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     if (!email.trim()) {
       showToastOrAlert("Email is required");
       return false;
     }
-
     if (!/\S+@\S+\.\S+/.test(email)) {
       showToastOrAlert("Please enter a valid email address");
       return false;
     }
-
     if (!password) {
       showToastOrAlert("Password is required");
       return false;
     }
-
     if (password.length < 6) {
       showToastOrAlert("Password must be at least 6 characters");
       return false;
     }
-
     return true;
-  };
+  }, [email, password]);
 
   const loginMutation = useMutation({
     mutationFn: loginUser,
     onSuccess: async (data) => {
-      // Check if tokens are returned in data or data.tokens
       const accessToken = data?.tokens?.access || data?.access;
       const refreshToken = data?.tokens?.refresh || data?.refresh;
 
@@ -131,100 +104,238 @@ const LoginScreen: React.FC = () => {
         await SecureStore.setItemAsync("refreshToken", refreshToken);
       }
 
+      // Register push token if available
+      try {
+        const pushToken = await SecureStore.getItemAsync("pushToken");
+        if (pushToken && accessToken) {
+          await api.post("/api/v1/notifications/devices/", { expo_push_token: pushToken });
+        }
+      } catch (err) {
+        console.error("Failed to register push token during login callback:", err);
+      }
+
       await AsyncStorage.setItem("@bookmart:is_logged_in", "true");
       router.replace("/(tabs)/home");
     },
     onError: (error: any) => {
-      setIsLoading(false);
       const message = error?.response?.data?.detail || "Invalid email or password";
       showToastOrAlert(message);
     },
   });
 
-  const handleSignIn = () => {
-    if (!validateForm()) return;
+  const socialLoginMutation = useMutation({
+    mutationFn: async (payload: { provider: string; provider_id: string; email: string; full_name?: string }) => {
+      const response = await api.post("/api/v1/auth/social-login/", payload);
+      return response.data;
+    },
+    onSuccess: async (data) => {
+      const accessToken = data?.tokens?.access || data?.access;
+      const refreshToken = data?.tokens?.refresh || data?.refresh;
 
-    setIsLoading(true);
+      if (accessToken) {
+        await SecureStore.setItemAsync("accessToken", accessToken);
+      }
+      if (refreshToken) {
+        await SecureStore.setItemAsync("refreshToken", refreshToken);
+      }
+
+      // Register push token if available
+      try {
+        const pushToken = await SecureStore.getItemAsync("pushToken");
+        if (pushToken && accessToken) {
+          await api.post("/api/v1/notifications/devices/", { expo_push_token: pushToken });
+        }
+      } catch (err) {
+        console.error("Failed to register push token during social login:", err);
+      }
+
+      await AsyncStorage.setItem("@bookmart:is_logged_in", "true");
+      router.replace("/(tabs)/home");
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.detail || "Social authentication failed.";
+      showToastOrAlert(message);
+    },
+  });
+
+  const handleGoogleSignIn = useCallback(() => {
+    const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID;
+    const isMock = !androidClientId || androidClientId.includes("your-google");
+
+    if (isMock) {
+      Alert.alert(
+        "Google Sign-In (Dev Mode)",
+        "Would you like to simulate Google sign-in using test credentials? (Provide real IDs in .env to run real OAuth)",
+        [
+          {
+            text: "Proceed as Google Tester",
+            onPress: () => {
+              socialLoginMutation.mutate({
+                provider: "GOOGLE",
+                provider_id: "google-mock-id-12345",
+                email: "googletester@example.com",
+                full_name: "Google Tester",
+              });
+            },
+          },
+          { text: "Cancel", style: "cancel" },
+        ]
+      );
+    } else {
+      // Real Google Sign-in flow: Trigger AuthSession / WebBrowser in production
+      Alert.alert("Google Sign-In", "Initializing Google OAuth flow...");
+      // Once token is retrieved from Google, we call:
+      // socialLoginMutation.mutate({ provider: "GOOGLE", provider_id: googleId, email: googleEmail, full_name: googleName });
+    }
+  }, [socialLoginMutation]);
+
+  const handleFacebookSignIn = useCallback(() => {
+    const facebookAppId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID;
+    const isMock = !facebookAppId || facebookAppId.includes("your-facebook");
+
+    if (isMock) {
+      Alert.alert(
+        "Facebook Sign-In (Dev Mode)",
+        "Would you like to simulate Facebook sign-in using test credentials? (Provide real App ID in .env to run real OAuth)",
+        [
+          {
+            text: "Proceed as Facebook Tester",
+            onPress: () => {
+              socialLoginMutation.mutate({
+                provider: "FACEBOOK",
+                provider_id: "facebook-mock-id-12345",
+                email: "facebooktester@example.com",
+                full_name: "Facebook Tester",
+              });
+            },
+          },
+          { text: "Cancel", style: "cancel" },
+        ]
+      );
+    } else {
+      Alert.alert("Facebook Sign-In", "Initializing Facebook OAuth flow...");
+      // Once token is retrieved from Facebook, we call:
+      // socialLoginMutation.mutate({ provider: "FACEBOOK", provider_id: fbId, email: fbEmail, full_name: fbName });
+    }
+  }, [socialLoginMutation]);
+
+  const handleSignIn = useCallback(() => {
+    if (!validateForm()) return;
     loginMutation.mutate({ email, password });
-  };
+  }, [validateForm, email, password]);
+
+  const isPending = loginMutation.isPending || socialLoginMutation.isPending;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom", "left", "right"]}>
       <StatusBar style="dark" />
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardView}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.keyboardView}
+      >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          bounces={false}
         >
           {/* Header Section */}
           <View style={styles.headerContainer}>
-            <Text style={styles.welcomeText}>Welcome back!</Text>
-            <Text style={styles.signInText}>Sign In</Text>
+            <View style={styles.logoCircle}>
+              <Ionicons name="book" size={28} color={COLORS.primary} />
+            </View>
+            <Text style={styles.welcomeText}>Welcome back</Text>
+            <Text style={styles.subText}>Sign in to access your pre-owned book market</Text>
           </View>
 
-          {/* Form Fields */}
-          <View style={styles.formContainer}>
+          {/* Form Fields Card */}
+          <View style={styles.card}>
             <Input
-              placeholder="Email"
+              label="Email Address"
+              placeholder="name@domain.com"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoComplete="email"
+              autoCapitalize="none"
             />
 
             <Input
-              placeholder="Password"
+              label="Password"
+              placeholder="••••••••"
               value={password}
               onChangeText={setPassword}
               isPassword={true}
               autoComplete="password"
+              autoCapitalize="none"
             />
 
             {/* Forget Password */}
             <TouchableOpacity
-              onPress={() => {
-                navigation.navigate("ForgotPassScreen" as any);
-              }}
+              onPress={() => navigation.navigate("ForgotPassScreen" as any)}
               activeOpacity={0.7}
               style={styles.forgotPasswordContainer}
             >
-              <Text style={styles.forgotPasswordText}>Forget Password?</Text>
+              <Text style={styles.forgotPasswordText}>Forgot password?</Text>
             </TouchableOpacity>
-          </View>
 
-          <View style={styles.buttonContainer}>
-            {isLoading || loginMutation.isPending ? (
-              <Button title={loadingText} onPress={handleSignIn} variant="primary" />
-            ) : (
-              <Button title="Sign In" onPress={handleSignIn} />
-            )}
+            <View style={styles.buttonWrapper}>
+              <Button
+                title={loginMutation.isPending ? "Signing in…" : "Sign In"}
+                onPress={handleSignIn}
+                loading={loginMutation.isPending}
+                style={styles.signInButton}
+              />
+            </View>
           </View>
 
           {/* OR Divider */}
           <View style={styles.dividerContainer}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR</Text>
+            <Text style={styles.dividerText}>or connect with</Text>
             <View style={styles.dividerLine} />
           </View>
 
           {/* Social Sign Ins */}
           <View style={styles.socialContainer}>
-            <Button
-              title="Continue with facebook"
-              variant="outline"
-              icon={<FacebookIcon />}
+            <TouchableOpacity
               style={styles.socialButton}
-            />
+              activeOpacity={0.8}
+              onPress={handleGoogleSignIn}
+              disabled={isPending}
+            >
+              {socialLoginMutation.isPending ? (
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              ) : (
+                <>
+                  <GoogleIcon />
+                  <Text style={styles.socialButtonText}>Google</Text>
+                </>
+              )}
+            </TouchableOpacity>
 
-            <Button title="Continue with Google" variant="outline" icon={<GoogleIcon />} style={styles.socialButton} />
+            <TouchableOpacity
+              style={styles.socialButton}
+              activeOpacity={0.8}
+              onPress={handleFacebookSignIn}
+              disabled={isPending}
+            >
+              {socialLoginMutation.isPending ? (
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              ) : (
+                <>
+                  <FacebookIcon />
+                  <Text style={styles.socialButtonText}>Facebook</Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
 
           {/* Bottom Sign Up Link */}
           <View style={styles.footerContainer}>
             <Text style={styles.footerText}>
-              Don’t have an account ?{" "}
-              <Text style={styles.signUpLink} onPress={() => navigation.navigate("Register")}>
+              Don't have an account?{" "}
+              <Text style={styles.signUpLink} onPress={() => router.push("/(auth)/register")}>
                 Sign Up
               </Text>
             </Text>
@@ -248,107 +359,120 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.lg,
+    paddingTop: Platform.OS === "ios" ? 20 : 40,
+    paddingBottom: SPACING.xl,
     justifyContent: "center",
   },
   headerContainer: {
-    marginTop: Platform.OS === "ios" ? 20 : 40,
-    marginBottom: 40,
+    alignItems: "center",
+    marginBottom: rem(1.5),
+  },
+  logoCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: COLORS.secondary,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: SPACING.sm,
   },
   welcomeText: {
-    fontSize: rem(2.125),
+    fontSize: rem(1.6),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.black,
-    lineHeight: 40,
+    marginBottom: 6,
   },
-  signInText: {
-    fontSize: rem(2.125),
-    fontFamily: FONTS.montserrat.bold,
-    color: COLORS.black,
-    lineHeight: 40,
-    marginTop: 4,
+  subText: {
+    fontSize: rem(0.8125),
+    fontFamily: FONTS.manrope.medium,
+    color: COLORS.textMuted,
+    textAlign: "center",
+    paddingHorizontal: SPACING.md,
   },
-  formContainer: {
-    width: "100%",
-    marginBottom: SPACING.md,
+  card: {
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
+    padding: SPACING.lg,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.04)",
   },
   forgotPasswordContainer: {
     alignSelf: "flex-end",
-    marginTop: SPACING.xs,
-    paddingVertical: SPACING.xs,
+    marginTop: 6,
+    marginBottom: SPACING.md,
   },
   forgotPasswordText: {
-    fontSize: rem(0.875),
-    fontFamily: FONTS.manrope.semibold,
-    color: COLORS.black,
-    textDecorationLine: "underline",
+    fontSize: rem(0.8125),
+    fontFamily: FONTS.manrope.bold,
+    color: COLORS.primary,
   },
-  buttonContainer: {
-    width: "100%",
-    marginTop: SPACING.md,
-    marginBottom: SPACING.lg,
+  buttonWrapper: {
+    marginTop: SPACING.xs,
+  },
+  signInButton: {
+    borderRadius: 16,
+    height: 52,
   },
   dividerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    width: "100%",
-    marginVertical: SPACING.md,
+    justifyContent: "center",
+    marginVertical: rem(1.5),
+    paddingHorizontal: SPACING.md,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: COLORS.grayLight,
+    backgroundColor: "rgba(0,0,0,0.06)",
   },
   dividerText: {
-    marginHorizontal: SPACING.md,
-    fontSize: rem(0.875),
-    fontFamily: FONTS.montserrat.medium,
+    fontSize: rem(0.75),
+    fontFamily: FONTS.manrope.semibold,
     color: COLORS.textMuted,
+    marginHorizontal: 12,
   },
   socialContainer: {
-    width: "100%",
-    gap: SPACING.sm,
-    marginBottom: 40,
+    flexDirection: "row",
+    gap: SPACING.md,
+    marginBottom: rem(1.5),
   },
   socialButton: {
-    height: 56,
-    borderRadius: 28,
+    flex: 1,
+    flexDirection: "row",
+    height: 50,
+    borderRadius: 16,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.08)",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+  },
+  socialButtonText: {
+    fontSize: rem(0.875),
+    fontFamily: FONTS.manrope.bold,
+    color: COLORS.black,
   },
   facebookIconContainer: {
-    backgroundColor: COLORS.blue,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  loadingContainer: {
-    height: 56,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "#1877F2",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: COLORS.white,
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: COLORS.grayHeavvy,
-  },
-  loadingText: {
-    fontSize: rem(1),
-    fontFamily: FONTS.manrope.bold,
-    color: COLORS.primary,
   },
   footerContainer: {
     alignItems: "center",
-    justifyContent: "center",
-    marginTop: "auto",
-    paddingVertical: SPACING.md,
+    marginTop: SPACING.sm,
   },
   footerText: {
     fontSize: rem(0.875),
-    fontFamily: FONTS.manrope.semibold,
+    fontFamily: FONTS.manrope.medium,
     color: COLORS.textMuted,
   },
   signUpLink: {
-    color: COLORS.primary,
     fontFamily: FONTS.manrope.bold,
+    color: COLORS.primary,
   },
 });

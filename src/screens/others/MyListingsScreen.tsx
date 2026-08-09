@@ -6,9 +6,9 @@ import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
 import { rem } from "@/utils/responsive";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "expo-router";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
+import { useNavigation } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from "react-native";
@@ -66,7 +66,7 @@ const MyListingsScreen = () => {
     null,
   ]);
   const [uploadProgress, setUploadProgress] = useState<number[]>([100, 0, 0, 0, 0, 0]);
-  const uploadIntervals = React.useRef<{ [key: number]: NodeJS.Timeout }>({});
+  const uploadIntervals = React.useRef<{ [key: number]: any }>({});
 
   React.useEffect(() => {
     return () => {
@@ -423,34 +423,7 @@ const MyListingsScreen = () => {
         </SectionCard>
 
         <View style={styles.row}>
-          <SectionCard style={{ flex: 1, marginRight: SPACING.xs }}>
-            <SectionHeader icon="eye-outline" title="Visibility" showInfo />
-            <View style={styles.radioGroup}>
-              <RadioOption
-                label="Everyone"
-                selected={visibility === "Everyone"}
-                onPress={() => setVisibility("Everyone")}
-              />
-              <RadioOption
-                label="My College Only"
-                selected={visibility === "My College Only"}
-                onPress={() => setVisibility("My College Only")}
-              />
-            </View>
-            <View style={styles.collegeInfoBox}>
-              <View style={styles.collegeNameRow}>
-                <Ionicons name="school" size={16} color={COLORS.primary} />
-                <Text style={styles.collegeName} numberOfLines={1}>
-                  Shri Ram College of Commerce
-                </Text>
-              </View>
-              <TouchableOpacity>
-                <Text style={styles.changeText}>Change</Text>
-              </TouchableOpacity>
-            </View>
-          </SectionCard>
-
-          <SectionCard style={styles.performanceSection}>
+          <SectionCard style={[styles.performanceSection, { flex: 1 }]}>
             <SectionHeader icon="bar-chart-outline" title="Listing Performance" showInfo />
             <View style={styles.performanceGrid}>
               <View style={styles.perfItem}>
@@ -522,7 +495,7 @@ const MyListingsScreen = () => {
         </View>
       </ScrollView>
 
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom || SPACING.md }]}>
+      <View style={[styles.bottomBar, { bottom: insets.bottom > 0 ? insets.bottom + 8 : rem(1.0) }]}>
         <View style={styles.bottomBarRow}>
           <Button title="Cancel" variant="outline" style={styles.cancelBtn} onPress={() => navigation.goBack()} />
           <Button title="Save Changes" style={styles.saveBtn} onPress={handleSave} />
@@ -551,6 +524,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
+    paddingBottom: 120,
   },
   photoSectionWrapper: {
     backgroundColor: COLORS.secondary,
@@ -646,7 +620,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.manrope.bold,
   },
   progressOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: COLORS.completeTransparency,
     justifyContent: "center",
     alignItems: "center",
@@ -981,19 +955,19 @@ const styles = StyleSheet.create({
   },
   bottomBar: {
     position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
+    left: rem(1.0),
+    right: rem(1.0),
     backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.grayHeavvy,
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
+    borderRadius: 24,
+    elevation: 8,
     shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.04)",
   },
   bottomBarRow: {
     flexDirection: "row",

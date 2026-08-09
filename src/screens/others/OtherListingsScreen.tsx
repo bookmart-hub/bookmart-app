@@ -4,8 +4,8 @@ import { SPACING } from "@/constants/spacings";
 import { Book } from "@/data/models";
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "expo-router";
 import { Image } from "expo-image";
+import { useNavigation, useRoute } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -26,7 +26,7 @@ const OtherListingsScreen = () => {
           navigation.navigate("BookDetails", { book: item });
         }}
       >
-        <Image source={{ uri: item.imageUri || item.coverUri }} style={styles.bookImage} contentFit="fill" />
+        <Image source={{ uri: item.coverUri }} style={styles.bookImage} contentFit="fill" />
         <View style={styles.cardContent}>
           <Text style={styles.cardTitle} numberOfLines={2}>
             {item.title}

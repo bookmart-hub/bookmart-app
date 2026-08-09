@@ -145,7 +145,7 @@ const BookDetailsScreen = () => {
   // Autoscroll hooks and effects
   const flatListRef = useRef<FlatList>(null);
   const currentIndexRef = useRef(0);
-  const autoSlideRef = useRef<NodeJS.Timeout | null>(null);
+  const autoSlideRef = useRef<any>(null);
 
   const viewabilityConfig = useRef({
     viewAreaCoveragePercentThreshold: 50,
@@ -330,7 +330,7 @@ const BookDetailsScreen = () => {
       twoStar: 0,
       oneStar: 0,
     };
-    const sum = reviewsList.reduce((acc, curr) => {
+    const sum = reviewsList.reduce((acc: number, curr: any) => {
       const r = Math.round(curr.rating);
       if (r === 5) ratings.fiveStar++;
       else if (r === 4) ratings.fourStar++;
@@ -666,7 +666,7 @@ const BookDetailsScreen = () => {
           {/* Dynamic Reviews List */}
           <View style={styles.reviewsList}>
             {reviewsList.length > 0 ? (
-              reviewsList.map((review) => (
+              reviewsList.map((review: any) => (
                 <View key={review.id} style={styles.reviewCard}>
                   <View style={styles.reviewHeaderRow}>
                     <Text style={styles.reviewerName}>{review.reviewerName}</Text>
@@ -728,7 +728,7 @@ const BookDetailsScreen = () => {
       </ScrollView>
 
       {/* Bottom Sticky Action Bar (Optimized Pill Conversion flow) */}
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom > 0 ? insets.bottom : SPACING.sm }]}>
+      <View style={[styles.bottomBar, { bottom: insets.bottom > 0 ? insets.bottom + 8 : rem(1.0) }]}>
         <TouchableOpacity style={styles.backCtaButton} onPress={() => navigation.goBack()} activeOpacity={0.7}>
           <Ionicons name="arrow-back-outline" size={20} color={COLORS.text} />
         </TouchableOpacity>
@@ -1040,18 +1040,23 @@ const styles = StyleSheet.create({
   // Compact pill-shaped CTAs
   bottomBar: {
     position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
+    left: rem(1.0),
+    right: rem(1.0),
     backgroundColor: COLORS.white,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
     gap: SPACING.md,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.03)",
-    height: rem(4.5),
+    borderRadius: 24,
+    elevation: 8,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.04)",
+    height: rem(4.2),
   },
   backCtaButton: {
     width: rem(2.8),
