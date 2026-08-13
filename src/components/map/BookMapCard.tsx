@@ -1,14 +1,25 @@
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
-import { NearestBook } from "@/data/nearestBooksMockData";
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "expo-router";
 import { Image } from "expo-image";
+import { useNavigation } from "expo-router";
 import React, { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { useAnimatedStyle, withTiming } from "react-native-reanimated";
+
+interface NearestBook {
+  id: string;
+  title: string;
+  price: number;
+  imageUri: string;
+  latitude?: number;
+  longitude?: number;
+  genre?: string;
+  discount?: string;
+  condition?: string;
+}
 
 // Haversine formula
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -52,16 +63,7 @@ const BookMapCard: React.FC<BookMapCardProps> = ({ book, userLocation, onPress, 
     navigation.navigate("AppStack", {
       screen: "BookDetails",
       params: {
-        book: {
-          id: book.id,
-          title: book.title,
-          imageUri: book.imageUri,
-          price: book.price,
-          discount: book.discount,
-          categoryId: book.categoryId,
-          condition: book.condition,
-          genre: book.genre,
-        },
+        listingId: book.id,
         categoryTitle: book.genre || "Nearest Map",
       },
     });

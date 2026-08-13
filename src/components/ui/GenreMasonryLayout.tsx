@@ -1,7 +1,9 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/api/clients";
+
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
-import { FeedItem } from "@/data/models";
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
@@ -12,53 +14,85 @@ import React, { memo, useCallback, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import HeartBurst from "./HeartBrust";
+import { BookCardSkeleton } from "@/components/skeleton/SkeletonLoader";
 
 const COLUMN_GAP = 16;
 const PADDING_HORIZONTAL = SPACING.lg;
 
 interface GenreMasonryLayoutProps {
-  data: FeedItem[];
+  genreTitle: string;
 }
 
 const MasonryBookCard = memo(({ book, navigation }: { book: any; navigation: any }) => {
-  const [isLiked, setIsLiked] = useState(false);
+  const queryClient = useQueryClient();
   const [showBurst, setShowBurst] = useState(false);
 
-  const toggleLike = useCallback(() => {
-    setIsLiked((prev) => {
-      const next = !prev;
-      if (next) {
-        setShowBurst(true);
-        setTimeout(() => setShowBurst(false), 600);
+  const { data: wishlistData } = useQuery({
+    queryKey: ["wishlist"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/marketplace/wishlist/");
+      return response.data.results || [];
+    },
+  });
+
+  const wishlistEntry = useMemo(() => {
+    if (!wishlistData) return null;
+    return wishlistData.find((w: any) => String(w.listing.id) === String(book.id));
+  }, [wishlistData, book.id]);
+
+  const isLiked = !!wishlistEntry;
+
+  const toggleWishlistMutation = useMutation({
+    mutationFn: async () => {
+      if (isLiked && wishlistEntry) {
+        await api.delete(`/api/v1/marketplace/wishlist/${wishlistEntry.id}/`);
+      } else {
+        await api.post("/api/v1/marketplace/wishlist/", { listing: book.id });
       }
-      return next;
-    });
-  }, []);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+    },
+  });
+
+  const toggleLike = useCallback(() => {
+    if (!isLiked) {
+      setShowBurst(true);
+      setTimeout(() => setShowBurst(false), 600);
+    }
+    toggleWishlistMutation.mutate();
+  }, [isLiked, toggleWishlistMutation]);
 
   return (
     <TouchableOpacity
-      style={styles.card}
-      activeOpacity={0.9}
-      onPress={() => {
-        navigation.navigate("(screens)", {
+      style={styles.cardContainer}
+      onPress={() =>
+        navigation.navigate("AppStack", {
           screen: "BookDetails",
-          params: { listingId: book.id },
-        });
-      }}
+          params: { listingId: book.id, categoryTitle: book.genre || "Genre" },
+        })
+      }
+      activeOpacity={0.9}
     >
-      <Image source={{ uri: book.imageUri || book.coverUri }} style={styles.bookImage} contentFit="fill" />
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={2}>
+      <View style={styles.cardInner}>
+        <Image
+          source={{ uri: book.imageUri }}
+          style={styles.bookCover}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+        />
+        <Text style={styles.bookTitle} numberOfLines={1}>
           {book.title}
         </Text>
-        <Text style={styles.author} numberOfLines={1}>
-          {book.author || "Unknown"}
+        <Text style={styles.bookAuthor} numberOfLines={1}>
+          {book.author}
         </Text>
-        <View style={styles.priceRow}>
+
+        <View style={styles.cardFooter}>
           <Text style={styles.priceText}>₹{book.price}</Text>
+
           <View style={styles.heartContainer}>
             <TouchableOpacity
-              activeOpacity={0.7}
               onPress={toggleLike}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
@@ -71,34 +105,10 @@ const MasonryBookCard = memo(({ book, navigation }: { book: any; navigation: any
             {showBurst && <HeartBurst />}
           </View>
         </View>
-        {(book.discount || book.stock || (book.otherListings && book.otherListings.length > 0)) && (
-          <View style={styles.metaRow}>
-            {book.discount && <Text style={styles.discountText}>{book.discount}</Text>}
-            {book.otherListings && book.otherListings.length > 0 ? (
-              <TouchableOpacity
-                style={styles.moreOptionsBtn}
-                onPress={() =>
-                  navigation.navigate("(screens)", {
-                    screen: "OtherListings",
-                    params: { book, otherListings: book.otherListings },
-                  })
-                }
-                activeOpacity={0.7}
-              >
-                <Text style={styles.moreOptionsText}>+{book.otherListings.length} More</Text>
-              </TouchableOpacity>
-            ) : book.stock ? (
-              <Text style={styles.stockText}>{book.stock}</Text>
-            ) : null}
-          </View>
-        )}
       </View>
     </TouchableOpacity>
   );
 });
-
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/api/clients";
 
 const getSlugFromTitle = (title: string) => {
   return title
@@ -107,15 +117,12 @@ const getSlugFromTitle = (title: string) => {
     .replace(/(^-|-$)/g, "");
 };
 
-const GenreMasonryLayout: React.FC<GenreMasonryLayoutProps> = ({ data }) => {
+const GenreMasonryLayout = memo(({ genreTitle }: GenreMasonryLayoutProps) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-
-  const headerItem = data.find((item) => item.type === "header");
-  const genreTitle = headerItem ? headerItem.title : "Books";
   const genreSlug = getSlugFromTitle(genreTitle);
 
-  // Use genres__slug URL search param to match the django backend filter
+  // Fetch books matching genre slug
   const {
     data: booksData,
     isLoading,
@@ -129,16 +136,7 @@ const GenreMasonryLayout: React.FC<GenreMasonryLayoutProps> = ({ data }) => {
   });
 
   const genreBooks = useMemo(() => {
-    if (!booksData?.results || booksData.results.length === 0) {
-      // Return mock books as fallback
-      const mockBooks: any[] = [];
-      data.forEach((item) => {
-        if (item.type === "book" && item.book) {
-          mockBooks.push(item.book);
-        }
-      });
-      return mockBooks;
-    }
+    if (!booksData?.results) return [];
     return booksData.results.map((item: any) => {
       const activeListing = item.ranked_listings?.[0] || item.listings?.[0];
       return {
@@ -150,20 +148,20 @@ const GenreMasonryLayout: React.FC<GenreMasonryLayoutProps> = ({ data }) => {
           activeListing?.listing_images?.[0]?.image_url ||
           item.cover_url ||
           "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+        genre: genreTitle,
       };
     });
-  }, [booksData, data]);
+  }, [booksData, genreTitle]);
 
   const processedData = useMemo(() => {
-    const nonBookItems = data.filter((item) => item.type !== "book");
-    const dynamicBookItems = genreBooks.map((book: any) => ({
-      type: "book" as const,
-      book,
-    }));
-    return [...nonBookItems, ...dynamicBookItems];
-  }, [data, genreBooks]);
+    const listItems = [
+      { type: "header" as const },
+      ...genreBooks.map((book) => ({ type: "book" as const, book })),
+    ];
+    return listItems;
+  }, [genreBooks]);
 
-  const renderItem = ({ item }: { item: FeedItem }) => {
+  const renderItem = ({ item }: { item: any }) => {
     const wrapperStyle = {
       paddingHorizontal: COLUMN_GAP / 2,
       paddingBottom: COLUMN_GAP,
@@ -174,23 +172,9 @@ const GenreMasonryLayout: React.FC<GenreMasonryLayoutProps> = ({ data }) => {
         return (
           <View style={[styles.headerContainer, wrapperStyle]}>
             <Text style={styles.headerTitle} numberOfLines={1} adjustsFontSizeToFit={true}>
-              {item.title}
+              {genreTitle}
             </Text>
-            <Text style={styles.headerSubtitle}>{item.subtitle}</Text>
-          </View>
-        );
-
-      case "ad":
-        return (
-          <View style={[wrapperStyle]}>
-            <View style={styles.adCard}>
-              <Image source={{ uri: item.imageUrl }} style={styles.adImage} contentFit="fill" />
-              {item.text && (
-                <View style={styles.adOverlay}>
-                  <Text style={styles.adText}>{item.text}</Text>
-                </View>
-              )}
-            </View>
+            <Text style={styles.headerSubtitle}>Explore listings from this category</Text>
           </View>
         );
 
@@ -215,128 +199,115 @@ const GenreMasonryLayout: React.FC<GenreMasonryLayoutProps> = ({ data }) => {
         </TouchableOpacity>
       </View>
 
-      <FlashList
-        data={processedData}
-        renderItem={renderItem}
-        numColumns={2}
-        masonry
-        getItemType={(item) => item.type}
-        contentContainerStyle={{
-          paddingHorizontal: PADDING_HORIZONTAL - COLUMN_GAP / 2,
-          paddingBottom: SPACING.xl,
-        }}
-        showsVerticalScrollIndicator={false}
-        onRefresh={refetch}
-        refreshing={isLoading}
-      />
+      {isLoading ? (
+        <View style={{ paddingHorizontal: SPACING.lg }}>
+          <FlatList
+            data={Array.from({ length: 4 })}
+            keyExtractor={(_, index) => String(index)}
+            renderItem={() => <BookCardSkeleton />}
+            numColumns={2}
+            columnWrapperStyle={{ justifyContent: "space-between", marginBottom: COLUMN_GAP }}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
+      ) : (
+        <FlashList
+          data={processedData}
+          renderItem={renderItem}
+          numColumns={2}
+          masonry
+          getItemType={(item) => item.type}
+          contentContainerStyle={{
+            paddingHorizontal: PADDING_HORIZONTAL - COLUMN_GAP / 2,
+            paddingBottom: insets.bottom + SPACING.xl,
+          }}
+          estimatedItemSize={250}
+          onRefresh={refetch}
+          refreshing={isLoading}
+          ListEmptyComponent={
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 40 }}>
+              <Text style={{ fontFamily: FONTS.manrope.medium, color: COLORS.textMuted }}>No books found in this category.</Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
-};
+});
 
 export default GenreMasonryLayout;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  card: {
     backgroundColor: COLORS.white,
-    borderRadius: rem(0.75),
-    overflow: "hidden",
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  bookImage: {
-    width: "100%",
-    height: rem(8.125),
-  },
-  cardContent: {
-    padding: rem(0.5625),
-  },
-  author: {
-    fontSize: rem(0.65625),
-    color: COLORS.text,
-    marginTop: rem(0.1875),
-    marginBottom: rem(0.3125),
-  },
-  cardTitle: {
-    fontSize: rem(0.78125),
-    lineHeight: rem(1),
-    fontFamily: FONTS.montserrat.bold,
-    color: COLORS.black,
   },
   appBar: {
-    flexDirection: "row",
-    alignItems: "center",
+    height: rem(3.5),
+    justifyContent: "center",
     paddingHorizontal: PADDING_HORIZONTAL,
-    paddingVertical: SPACING.md,
   },
   headerContainer: {
-    marginBottom: SPACING.sm,
+    paddingTop: rem(0.5),
+    paddingBottom: rem(1.0),
+    width: "100%",
   },
   headerTitle: {
-    fontSize: rem(2),
+    fontSize: rem(2.0),
     fontFamily: FONTS.montserrat.bold,
-    color: COLORS.black,
-    marginBottom: rem(0.3125),
+    color: COLORS.text,
+    letterSpacing: -0.5,
   },
   headerSubtitle: {
-    fontSize: rem(0.875),
+    fontSize: rem(0.8125),
     fontFamily: FONTS.manrope.medium,
-    color: COLORS.black,
-    lineHeight: rem(1.125),
+    color: COLORS.textMuted,
+    marginTop: rem(0.25),
   },
-  adCard: {
-    borderRadius: rem(0.9375),
-    overflow: "hidden",
-    height: rem(8.75),
-    backgroundColor: COLORS.grayLight,
-    position: "relative",
-    justifyContent: "center",
-    alignItems: "center",
+  cardContainer: {
+    width: "100%",
+    backgroundColor: COLORS.white,
+    borderRadius: rem(1.0),
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.04,
     shadowRadius: 10,
-    elevation: 2,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: COLORS.grayLight,
+    overflow: "hidden",
   },
-  adImage: {
+  cardInner: {
+    padding: rem(0.625),
+  },
+  bookCover: {
     width: "100%",
-    height: "100%",
-    position: "absolute",
+    height: rem(12.0),
+    borderRadius: rem(0.625),
+    backgroundColor: COLORS.background,
   },
-  adOverlay: {
-    backgroundColor: "rgba(0,0,0,0.4)",
-    paddingHorizontal: rem(0.75),
-    paddingVertical: rem(0.375),
-    borderRadius: rem(0.5),
-  },
-  adText: {
-    color: COLORS.white,
-    fontFamily: FONTS.montserrat.bold,
+  bookTitle: {
     fontSize: rem(0.875),
+    fontFamily: FONTS.montserrat.bold,
+    color: COLORS.text,
+    marginTop: rem(0.625),
   },
-  priceRow: {
+  bookAuthor: {
+    fontSize: rem(0.75),
+    fontFamily: FONTS.manrope.medium,
+    color: COLORS.textMuted,
+    marginTop: 2,
+  },
+  cardFooter: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginTop: rem(0.625),
   },
   priceText: {
-    fontSize: rem(0.78125),
+    fontSize: rem(0.9375),
     fontFamily: FONTS.montserrat.bold,
     color: COLORS.primary,
-  },
-  addButton: {
-    width: rem(1.375),
-    height: rem(1.375),
-    borderRadius: rem(0.6875),
-    backgroundColor: COLORS.primary,
-    justifyContent: "center",
-    alignItems: "center",
   },
   heartContainer: {
     width: rem(1.75),
@@ -344,35 +315,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
-    marginRight: -rem(0.25),
-  },
-  metaRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: rem(0.375),
-  },
-  discountText: {
-    fontSize: rem(0.625),
-    fontFamily: FONTS.manrope.bold,
-    color: COLORS.primary,
-  },
-  stockText: {
-    fontSize: rem(0.625),
-    fontFamily: FONTS.manrope.bold,
-    color: COLORS.red,
-  },
-  moreOptionsBtn: {
-    backgroundColor: COLORS.background,
-    paddingHorizontal: rem(0.375),
-    paddingVertical: rem(0.125),
-    borderRadius: rem(0.25),
-    borderWidth: 1,
-    borderColor: COLORS.grayLight,
-  },
-  moreOptionsText: {
-    fontSize: rem(0.5625),
-    fontFamily: FONTS.manrope.bold,
-    color: COLORS.primary,
   },
 });

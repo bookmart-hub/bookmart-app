@@ -15,36 +15,10 @@ const COLUMN_GAP = SPACING.md;
 const PADDING_HORIZONTAL = SPACING.lg;
 const BOOK_CARD_WIDTH = (width - PADDING_HORIZONTAL * 2 - COLUMN_GAP) / 2;
 
-const MOCK_AUTHOR_BOOKS = [
-  {
-    id: "b1",
-    title: "The Da vinci Code",
-    price: 230,
-    imageUri: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=400&auto=format&fit=crop",
-  },
-  {
-    id: "b2",
-    title: "Carrie Fisher",
-    price: 230,
-    imageUri: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=400&auto=format&fit=crop",
-  },
-  {
-    id: "b3",
-    title: "The Good Sister",
-    price: 230,
-    imageUri: "https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=400&auto=format&fit=crop",
-  },
-  {
-    id: "b4",
-    title: "The Waiting",
-    price: 230,
-    imageUri: "https://images.unsplash.com/photo-1629196914225-ebdd4da6af5a?q=80&w=400&auto=format&fit=crop",
-  },
-];
 
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/api/clients";
-import { ActivityIndicator } from "react-native";
+import { BookCardSkeleton } from "@/components/skeleton/SkeletonLoader";
 
 const AuthorDetailsScreen = () => {
   const insets = useSafeAreaInsets();
@@ -52,7 +26,7 @@ const AuthorDetailsScreen = () => {
   const route = useRoute<any>();
 
   // Author can come from either AuthorListScreen (Author type) or HomeScreen (AuthorItem type)
-  const author = route.params?.author;
+  const author = route.params?.author ? (typeof route.params.author === 'string' ? JSON.parse(route.params.author) : route.params.author) : null;
 
   const { data: booksData, isLoading } = useQuery({
     queryKey: ["author-books", author?.name],
@@ -91,15 +65,15 @@ const AuthorDetailsScreen = () => {
     );
   }
 
-  const imageSource = author.imageUri || author.photoUri;
+  const imageSource = author.imageUri || author.photoUri || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop";
   const category = author.category || "Author";
   const rating = author.rating || 4.0;
 
-  // Fallback long bio if the provided bio is too short
+  // Fallback bio if empty
   const fullBio =
-    author.bio && author.bio.length > 50
+    author.bio && author.bio.trim().length > 10
       ? author.bio
-      : `${author.bio} Gunty was born and raised in South Bend, Indiana. She graduated from the University of Notre Dame with a Bachelor of Arts in English and from New York University.`;
+      : "A prominent author known for producing critically acclaimed books and capturing the hearts of readers globally.";
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -137,7 +111,10 @@ const AuthorDetailsScreen = () => {
         <View style={styles.booksSection}>
           <Text style={styles.sectionTitle}>Books</Text>
           {isLoading ? (
-            <ActivityIndicator size="small" color={COLORS.primary} style={{ marginTop: 20 }} />
+            <View style={styles.booksGrid}>
+              <BookCardSkeleton />
+              <BookCardSkeleton />
+            </View>
           ) : (
             <View style={styles.booksGrid}>
               {authorBooks.map((book: any) => (

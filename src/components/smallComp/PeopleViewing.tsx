@@ -94,7 +94,9 @@ const PeopleViewing: React.FC<PeopleViewingProps> = memo(
                     <Ionicons name="flame" size={10} color={COLORS.primary} />
                     <Text style={styles.trendingBadgeText}>TRENDING</Text>
                   </View>
-                  <Text style={styles.viewsText}>800+ viewed</Text>
+                  <Text style={styles.viewsText}>
+                    {spotlightBook.views} view{spotlightBook.views !== 1 ? "s" : ""}
+                  </Text>
                 </View>
                 <Text numberOfLines={1} style={styles.spotlightTitle}>
                   {spotlightBook.title}
@@ -157,7 +159,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
-    elevation: 1,
+    elevation: 0,
   },
   spotlightInner: {
     flexDirection: "row",

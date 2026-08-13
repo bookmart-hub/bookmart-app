@@ -81,13 +81,14 @@ const HomeScreen = () => {
       sellerAvatarUri:
         item.seller.profile_image ||
         "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
+      views: item.views_count || 0,
     }),
     []
   );
 
   const sponsoredBooks = useMemo(() => {
     if (!listingsData?.results) return [];
-    return listingsData.results.slice(0, 4).map(mapListingToBook);
+    return listingsData.results.filter((item: any) => item.is_boosted).map(mapListingToBook);
   }, [listingsData, mapListingToBook]);
 
   const nearestBooks = useMemo(() => {
@@ -123,7 +124,10 @@ const HomeScreen = () => {
 
   const peopleViewing = useMemo(() => {
     if (!listingsData?.results) return [];
-    return listingsData.results.slice().reverse().slice(0, 5).map(mapListingToBook);
+    return [...listingsData.results]
+      .sort((a: any, b: any) => (b.views_count || 0) - (a.views_count || 0))
+      .slice(0, 5)
+      .map(mapListingToBook);
   }, [listingsData, mapListingToBook]);
 
   const endingSoon = useMemo(() => {

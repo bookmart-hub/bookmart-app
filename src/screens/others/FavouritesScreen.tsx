@@ -15,7 +15,7 @@ const { width, height } = Dimensions.get("window");
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/clients";
-import { ActivityIndicator } from "react-native";
+import { BookCardSkeleton } from "@/components/skeleton/SkeletonLoader";
 
 const FavouritesScreen = () => {
   const insets = useSafeAreaInsets();
@@ -123,8 +123,10 @@ const FavouritesScreen = () => {
       <Header title="My Interests" backButton />
 
       {isLoading ? (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+        <View style={{ paddingHorizontal: SPACING.lg, marginTop: 12 }}>
+          {Array.from({ length: 4 }).map((_, index) => (
+            <BookCardSkeleton key={index} />
+          ))}
         </View>
       ) : (
         <FlatList

@@ -1,3 +1,6 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/api/clients";
+
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
@@ -5,7 +8,7 @@ import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
-import React, { memo, useCallback, useState } from "react";
+import React, { memo, useCallback, useState, useMemo } from "react";
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import HeartBurst from "./HeartBrust";
 
@@ -34,7 +37,7 @@ interface NearestBooksProps {
 
 const BookCard = memo(
   ({ item, onPress }: { item: NearestBookItem; onPress?: (item: NearestBookItem) => void }) => {
-    const [isLiked, setIsLiked] = useState(false);
+    const queryClient = useQueryClient();
     const [showBurst, setShowBurst] = useState(false);
 
     const handlePress = useCallback(() => {
@@ -42,19 +45,44 @@ const BookCard = memo(
       onPress?.(item);
     }, [item, onPress]);
 
-    const toggleLike = useCallback(() => {
-      setIsLiked((prev) => {
-        const next = !prev;
-        if (next) {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          setShowBurst(true);
-          setTimeout(() => setShowBurst(false), 600);
+    const { data: wishlistData } = useQuery({
+      queryKey: ["wishlist"],
+      queryFn: async () => {
+        const response = await api.get("/api/v1/marketplace/wishlist/");
+        return response.data.results || [];
+      },
+    });
+
+    const wishlistEntry = useMemo(() => {
+      if (!wishlistData) return null;
+      return wishlistData.find((w: any) => String(w.listing.id) === String(item.id));
+    }, [wishlistData, item.id]);
+
+    const isLiked = !!wishlistEntry;
+
+    const toggleWishlistMutation = useMutation({
+      mutationFn: async () => {
+        if (isLiked && wishlistEntry) {
+          await api.delete(`/api/v1/marketplace/wishlist/${wishlistEntry.id}/`);
         } else {
-          Haptics.selectionAsync();
+          await api.post("/api/v1/marketplace/wishlist/", { listing: item.id });
         }
-        return next;
-      });
-    }, []);
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      },
+    });
+
+    const toggleLike = useCallback(() => {
+      if (!isLiked) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setShowBurst(true);
+        setTimeout(() => setShowBurst(false), 600);
+      } else {
+        Haptics.selectionAsync();
+      }
+      toggleWishlistMutation.mutate();
+    }, [isLiked, toggleWishlistMutation]);
 
     return (
       <TouchableOpacity activeOpacity={0.85} onPress={handlePress} style={styles.card}>

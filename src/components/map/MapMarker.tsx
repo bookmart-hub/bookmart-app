@@ -1,5 +1,10 @@
 import { COLORS } from "@/constants/colors";
-import { NearestBook } from "@/data/nearestBooksMockData";
+interface NearestBook {
+  id: string;
+  title: string;
+  latitude?: number;
+  longitude?: number;
+}
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect } from "react";
 import { StyleSheet, View } from "react-native";

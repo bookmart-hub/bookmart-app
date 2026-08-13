@@ -1,7 +1,6 @@
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
-import { Author, AUTHOR_CATEGORIES, MOCK_AUTHORS } from "@/data/authorMockData";
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
@@ -14,7 +13,7 @@ const { width } = Dimensions.get("window");
 
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/api/clients";
-import { ActivityIndicator } from "react-native";
+import { AuthorCardSkeleton } from "@/components/skeleton/SkeletonLoader";
 
 const AuthorListScreen = () => {
   const insets = useSafeAreaInsets();
@@ -45,6 +44,17 @@ const AuthorListScreen = () => {
     }));
   }, [authorsData]);
 
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    set.add("All");
+    authors.forEach((a: any) => {
+      if (a.category) {
+        set.add(a.category);
+      }
+    });
+    return Array.from(set);
+  }, [authors]);
+
   const filteredAuthors = useMemo(() => {
     if (activeCategory === "All") return authors;
     return authors.filter((author: any) => author.category === activeCategory);
@@ -52,7 +62,7 @@ const AuthorListScreen = () => {
 
   const handleAuthorPress = useCallback(
     (author: any) => {
-      navigation.navigate("AppStack", { screen: "AuthorDetails", params: { author } });
+      navigation.navigate("AppStack", { screen: "AuthorDetails", params: { author: JSON.stringify(author) } });
     },
     [navigation]
   );
@@ -80,7 +90,7 @@ const AuthorListScreen = () => {
       <FlatList
         horizontal
         showsHorizontalScrollIndicator={false}
-        data={AUTHOR_CATEGORIES}
+        data={categories}
         keyExtractor={(item) => item}
         contentContainerStyle={{ paddingHorizontal: SPACING.lg, gap: SPACING.lg }}
         renderItem={({ item }) => {
@@ -120,8 +130,10 @@ const AuthorListScreen = () => {
       {renderCategoryTabs()}
 
       {isLoading ? (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+        <View style={{ paddingHorizontal: SPACING.lg, marginTop: 12 }}>
+          {Array.from({ length: 4 }).map((_, index) => (
+            <AuthorCardSkeleton key={index} />
+          ))}
         </View>
       ) : (
         <FlatList

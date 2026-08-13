@@ -1,15 +1,16 @@
+import { api } from "@/api/clients";
 import BooksBottomSheet from "@/components/map/BooksBottomSheet";
 import MapMarker from "@/components/map/MapMarker";
 import UserLocationButton from "@/components/map/UserLocationButton";
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
-import { MOCK_CATEGORIES, MOCK_NEAREST_BOOKS, NearestBook } from "@/data/nearestBooksMockData";
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Location from "expo-location";
+import { useNavigation, useRoute } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Dimensions,
@@ -56,16 +57,13 @@ class MapErrorBoundary extends React.Component<{ children: React.ReactNode }, { 
 
 const { width, height } = Dimensions.get("window");
 
-// Mock User Location (Naihati Railway Station)
+// Mock User Location fallback (Naihati Railway Station)
 const MOCK_USER_LOCATION = {
   latitude: 22.8943,
-  longitude: 88.423,
+  longitude: 88.4239,
 };
 
-// Static categories calculation outside the component to prevent recreation on every render
-const EXTENDED_CATEGORIES = [{ id: "all", name: "All" }, ...MOCK_CATEGORIES];
-
-// Memoized Category Chip component to prevent redundant chip rendering
+// Memoized Category Chip component
 const CategoryChip = React.memo(
   ({
     cat,
@@ -100,10 +98,10 @@ const MapMarkerWrapper = React.memo(
     hasSelection,
     onPress,
   }: {
-    book: NearestBook;
+    book: any;
     isSelected: boolean;
     hasSelection: boolean;
-    onPress: (book: NearestBook) => void;
+    onPress: (book: any) => void;
   }) => {
     const [tracksViewChanges, setTracksViewChanges] = useState(true);
 
@@ -145,6 +143,7 @@ const NearestBooksMapScreen = () => {
   } | null>(null);
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
   const [activeCategoryId, setActiveCategoryId] = useState<string>(route.params?.categoryId || "all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [routeCoords, setRouteCoords] = useState<{ latitude: number; longitude: number }[]>([]);
   const [routeInfo, setRouteInfo] = useState<{ distance: string; duration: string } | null>(null);
@@ -156,23 +155,81 @@ const NearestBooksMapScreen = () => {
   const [locationServicesEnabled, setLocationServicesEnabled] = useState<boolean>(true);
   const [isUsingMockLocation, setIsUsingMockLocation] = useState<boolean>(false);
 
+  // Fetch real listings
+  const { data: listingsData } = useQuery({
+    queryKey: ["all-listings"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/marketplace/listings/");
+      return response.data;
+    },
+  });
+
+  // Fetch categories (genres)
+  const { data: genresData } = useQuery({
+    queryKey: ["genres"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/book/genres/");
+      return response.data;
+    },
+  });
+
+  const categories = useMemo(() => {
+    if (!genresData?.results) return [];
+    return [{ id: "all", name: "All", slug: "all" }, ...genresData.results];
+  }, [genresData]);
+
   const handleCategoryPress = useCallback((categoryId: string) => {
     setActiveCategoryId(categoryId);
     setSelectedBookId(null);
   }, []);
 
-  const filteredBooks = useMemo(() => {
-    let books = MOCK_NEAREST_BOOKS;
+  const processedBooks = useMemo(() => {
+    if (!listingsData?.results) return [];
+
+    let books = listingsData.results
+      .filter((item: any) => item.latitude && item.longitude)
+      .map((item: any) => ({
+        id: String(item.id),
+        title: item.book.title,
+        author: item.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
+        price: parseFloat(item.price),
+        imageUri:
+          item.listing_images?.[0]?.image_url ||
+          item.book.cover_url ||
+          "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+        latitude: parseFloat(item.latitude),
+        longitude: parseFloat(item.longitude),
+        genreSlug: item.book.genres?.[0]?.slug || "",
+        genre: item.book.genres?.[0]?.name || "General",
+        discount: "20% off",
+        condition: item.condition,
+        categoryId: item.book.genres?.[0]?.id ? String(item.book.genres[0].id) : "all",
+      }));
+
+    // Filter by category
     if (activeCategoryId !== "all") {
-      books = books.filter((b) => b.categoryId === activeCategoryId);
+      const selectedCategory = categories.find((c) => String(c.id) === String(activeCategoryId));
+      if (selectedCategory) {
+        books = books.filter((b: any) => b.genreSlug === selectedCategory.slug);
+      }
     }
+
+    // Filter by search query
+    if (searchQuery) {
+      books = books.filter(
+        (b: any) =>
+          b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          b.author.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
     return books;
-  }, [activeCategoryId]);
+  }, [listingsData, activeCategoryId, searchQuery, categories]);
 
   // OSRM route fetcher
   useEffect(() => {
     if (selectedBookId && userLocation) {
-      const book = filteredBooks.find((b) => b.id === selectedBookId);
+      const book = processedBooks.find((b) => b.id === selectedBookId);
       if (book?.latitude && book?.longitude) {
         fetch(
           `https://router.project-osrm.org/route/v1/driving/${userLocation.longitude},${userLocation.latitude};${book.longitude},${book.latitude}?overview=full&geometries=geojson`
@@ -197,9 +254,9 @@ const NearestBooksMapScreen = () => {
       setRouteCoords([]);
       setRouteInfo(null);
     }
-  }, [selectedBookId, userLocation, filteredBooks]);
+  }, [selectedBookId, userLocation, processedBooks]);
 
-  // Robust location requester with permissions, availability check and fallback configuration
+  // Robust location requester
   const requestLocation = useCallback(async () => {
     try {
       setLocationPermissionStatus("checking");
@@ -207,7 +264,6 @@ const NearestBooksMapScreen = () => {
       setLocationServicesEnabled(servicesEnabled);
 
       if (!servicesEnabled) {
-        console.warn("Location services disabled. Falling back to mock location.");
         setIsUsingMockLocation(true);
         setUserLocation(MOCK_USER_LOCATION);
         setLocationPermissionStatus("denied");
@@ -218,7 +274,6 @@ const NearestBooksMapScreen = () => {
       setLocationPermissionStatus(status === "granted" ? "granted" : "denied");
 
       if (status !== "granted") {
-        console.warn("Location permission denied. Falling back to mock location.");
         setIsUsingMockLocation(true);
         setUserLocation(MOCK_USER_LOCATION);
         return;
@@ -226,7 +281,6 @@ const NearestBooksMapScreen = () => {
 
       let location = null;
       try {
-        // Try fast last known position first
         location = await Location.getLastKnownPositionAsync({});
         if (!location) {
           location = await Location.getCurrentPositionAsync({
@@ -244,7 +298,6 @@ const NearestBooksMapScreen = () => {
         });
         setIsUsingMockLocation(false);
       } else {
-        console.warn("No coordinates retrieved. Falling back to mock location.");
         setIsUsingMockLocation(true);
         setUserLocation(MOCK_USER_LOCATION);
       }
@@ -289,7 +342,7 @@ const NearestBooksMapScreen = () => {
   };
 
   const handleBookPress = useCallback(
-    (book: NearestBook) => {
+    (book: any) => {
       setSelectedBookId((prev) => {
         const isClosing = prev === book.id;
         const newSelectedId = isClosing ? null : book.id;
@@ -420,7 +473,7 @@ const NearestBooksMapScreen = () => {
             />
           )}
 
-          {filteredBooks.map((book) => {
+          {processedBooks.map((book) => {
             if (!book.latitude || !book.longitude) return null;
             const isSelected = selectedBookId === book.id;
             return (
@@ -465,7 +518,13 @@ const NearestBooksMapScreen = () => {
 
           <View style={styles.searchContainer}>
             <Ionicons name="search-outline" size={20} color={COLORS.primary} style={styles.searchIcon} />
-            <TextInput style={styles.searchInput} placeholder="Search" placeholderTextColor={COLORS.textMuted} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search"
+              placeholderTextColor={COLORS.textMuted}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
           </View>
         </View>
 
@@ -474,7 +533,7 @@ const NearestBooksMapScreen = () => {
             <Ionicons name="list" size={22} color={COLORS.primary} />
           </TouchableOpacity>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesScroll}>
-            {EXTENDED_CATEGORIES.map((cat) => {
+            {categories.map((cat) => {
               const isActive = activeCategoryId === cat.id;
               return <CategoryChip key={cat.id} cat={cat} isActive={isActive} onPress={handleCategoryPress} />;
             })}
@@ -506,7 +565,7 @@ const NearestBooksMapScreen = () => {
       )}
 
       <BooksBottomSheet
-        books={filteredBooks}
+        books={processedBooks}
         selectedBookId={selectedBookId}
         onBookPress={handleBookPress}
         userLocation={userLocation}
@@ -524,140 +583,159 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.white,
   },
+  centerContent: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    fontFamily: FONTS.manrope.medium,
+    fontSize: rem(0.875),
+    color: COLORS.textMuted,
+  },
   map: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    width,
+    height,
+  },
+  errorContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    padding: SPACING.xl,
+  },
+  errorText: {
+    fontFamily: FONTS.manrope.medium,
+    fontSize: rem(0.875),
+    color: COLORS.text,
+    marginTop: SPACING.md,
+    marginBottom: SPACING.lg,
+    textAlign: "center",
+  },
+  retryButton: {
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.xl,
+    borderRadius: 20,
+    backgroundColor: COLORS.primary,
+  },
+  retryButtonText: {
+    fontFamily: FONTS.montserrat.bold,
+    fontSize: rem(0.75),
+    color: COLORS.white,
+  },
+  userLocationMarker: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(0, 128, 128, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerGradient: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    paddingBottom: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
     zIndex: 10,
+  },
+  warningBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.red,
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.md,
+    borderRadius: 8,
+    marginBottom: SPACING.sm,
+  },
+  warningBannerText: {
+    flex: 1,
+    fontFamily: FONTS.manrope.medium,
+    fontSize: rem(0.6875),
+    color: COLORS.white,
+  },
+  warningBannerAction: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingVertical: 2,
+    paddingHorizontal: SPACING.sm,
+    borderRadius: 4,
+    marginLeft: SPACING.sm,
+  },
+  warningBannerActionText: {
+    fontFamily: FONTS.manrope.semibold,
+    fontSize: rem(0.625),
+    color: COLORS.white,
   },
   headerTopRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.sm,
+    justifyContent: "space-between",
+    marginBottom: SPACING.md,
   },
   searchContainer: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.white,
     marginLeft: SPACING.md,
-    height: 44,
-    borderRadius: 12,
-    paddingHorizontal: SPACING.md,
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    height: 40,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: COLORS.grayHeavvy,
+    borderColor: "rgba(0, 128, 128, 0.15)",
+    backgroundColor: COLORS.white,
+    paddingHorizontal: SPACING.md,
   },
   searchIcon: {
-    marginRight: SPACING.sm,
+    marginRight: SPACING.xs,
   },
   searchInput: {
     flex: 1,
+    fontSize: rem(0.8125),
     fontFamily: FONTS.manrope.medium,
-    fontSize: rem(0.875),
     color: COLORS.black,
   },
   categoriesRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: SPACING.lg,
-    marginTop: SPACING.sm,
   },
   filterBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(0, 128, 128, 0.15)",
     backgroundColor: COLORS.white,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
     marginRight: SPACING.sm,
   },
   categoriesScroll: {
-    gap: SPACING.sm,
-    paddingRight: SPACING.lg,
+    gap: SPACING.xs,
+    paddingRight: SPACING.xl,
   },
   categoryChip: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: COLORS.white,
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.md,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.grayHeavvy,
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderColor: "rgba(0, 128, 128, 0.15)",
+    backgroundColor: COLORS.white,
+    justifyContent: "center",
+    alignItems: "center",
   },
   categoryChipActive: {
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
   },
   categoryText: {
-    fontFamily: FONTS.manrope.bold,
-    fontSize: rem(0.8125),
-    color: COLORS.black,
+    fontFamily: FONTS.montserrat.medium,
+    fontSize: rem(0.6875),
+    color: COLORS.textMuted,
   },
   categoryTextActive: {
     color: COLORS.white,
+    fontFamily: FONTS.montserrat.bold,
   },
   locationButtonContainer: {
     position: "absolute",
     right: SPACING.lg,
-    zIndex: 10,
-  },
-  listToggleButton: {
-    position: "absolute",
-    alignSelf: "center",
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.black,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: 30,
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-    zIndex: 10,
-  },
-  listToggleText: {
-    fontFamily: FONTS.manrope.bold,
-    fontSize: rem(0.875),
-    color: COLORS.white,
-  },
-  userLocationMarker: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.white,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 8,
+    zIndex: 5,
   },
   routeBadge: {
     position: "absolute",
@@ -665,86 +743,40 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.xs,
     paddingHorizontal: SPACING.md,
-    paddingVertical: 8,
     borderRadius: 20,
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 5,
     zIndex: 10,
   },
   routeBadgeText: {
-    fontFamily: FONTS.manrope.bold,
-    fontSize: rem(0.8125),
-    color: COLORS.white,
-  },
-  centerContent: {
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.white,
-  },
-  loadingText: {
-    fontFamily: FONTS.manrope.bold,
-    fontSize: rem(0.875),
-    color: COLORS.primary,
-  },
-  errorContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.white,
-    padding: SPACING.xl,
-  },
-  errorText: {
     fontFamily: FONTS.manrope.semibold,
-    fontSize: rem(0.875),
-    color: COLORS.black,
-    marginTop: SPACING.md,
-    marginBottom: SPACING.lg,
-    textAlign: "center",
-  },
-  retryButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: 12,
-  },
-  retryButtonText: {
-    fontFamily: FONTS.manrope.bold,
-    fontSize: rem(0.875),
+    fontSize: rem(0.75),
     color: COLORS.white,
   },
-  warningBanner: {
+  listToggleButton: {
+    position: "absolute",
+    alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(239, 68, 68, 0.95)",
-    paddingVertical: 6,
-    paddingHorizontal: SPACING.md,
-    marginHorizontal: SPACING.lg,
-    marginTop: SPACING.xs,
-    borderRadius: 10,
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.xl,
+    borderRadius: 24,
     shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    zIndex: 10,
   },
-  warningBannerText: {
-    flex: 1,
-    fontFamily: FONTS.manrope.semibold,
-    fontSize: rem(0.6875),
+  listToggleText: {
+    fontFamily: FONTS.montserrat.bold,
+    fontSize: rem(0.75),
     color: COLORS.white,
-  },
-  warningBannerAction: {
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  warningBannerActionText: {
-    fontFamily: FONTS.manrope.bold,
-    fontSize: rem(0.625),
-    color: "rgb(239, 68, 68)",
   },
 });

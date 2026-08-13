@@ -3,12 +3,15 @@ import React, { memo, useCallback } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
 
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
 import { rem } from "@/utils/responsive";
-import { GENRES_LIST, GenreItem } from "@/data/genreMockData";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/api/clients";
+import { useMemo } from "react";
 
 // Maps each genre to a sleek, modern Ionicons vector icon matching 2nd image explore style
 const getGenreIcon = (label: string): keyof typeof Ionicons.glyphMap => {
@@ -25,19 +28,56 @@ const getGenreIcon = (label: string): keyof typeof Ionicons.glyphMap => {
   return "book-sharp";
 };
 
+interface GenreItem {
+  id: string;
+  label: string;
+  imageUri: string | null;
+  screenName: string;
+}
+
 interface GenreSectionProps {
   genres?: GenreItem[];
 }
 
-const GenreSection = memo(({ genres = GENRES_LIST }: GenreSectionProps) => {
+const GenreSection = memo(() => {
   const navigation = useNavigation<any>();
+
+  const { data: genresData } = useQuery({
+    queryKey: ["genres"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/book/genres/");
+      return response.data;
+    },
+  });
+
+  const genres = useMemo(() => {
+    if (!genresData?.results) return [];
+    return genresData.results.map((g: any) => {
+      let screenName = "ScienceFiction";
+      const nameLower = g.name.toLowerCase();
+      if (nameLower.includes("romance")) screenName = "Romance";
+      else if (nameLower.includes("self help")) screenName = "SelfHelp";
+      else if (nameLower.includes("biography")) screenName = "Biography";
+      else if (nameLower.includes("business")) screenName = "Business";
+      else if (nameLower.includes("engineering")) screenName = "Engineering";
+      else if (nameLower.includes("medical")) screenName = "Medical";
+      else if (nameLower.includes("law")) screenName = "Law";
+      else if (nameLower.includes("competitive exams")) screenName = "CompetitiveExams";
+
+      return {
+        id: String(g.id),
+        label: g.name,
+        imageUri: g.image_url || null,
+        screenName,
+      };
+    });
+  }, [genresData]);
 
   const handlePress = useCallback(
     (item: GenreItem) => {
       Haptics.selectionAsync();
-      // Route directly using Expo Router layout stack navigate path
       navigation.navigate("(screens)", {
-        screen: item.screenName || "ScienceFiction",
+        screen: item.screenName,
       });
     },
     [navigation]
@@ -60,9 +100,13 @@ const GenreSection = memo(({ genres = GENRES_LIST }: GenreSectionProps) => {
               style={styles.cardWrapper}
               onPress={() => handlePress(item)}
             >
-              {/* Sleek square box with soft gray-teal background */}
+              {/* Sleek square box with image thumbnail */}
               <View style={styles.iconBox}>
-                <Ionicons name={iconName} size={24} color={COLORS.primary} />
+                {item.imageUri ? (
+                  <Image source={{ uri: item.imageUri }} style={styles.imageBox} contentFit="cover" />
+                ) : (
+                  <Ionicons name={iconName} size={24} color={COLORS.primary} />
+                )}
               </View>
               {/* Genre label directly below box */}
               <Text numberOfLines={1} style={styles.label}>
@@ -116,6 +160,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
     marginBottom: rem(0.3125),
+    overflow: "hidden",
+  },
+  imageBox: {
+    width: "100%",
+    height: "100%",
+    borderRadius: rem(0.875),
   },
   label: {
     fontSize: rem(0.625),

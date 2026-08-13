@@ -3,65 +3,178 @@ import HeartBurst from "@/components/ui/HeartBrust";
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
 import { SPACING } from "@/constants/spacings";
-import { DISTANCE_FILTERS, MOCK_CATEGORIES, MOCK_NEAREST_BOOKS, NearestBook } from "@/data/nearestBooksMockData";
 import { rem } from "@/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
-import { useNavigation } from "expo-router";
-import React, { useCallback, useMemo, useState } from "react";
+import { useNavigation, useRoute } from "expo-router";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { Dimensions, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Location from "expo-location";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/api/clients";
+import { BookCardSkeleton } from "@/components/skeleton/SkeletonLoader";
 
 const { width, height } = Dimensions.get("window");
 const COLUMN_GAP = SPACING.md;
 const PADDING_HORIZONTAL = SPACING.lg;
-// Adjusted for 2 columns with gaps
 const CARD_WIDTH = (width - PADDING_HORIZONTAL * 2 - COLUMN_GAP) / 2;
 
-const NearestBooksScreen = ({ route }: any) => {
+const MOCK_USER_LOCATION = { latitude: 22.8943, longitude: 88.4239 };
+const DISTANCE_FILTERS = ["Nearest To You", "< 2 km", "< 5 km", "< 10 km"];
+
+const getDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371; // Radius of the earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
+const NearestBooksScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const initialCategoryId = route?.params?.categoryId || "all";
+
   const [activeCategoryId, setActiveCategoryId] = useState<string>(initialCategoryId);
   const [activeFilter, setActiveFilter] = useState("Nearest To You");
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilter, setShowFilter] = useState(false);
-  const [priceRange, setPriceRange] = useState<number>(0);
+  const [priceRange, setPriceRange] = useState<number>(1000);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
-  const filteredBooks = useMemo(() => {
-    let books = MOCK_NEAREST_BOOKS;
+  // Request user coordinates
+  useEffect(() => {
+    const requestLocation = async () => {
+      try {
+        const servicesEnabled = await Location.hasServicesEnabledAsync();
+        if (!servicesEnabled) {
+          setUserLocation(MOCK_USER_LOCATION);
+          return;
+        }
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          setUserLocation(MOCK_USER_LOCATION);
+          return;
+        }
+        let location = await Location.getLastKnownPositionAsync({});
+        if (!location) {
+          location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+        }
+        if (location && location.coords) {
+          setUserLocation({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          });
+        } else {
+          setUserLocation(MOCK_USER_LOCATION);
+        }
+      } catch (err) {
+        setUserLocation(MOCK_USER_LOCATION);
+      }
+    };
+    requestLocation();
+  }, []);
+
+  // Fetch real listings
+  const { data: listingsData, isLoading: isLoadingListings, refetch } = useQuery({
+    queryKey: ["all-listings"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/marketplace/listings/");
+      return response.data;
+    },
+  });
+
+  // Fetch categories (genres) for filter modal
+  const { data: genresData } = useQuery({
+    queryKey: ["genres"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/book/genres/");
+      return response.data;
+    },
+  });
+
+  const categories = useMemo(() => {
+    if (!genresData?.results) return [];
+    return [{ id: "all", name: "All Genres", slug: "all" }, ...genresData.results];
+  }, [genresData]);
+
+  // Compute and sort listings
+  const processedBooks = useMemo(() => {
+    if (!listingsData?.results) return [];
+    
+    // 1. Map backend listings and calculate distance
+    let books = listingsData.results.map((item: any) => {
+      let distanceKm = 99999;
+      if (userLocation && item.latitude && item.longitude) {
+        distanceKm = getDistanceKm(
+          userLocation.latitude,
+          userLocation.longitude,
+          Number(item.latitude),
+          Number(item.longitude)
+        );
+      }
+      return {
+        id: String(item.id),
+        title: item.book.title,
+        author: item.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
+        price: parseFloat(item.price),
+        imageUri:
+          item.listing_images?.[0]?.image_url ||
+          item.book.cover_url ||
+          "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+        condition: item.condition,
+        distanceKm,
+        discount: "20% off",
+        genreSlug: item.book.genres?.[0]?.slug || "",
+      };
+    });
+
+    // 2. Sort by distance nearest first (but listings with real distance come first, then others)
+    books.sort((a: any, b: any) => a.distanceKm - b.distanceKm);
+
+    // 3. Filter by category (genre)
     if (activeCategoryId !== "all") {
-      books = books.filter((b) => b.categoryId === activeCategoryId);
+      const selectedCategory = categories.find((c) => c.id === activeCategoryId);
+      if (selectedCategory) {
+        books = books.filter((b: any) => b.genreSlug === selectedCategory.slug);
+      }
     }
-    if (activeFilter) {
-      // For demo purposes, we will just filter strictly by the string.
-      // In a real app, logic would handle distances properly.
-      books = books.filter((book) => book.distance === activeFilter);
+
+    // 4. Filter by distance range chip
+    if (activeFilter !== "Nearest To You") {
+      const maxDist = activeFilter.includes("2") ? 2 : activeFilter.includes("5") ? 5 : 10;
+      books = books.filter((b: any) => b.distanceKm <= maxDist);
     }
+
+    // 5. Filter by price range
+    books = books.filter((b: any) => b.price <= priceRange);
+
+    // 6. Filter by search query
     if (searchQuery) {
-      books = books.filter((book) => book.title.toLowerCase().includes(searchQuery.toLowerCase()));
+      books = books.filter((book: any) =>
+        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        book.author.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
+
     return books;
-  }, [activeFilter, searchQuery, activeCategoryId]);
+  }, [listingsData, userLocation, activeCategoryId, activeFilter, searchQuery, priceRange, categories]);
 
   const handleBookPress = useCallback(
-    (book: NearestBook) => {
-      // Map NearestBook to Book model expected by BookDetailsScreen
-      const mappedBook = {
-        id: book.id,
-        title: book.title,
-        imageUri: book.imageUri,
-        price: book.price,
-        discount: book.discount,
-        categoryId: book.categoryId,
-        condition: book.condition,
-      };
+    (book: any) => {
       navigation.navigate("AppStack", {
         screen: "BookDetails",
-        params: { book: mappedBook, categoryTitle: "Nearest" },
+        params: { listingId: book.id, categoryTitle: "Nearest" },
       });
     },
     [navigation]
@@ -75,7 +188,12 @@ const NearestBooksScreen = ({ route }: any) => {
 
       <View style={styles.searchContainer}>
         <Ionicons name="search-outline" size={20} color={COLORS.primary} style={styles.searchIcon} />
-        <TextInput style={styles.searchInput} placeholder="" value={searchQuery} onChangeText={setSearchQuery} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search books..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
       </View>
 
       <TouchableOpacity onPress={() => setShowFilter(true)}>
@@ -113,23 +231,48 @@ const NearestBooksScreen = ({ route }: any) => {
     </View>
   );
 
-  const BookCardItem = React.memo(({ item, onPress }: { item: NearestBook; onPress: (item: NearestBook) => void }) => {
-    const [isLiked, setIsLiked] = useState(false);
+  const BookCardItem = memo(({ item, onPress }: { item: any; onPress: (item: any) => void }) => {
+    const queryClient = useQueryClient();
     const [showBurst, setShowBurst] = useState(false);
 
-    const toggleLike = useCallback(() => {
-      setIsLiked((prev) => {
-        const next = !prev;
-        if (next) {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          setShowBurst(true);
-          setTimeout(() => setShowBurst(false), 600);
+    const { data: wishlistData } = useQuery({
+      queryKey: ["wishlist"],
+      queryFn: async () => {
+        const response = await api.get("/api/v1/marketplace/wishlist/");
+        return response.data.results || [];
+      },
+    });
+
+    const wishlistEntry = useMemo(() => {
+      if (!wishlistData) return null;
+      return wishlistData.find((w: any) => String(w.listing.id) === String(item.id));
+    }, [wishlistData, item.id]);
+
+    const isLiked = !!wishlistEntry;
+
+    const toggleWishlistMutation = useMutation({
+      mutationFn: async () => {
+        if (isLiked && wishlistEntry) {
+          await api.delete(`/api/v1/marketplace/wishlist/${wishlistEntry.id}/`);
         } else {
-          Haptics.selectionAsync();
+          await api.post("/api/v1/marketplace/wishlist/", { listing: item.id });
         }
-        return next;
-      });
-    }, []);
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      },
+    });
+
+    const toggleLike = useCallback(() => {
+      if (!isLiked) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setShowBurst(true);
+        setTimeout(() => setShowBurst(false), 600);
+      } else {
+        Haptics.selectionAsync();
+      }
+      toggleWishlistMutation.mutate();
+    }, [isLiked, toggleWishlistMutation]);
 
     return (
       <TouchableOpacity
@@ -152,7 +295,9 @@ const NearestBooksScreen = ({ route }: any) => {
           </Text>
 
           <View style={styles.bottomRow}>
-            <Text style={styles.discountText}>{item.discount}</Text>
+            <Text style={styles.discountText}>
+              {item.distanceKm < 99999 ? `${item.distanceKm.toFixed(1)} km` : "Nearby"}
+            </Text>
             <View style={styles.priceContainer}>
               <Text style={styles.currencySymbol}>₹ </Text>
               <Text style={styles.priceText}>{item.price}</Text>
@@ -160,7 +305,7 @@ const NearestBooksScreen = ({ route }: any) => {
           </View>
         </View>
 
-        {/* Floating Bag Button */}
+        {/* Floating Wishlist Button */}
         <TouchableOpacity
           style={styles.fab}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -169,7 +314,7 @@ const NearestBooksScreen = ({ route }: any) => {
           <Ionicons
             name={isLiked ? "heart" : "heart-outline"}
             size={20}
-            color={isLiked ? COLORS.primary : COLORS.textMuted}
+            color={isLiked ? COLORS.white : COLORS.white}
           />
           {showBurst && (
             <View style={{ position: "absolute", top: 5, left: 5 }}>
@@ -182,7 +327,7 @@ const NearestBooksScreen = ({ route }: any) => {
   });
 
   const renderBookCard = useCallback(
-    ({ item }: { item: NearestBook }) => <BookCardItem item={item} onPress={handleBookPress} />,
+    ({ item }: { item: any }) => <BookCardItem item={item} onPress={handleBookPress} />,
     [handleBookPress]
   );
 
@@ -191,20 +336,37 @@ const NearestBooksScreen = ({ route }: any) => {
       {renderHeader()}
       {renderFilters()}
 
-      <FlatList
-        data={filteredBooks}
-        keyExtractor={(item) => item.id}
-        renderItem={renderBookCard}
-        numColumns={2}
-        columnWrapperStyle={styles.columnWrapper}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        initialNumToRender={6}
-        maxToRenderPerBatch={6}
-        windowSize={5}
-        removeClippedSubviews={false}
-      />
+      {isLoadingListings ? (
+        <View style={{ paddingHorizontal: SPACING.lg }}>
+          <FlatList
+            data={Array.from({ length: 6 })}
+            keyExtractor={(_, index) => String(index)}
+            renderItem={() => <BookCardSkeleton />}
+            numColumns={2}
+            columnWrapperStyle={styles.columnWrapper}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
+      ) : (
+        <FlatList
+          data={processedBooks}
+          keyExtractor={(item) => item.id}
+          renderItem={renderBookCard}
+          numColumns={2}
+          columnWrapperStyle={styles.columnWrapper}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          onRefresh={refetch}
+          refreshing={isLoadingListings}
+          ListEmptyComponent={
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 40 }}>
+              <Text style={{ fontFamily: FONTS.manrope.medium, color: COLORS.textMuted }}>No nearest books found.</Text>
+            </View>
+          }
+        />
+      )}
+
       {showFilter && (
         <Animated.View entering={FadeIn.duration(300)} exiting={FadeOut.duration(250)} style={[styles.overlay]}>
           <TouchableOpacity activeOpacity={1} style={StyleSheet.absoluteFill} onPress={() => setShowFilter(false)} />
@@ -212,62 +374,56 @@ const NearestBooksScreen = ({ route }: any) => {
           <Animated.View
             entering={ZoomIn.duration(250).springify()}
             exiting={ZoomOut.duration(200)}
-            style={[
-              styles.filterModal,
-              {
-                transformOrigin: "top right" as any,
-              },
-            ]}
+            style={styles.filterModal}
           >
-            {/* Filter Content */}
-            <View
-              style={{
-                padding: 20,
-                minHeight: 200,
-              }}
-            >
+            <View style={{ padding: 20, minHeight: 200 }}>
               <View style={styles.filterHeader}>
                 <Ionicons name="close-outline" size={28} color={COLORS.black} onPress={() => setShowFilter(false)} />
                 <Text style={styles.filterTitle}>Filters</Text>
                 <View />
               </View>
+
               <View style={styles.filterCategoriesContainer}>
                 <Text style={styles.filterCategoriesText}>Categories</Text>
                 <FlatList
-                  data={MOCK_CATEGORIES}
+                  data={categories}
                   keyExtractor={(item) => item.id}
                   numColumns={2}
-                  contentContainerStyle={{
-                    paddingVertical: SPACING.sm,
+                  contentContainerStyle={{ paddingVertical: SPACING.sm }}
+                  renderItem={({ item }) => {
+                    const isSelected = activeCategoryId === item.id;
+                    return (
+                      <TouchableOpacity
+                        style={[styles.filterCategoriesColumnWrapper, isSelected && { backgroundColor: COLORS.secondary }]}
+                        onPress={() => {
+                          setActiveCategoryId(item.id);
+                          setShowFilter(false);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[styles.filterCategory, isSelected && { color: COLORS.primary, fontFamily: FONTS.montserrat.bold }]}>
+                          {item.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
                   }}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.filterCategoriesColumnWrapper}
-                      onPress={() => setShowFilter(false)}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={styles.filterCategory}>{item.name}</Text>
-                    </TouchableOpacity>
-                  )}
                 />
               </View>
 
-              <Text style={[styles.filterCategoriesText, { fontSize: rem(0.75) }]}>Price Range</Text>
+              <Text style={[styles.filterCategoriesText, { fontSize: rem(0.75), marginTop: 12 }]}>Price Limit (Max)</Text>
               <Slider
-                style={{ width: 320, height: 40, alignSelf: "center" }}
-                minimumValue={0}
-                maximumValue={1000}
-                step={1}
-                minimumTrackTintColor={COLORS.text}
+                style={{ width: "100%", height: 40, alignSelf: "center" }}
+                minimumValue={50}
+                maximumValue={2000}
+                step={10}
+                value={priceRange}
+                minimumTrackTintColor={COLORS.primary}
                 maximumTrackTintColor={COLORS.grayHeavvy}
                 thumbTintColor={COLORS.primary}
-                onValueChange={(value) => {
-                  console.log("Slider value:", value);
-                  setPriceRange(value);
-                }}
+                onValueChange={(value) => setPriceRange(value)}
               />
               <View style={styles.priceRangeContainer}>
-                <Text style={styles.priceRangeText}>₹ 0</Text>
+                <Text style={styles.priceRangeText}>₹ 50</Text>
                 <Text style={styles.priceRangeText}>₹ {priceRange}</Text>
               </View>
 
@@ -275,7 +431,12 @@ const NearestBooksScreen = ({ route }: any) => {
                 <Button
                   title="Clear"
                   variant="outline"
-                  onPress={() => setShowFilter(false)}
+                  onPress={() => {
+                    setActiveCategoryId("all");
+                    setActiveFilter("Nearest To You");
+                    setPriceRange(1000);
+                    setShowFilter(false);
+                  }}
                   style={{ width: "48%" }}
                   textStyle={{ fontSize: rem(0.9375) }}
                 />
@@ -364,8 +525,9 @@ const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFill,
     backgroundColor: "#00000069",
-    justifyContent: "flex-start",
-    alignItems: "flex-end",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 99,
   },
   activeFilterChip: {
     backgroundColor: COLORS.primary,
@@ -380,7 +542,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: SPACING.lg + SPACING.md,
+    marginBottom: SPACING.md,
   },
   filterTitle: {
     fontFamily: FONTS.manrope.bold,
@@ -389,13 +551,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   filterCategoriesText: {
-    fontFamily: FONTS.manrope.medium,
+    fontFamily: FONTS.manrope.bold,
     fontSize: rem(0.875),
     color: COLORS.text,
-    marginTop: SPACING.md,
+    marginTop: SPACING.xs,
+    marginBottom: SPACING.xs,
   },
   filterCategoriesContainer: {
-    marginTop: SPACING.md,
+    marginTop: SPACING.xs,
   },
   filterCategoriesColumnWrapper: {
     flex: 1,
@@ -403,11 +566,8 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.sm,
     backgroundColor: COLORS.grayLight,
-    borderRadius: 16,
-    borderTopWidth: 1,
-    borderBottomWidth: 0,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
+    borderRadius: 12,
+    borderWidth: 1,
     borderColor: COLORS.grayHeavvy,
     justifyContent: "center",
     alignItems: "center",
@@ -421,7 +581,6 @@ const styles = StyleSheet.create({
     fontSize: rem(0.75),
     color: COLORS.text,
     textAlign: "center",
-    marginTop: -SPACING.md,
   },
   filterButtonContainer: {
     flexDirection: "row",
@@ -446,12 +605,12 @@ const styles = StyleSheet.create({
   },
   columnWrapper: {
     justifyContent: "space-between",
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.md,
   },
   cardContainer: {
     width: CARD_WIDTH,
     alignItems: "center",
-    marginBottom: SPACING.xs,
+    marginBottom: SPACING.sm,
   },
   cardInner: {
     width: "100%",
@@ -464,6 +623,8 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 5,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: COLORS.grayLight,
   },
   bookCover: {
     width: "100%",
@@ -478,6 +639,7 @@ const styles = StyleSheet.create({
     color: COLORS.black,
     marginBottom: SPACING.sm,
     textAlign: "center",
+    width: "100%",
   },
   bottomRow: {
     flexDirection: "row",
@@ -485,10 +647,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     paddingHorizontal: SPACING.xs,
-    marginBottom: SPACING.md, // Leave space for FAB overlapping
   },
   discountText: {
-    fontSize: rem(0.875),
+    fontSize: rem(0.75),
     fontFamily: FONTS.manrope.semibold,
     color: COLORS.primary,
   },
@@ -524,43 +685,15 @@ const styles = StyleSheet.create({
     borderColor: COLORS.white,
   },
   filterModal: {
-    width: width * 0.8,
-    height: height * 0.75,
+    width: width * 0.9,
+    maxHeight: height * 0.8,
     backgroundColor: COLORS.white,
     borderRadius: 24,
-    borderTopRightRadius: 4, // Make it look like it's pointing to the icon
     overflow: "hidden",
-    position: "absolute",
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.15,
     shadowRadius: 20,
     elevation: 10,
-  },
-  mapToggleButton: {
-    position: "absolute",
-    bottom: 30,
-    alignSelf: "center",
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.white,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: 30,
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.grayHeavvy,
-    zIndex: 1,
-  },
-  mapToggleText: {
-    fontFamily: FONTS.manrope.bold,
-    fontSize: rem(0.875),
-    color: COLORS.white,
-  },
-  listContainer: {
-    flexDirection: "row",
   },
 });

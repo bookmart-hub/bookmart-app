@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: CARD_WIDTH,
-    height: rem(13.5), // Tall vertical portrait aspect ratio (spotlight card style)
+    height: rem(9.5), // Compact landscape aspect ratio
     borderRadius: rem(1.0),
     overflow: "hidden",
     position: "relative",

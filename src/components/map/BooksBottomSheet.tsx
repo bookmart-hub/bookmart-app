@@ -1,7 +1,17 @@
 import CleanBottomSheet from "@/components/ui/CleanBottomSheet";
 import { COLORS } from "@/constants/colors";
 import { SPACING } from "@/constants/spacings";
-import { NearestBook } from "@/data/nearestBooksMockData";
+interface NearestBook {
+  id: string;
+  title: string;
+  price: number;
+  imageUri: string;
+  latitude?: number;
+  longitude?: number;
+  genre?: string;
+  discount?: string;
+  condition?: string;
+}
 import React, { useCallback, useEffect, useRef } from "react";
 import { FlatList, Platform, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

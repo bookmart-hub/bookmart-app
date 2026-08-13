@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "831757275335",
+    "project_id": "bookmart-c7917",
+    "storage_bucket": "bookmart-c7917.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:831757275335:android:868a12d93829e984f72ee2",
+        "android_client_info": {
+          "package_name": "com.bookmart.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCBkKZ2rQUwzj456JY1H--P1AxkeRFaMog"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

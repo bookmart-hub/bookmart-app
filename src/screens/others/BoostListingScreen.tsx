@@ -1,3 +1,5 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/api/clients";
 import Header from "@/components/ui/Header";
 import { COLORS } from "@/constants/colors";
 import { FONTS } from "@/constants/fonts";
@@ -8,39 +10,11 @@ import { useNavigation } from "expo-router";
 
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type NavigationProp = any;
-
-// Dummy data matching the design
-const MY_LISTINGS = [
-  {
-    id: "1",
-    title: "Atomic Habits",
-    author: "James Clear",
-    price: 350,
-    coverUri: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400&h=600&fit=crop",
-    isBoosted: true,
-  },
-  {
-    id: "2",
-    title: "The Kite Runner",
-    author: "Khaled Hosseini",
-    price: 230,
-    coverUri: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop",
-    isBoosted: false,
-  },
-  {
-    id: "3",
-    title: "1984",
-    author: "George Orwell",
-    price: 200,
-    coverUri: "https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=400&h=600&fit=crop",
-    isBoosted: false,
-  },
-];
 
 const PLANS = [
   {
@@ -73,9 +47,76 @@ export default function BoostListingScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const { width } = useWindowDimensions();
+  const queryClient = useQueryClient();
 
   const [selectedPlanId, setSelectedPlanId] = useState("pro_plus");
-  const [selectedBooks, setSelectedBooks] = useState<string[]>(["1"]); // Pre-select Atomic Habits based on design
+  const [selectedBooks, setSelectedBooks] = useState<string[]>([]);
+
+  // Fetch current user profile
+  const { data: userProfile } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/core/profile/me/");
+      return response.data;
+    },
+  });
+
+  // Fetch all listings to filter user's own listings on the client
+  const { data: listingsData } = useQuery({
+    queryKey: ["all-listings"],
+    queryFn: async () => {
+      const response = await api.get("/api/v1/marketplace/listings/");
+      return response.data;
+    },
+  });
+
+  const myListings = useMemo(() => {
+    if (!listingsData?.results || !userProfile?.user_id) return [];
+    return listingsData.results
+      .filter((item: any) => item.seller.id === userProfile.user_id)
+      .map((item: any) => ({
+        id: String(item.id),
+        title: item.book.title,
+        author: item.book.authors?.map((a: any) => a.name).join(", ") || "Unknown Author",
+        price: parseFloat(item.price),
+        coverUri:
+          item.listing_images?.[0]?.image_url ||
+          item.book.cover_url ||
+          "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=440&fit=crop",
+        isBoosted: item.is_boosted || false,
+      }));
+  }, [listingsData, userProfile]);
+
+  // Set default selection
+  React.useEffect(() => {
+    if (myListings.length > 0 && selectedBooks.length === 0) {
+      // Pre-select first unboosted book if available
+      const unboosted = myListings.find((b) => !b.isBoosted);
+      if (unboosted) {
+        setSelectedBooks([unboosted.id]);
+      }
+    }
+  }, [myListings]);
+
+  const boostMutation = useMutation({
+    mutationFn: async (listingId: string) => {
+      await api.post(`/api/v1/marketplace/listings/${listingId}/boost/`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-listings"] });
+    },
+  });
+
+  const handleBoostNow = async () => {
+    if (selectedBooks.length === 0) return;
+    try {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      await Promise.all(selectedBooks.map((id) => boostMutation.mutateAsync(id)));
+      navigation.goBack();
+    } catch (err) {
+      console.error("Boosting failed:", err);
+    }
+  };
 
   const handleToggleBook = (id: string, isBoosted: boolean) => {
     if (isBoosted) return; // Cannot toggle already boosted books here
@@ -85,8 +126,6 @@ export default function BoostListingScreen() {
       const currentPlan = PLANS.find((p) => p.id === selectedPlanId);
       if (currentPlan && selectedBooks.length < currentPlan.books) {
         setSelectedBooks((prev) => [...prev, id]);
-      } else {
-        // Could show a toast indicating plan limit reached
       }
     }
   };
@@ -188,7 +227,7 @@ export default function BoostListingScreen() {
       <Text style={styles.sectionTitle}>Select Books to Boost</Text>
 
       <View style={styles.bookListContainer}>
-        {MY_LISTINGS.map((book) => {
+        {myListings.map((book) => {
           const isSelected = selectedBooks.includes(book.id);
           return (
             <TouchableOpacity
@@ -265,7 +304,7 @@ export default function BoostListingScreen() {
           <Text style={styles.bottomBarSub}>Boosted books will be visible for 24 hours.</Text>
         </View>
         <View style={styles.bottomBarAction}>
-          <TouchableOpacity style={styles.boostNowBtn} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.boostNowBtn} activeOpacity={0.8} onPress={handleBoostNow}>
             <Text style={styles.boostNowText}>Boost Now</Text>
           </TouchableOpacity>
           <View style={styles.coinRow}>
